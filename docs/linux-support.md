@@ -8,9 +8,9 @@
 |---|---|---|
 | L1 | OS共通キーと入力API、Windows入力の分離、既存設定の互換性、Windows回帰テスト | 実装・自動回帰検証済み |
 | L2 | 環境・機能の実検出、利用可能/許可待ち/未対応のアプリ内表示と設定導線 | Ubuntu 24.04のPCホームで許可待ち→OS確認→利用可を実操作検証。別環境と拒否時の画面検証が残る |
-| L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11の実入力検証済み。両Ubuntuのnative Waylandでキー・保持ドラッグ・1.2秒反復・終了解除を確認。22.04のホイールも確認。24.04のホイールと切断失効時の実確認が残る |
-| L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 両Ubuntuのnative WaylandでUnicode初回受信と連続操作・キャンセルを確認。端末への貼り付けと実再送抑止確認が残る |
-| L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | 実Chromeの2プロファイル接続、X11とWayland上のXWayland Chromeで相互切り替えを確認。native Wayland Chromeは別ウィンドウへのフォーカス拒否を検出。22.04側と修復の実確認が残る |
+| L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11の実入力検証済み。両Ubuntuのnative Waylandでキー・保持ドラッグ・1.2秒反復・終了解除・ホイールを確認。切断失効時の実確認が残る |
+| L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 両Ubuntuのnative WaylandでUnicode初回受信と連続操作・キャンセルを確認。24.04 VMの実HTTPで3回の再送抑止も確認。端末貼り付けと、負荷の高いVMの初回貼り付け欠落が残る |
+| L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | 両Ubuntuで実Chromeの2プロファイル接続と相互切り替え、22.04で修復後の再接続も確認。native Wayland Chromeは別ウィンドウへのフォーカス拒否を検出して案内する |
 | L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | AppImage/deb生成、Pythonなしの実バックエンド再起動と設定維持、sandbox有効のAppImage起動と実更新・設定保持、deb/npm実導入と更新を確認。複数デスクトップの最終確認、公開用メタデータは未完了 |
 
 初回配布はWindows/Ubuntu x64。ARM64は別の追加段階。Ubuntuの複数LTSでX11/Waylandを検証し、環境ごとの確認結果を残す。未検証の組み合わせや制限を対応済みと表示しない。
@@ -66,6 +66,26 @@
 - npm版のアプリ内更新で1.0.4→1.0.5を実行し、版番号、更新ファイルのハッシュ、保存配置の完全一致、起動用ラッパーの再利用、rendererのsandboxを確認。AppImageの名前を版番号なしで固定し、更新後もデスクトップ項目と導入記録のパスを維持する。`verify-npm-updated.py`は全条件成功。
 - 最新の検証用npm版をグローバル導入し、実CLIの`--version`、`--help`、`install`のLinux分岐を確認。既存の同版アプリを開き、配置と導入記録を変更しないことを確認。Linuxのnpm自動テスト16件も成功。
 - Ubuntu 24.04の通常起動したGNOMEを確認するため、公式cloud imageをSHA-256検証して隔離QEMU VMを構築中。nested Waylandの24.04側ではホイールの実受信を確認できていないため、対応済みとは扱わず通常起動の環境で切り分ける。VMのログイン鍵と個別データはリポジトリへ含めない。
+- 同VMの通常起動GNOME/WaylandでRemoteDesktopの確認を実操作し、製品のホイール4段分をnative GTK受信側で確認。scroll-event 4件、スクロール位置0→224.2496を記録。製品コードの変更は不要だった。`docs/verification/ubuntu-24-vm-wayland-wheel.jsonl`。仮想GPUのGTK4描画エラーを避けるため、このVMのportal描画だけGSK_RENDERER=cairoを使用。製品のsandboxや入力許可は変更していない。
+- 同VMの実HTTPへ連続操作を送り、終了後に同じownerの要求を3回再送しても同じjob ID/stateを維持し、再実行しないことを確認。`ubuntu-24-vm-wayland-replay.jsonl`。ただし受信文字列は期待した`連続操作🙂\n完了`に対し`\n完了`となった。初回文字列の転送タイミングを調査中であり、このVMの連続文字入力を完了とは扱わない。
+- 24.04 VMのAppImage通常起動で、生成されたAppRunが`unshare -Ur true`の失敗時に自動で`--no-sandbox`を付けることを発見。実rendererには`--enable-sandbox`と`--no-sandbox`の両方が存在し、前者だけでは有効性の証拠にならない。これはsandbox有効の起動として数えない。Linux製品版は起動時に`--no-sandbox`を検出するとバックエンドを開始する前に停止してdeb導入を案内するよう修正。Windowsの起動条件は変更しない。生成物での停止確認と24.04のdeb起動検証はまだ残る。
+- WSL 22.04の実npm更新アプリを、`--no-sandbox`が存在しないことも含めて再確認し成功。従来のSeccompと`--enable-sandbox`の確認に加え、検証スクリプトを強化した。デスクトップ自動テストはLinux23件成功、Windows21件成功・Linux専用2件除外。
+- 修正後のAppImageを実際に生成し、隔離Xvfbで`--no-sandbox`付き起動を試験。停止案内が表示され、閉じると終了し、入力バックエンド用データを生成せず、別の隔離アプリの配置も変更しなかった。`verify-sandbox-guard.py`成功。24.04向けdebの通常sandbox起動とnpmの導入方式変更は後続確認が必要。
+- 24.04 VMでdebを実インストール。パッケージ標準のアプリ専用AppArmor profileが配置され、OS全体のuser namespace制限は変更していない。`verify-vm-desktop.py deb`で同梱バックエンドPID 27052、renderer PID 26988の`--enable-sandbox`・`--no-sandbox`なし・Seccomp=2とconfig v4を確認。ただしウィンドウは非表示のままだった。ElectronのWaylandでの[ready-to-show不発の報告](https://github.com/electron/electron/issues/48859)と整合するため、Linuxは背景色付きウィンドウを最初から表示する方式へ変更。Windowsの初回描画待ちは維持。修正版の実画面確認を進める。
+
+## 現在の導入方式と最新の確認範囲
+
+- Ubuntu 22.04 / GNOME 42.9のXWayland Chrome for Testingで、実製品HTTPからU→B→Uのプロファイル切り替えを確認（全要求done）。Chrome登録の所有済みsymlinkとpopup.jsを欠損させ、実ChromeSetupで修復。接続token・config・登録プロファイルのハッシュを保ったまま復元でき、各プロファイルの「登録・再接続」後にもU→B→Uがdoneとなった。`prepare-chrome-check.cjs`、`verify-chrome-repair.cjs`、`verify-chrome-check.py`。テストのDBus・Chrome・バックエンドはGNOMEの通常ユーザーで起動する。rootでのラボ起動はスクリプトで拒否する。
+
+- Ubuntuの標準配布はdebを採用する。npmも配布メタデータの`.deb`を識別して、検証済みファイルをOSの`pkexec apt-get install`へ渡す。通常ユーザーで実行し、OSの管理者認証は導入時だけ行う。取消・失敗・導入版番号未確認の場合は起動しない。実npm経由の管理者認証から起動までの通し検証は未完了であり、現時点では22.04の実npm AppImage導入、両環境の実deb導入、deb経路の自動テストを個別の証拠として扱う。
+- Linuxの初回ウィンドウ表示を修正したdebを24.04 VMへ更新し、通常のホーム画面を実画面で確認した。再起動後の`verify-vm-desktop.py deb`も成功：同梱backend PID 3590、renderer PID 3485、config v4、`--no-sandbox`なし、Seccomp=2。このVMのデータは`/home/deck/pocket-deck-desktop-check`へ分離している。
+- AppImageのextract-and-runで二度目の起動終了時に最初の起動の展開資源が削除される事例を確認。新しいnpmの起動環境とラッパーに`NO_CLEANUP=1`を追加した。`verify-appimage-relaunch.py`で実製品AppImageを新しい導入経路から起動し、ラッパーを2回開き直しても元の実行ファイル・app.asar・PID記録・保存配置が残ることを実確認（private PID 22171）。これは新しいLinux導入関数の検証であり、公開npm導入の証拠とは分ける。
+- 24.04 VMのsandbox有効debで、ホーム→OS入力確認→取消→失敗表示→再度OS確認→キー・マウス・文字入力の利用可を実画面で確認。取消後にアプリの再起動は不要だった。
+- VMのportal描画は仮想GPUのためcairoへ切り替えて検証する。入力許可要求中にportal実装を再起動するとアプリが失敗を表示した。ただしportal全体のowner変更後の再接続に問題があり、D-BusのNameOwnerChanged監視と明示再接続時の能力・owner再取得を追加。private D-Busの実transport上で新ownerへの再接続、許可を自動再要求しないことを含む7件成功。修正版の実GNOMEと最終生成物での再確認は残る。
+- 再生成したsandbox有効debを24.04 VMへ更新して、実portal全体を再起動。ホームが即座に失効表示へ変わり、アプリを再起動せず「入力を許可」→新OS確認→キー・マウス・文字入力の利用可へ戻った。同梱backend PID 10583、sandboxed renderer PID 10496も再確認。保持中のキー・ボタンがサービス失効時に解除されることは別の実受信試験で確認する。
+- 保持中の実試験では異なる結果になった。実debのHTTPでShiftとマウスを保持し、heartbeatを送りながら`xdg-desktop-portal.service`だけ再起動すると、失効は検出したが受信側に解除イベントは届かず、次の実キーが`A`（state=257、Shift+Button1）となった。再許可もマウスgrabに妨げられた。GNOME側の`xdg-desktop-portal-gnome.service`を検証用VMで再起動するとButton1/Shift解除を受信し、次の実キーが`a`（state=0）へ戻った。`ubuntu-24-vm-session-loss.jsonl`に記録。通常のユーザー環境のサービスは変更していない。
+- この事実に合わせ、broker失効時には解除未確認の保持記録を消さず、OS側のリモート共有停止が必要な案内を追加した。OSの共有停止UIによる回復と、最終パッケージでの表示再検証は未完了。保持中の失効を自動復旧できるとは扱わない。GNOME実装の再起動をアプリが自動実行する方式は採用しない。
+- 最新自動テスト：Windows npm 21成功・Linux専用1除外、desktop 21成功・Linux専用2除外。Linux npm主要17件成功。公開用Linuxメタデータと版番号はまだ変更していない。
 
 ## Chromeの実検証で確認した制限
 
@@ -79,4 +99,4 @@ Native Messagingが接続中でも、Chromeが入力フォーカスを取得で�
 - Ubuntu 22.04コンテナ：`pocket-deck-lab-22`。noVNC `http://127.0.0.1:6085/vnc.html?autoconnect=1&resize=scale`。初回起動時のXWayland検出待ちを修正する前に作ったイメージなので、このコンテナの`/tmp/deck-session.env`だけにDISPLAY=:0とXAUTHORITYを追記してある。次回ビルドでは修正済みスクリプトを使う。
 - 22.04のイメージ生成は`docker build --build-arg UBUNTU_VERSION=22.04 -t pocket-deck-linux-lab:22.04 app/desktop/integration/linux-lab`。デスクトップ用スクリプトをリポジトリに保存してある。
 - WSLのビルドコピー：`/tmp/pocket-deck-package`。生成物は`app/desktop-dist`。最後の生成物には後から追加したClipboard portalなどをまだ反映していないため、最終検証前にソースを同期し、バックエンドとデスクトップを再ビルドする。
-- 残る実動作：24.04のWaylandホイールと両環境の切断失効、許可拒否時の画面、端末貼り付けと実再送抑止、22.04のChrome連携と実修復、複数環境の最終パッケージ確認。公開版番号とLinux配布ハッシュは全生成物の確定後に決める。
+- 残る実動作：両環境の切断失効、許可拒否時の画面、端末貼り付け、24.04 VMでの初回文字列欠落の解消、22.04のChrome連携と実修復、複数環境の最終パッケージ確認。公開版番号とLinux配布ハッシュは全生成物の確定後に決める。

@@ -8,7 +8,7 @@
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-runtime-paths.cjs",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-runtime-paths.cjs test-sandbox-policy.cjs",
     "package": "electron-builder --win nsis --x64 --publish never",
     "package:linux": "electron-builder --linux AppImage deb --x64 --publish never"
   },
@@ -28,6 +28,7 @@
       "chrome-setup.cjs",
       "linux-chrome.cjs",
       "linux-install-state.cjs",
+      "sandbox-policy.cjs",
       "preload.cjs",
       "renderer.js",
       "index.html",

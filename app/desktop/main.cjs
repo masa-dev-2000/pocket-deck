@@ -23,18 +23,21 @@ if(!single)app.quit();else{
  app.on('before-quit',e=>{if(!quitting){e.preventDefault();void quit();}});
  app.on('window-all-closed',()=>{});
  app.whenReady().then(async()=>{
+  require('./sandbox-policy.cjs').assertSandbox({platform:process.platform,packaged:app.isPackaged,noSandbox:app.commandLine.hasSwitch('no-sandbox')});
   if(process.platform==='linux')require('./linux-install-state.cjs').recordLinuxInstall({directory:process.env.POCKET_DECK_NPM_INSTALL_DIR,currentImage:process.env.APPIMAGE,version:app.getVersion()});
   const runtime=runtimePaths({packaged:app.isPackaged,resourcesPath:process.resourcesPath,sourceDirectory:__dirname});
   const settings={executable:runtime.executable,dataDir:path.join(app.getPath('userData'),'data')};
   backend=new Backend(settings,{clipboardWrite:async text=>clipboard.writeText(text)});
   const chromeSetup=new ChromeSetup({userDir:app.getPath('userData'),extensionSource:app.isPackaged?path.join(process.resourcesPath,'backend','chrome-extension'):path.join(__dirname,'..','chrome-extension'),launcher:runtime.launcher,legacyManifest:path.resolve(__dirname,'..','chrome-native-host.json')});
-  win=new BrowserWindow({width:1120,height:800,minWidth:760,minHeight:540,title:'Pocket Deck',backgroundColor:'#101923',icon:path.join(__dirname,'icon.png'),show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
+  // Wayland can omit ready-to-show for an initially hidden window (Electron #48859).
+  // Linux displays the matching background immediately; Windows keeps first-paint startup.
+  win=new BrowserWindow({width:1120,height:800,minWidth:760,minHeight:540,title:'Pocket Deck',backgroundColor:'#101923',icon:path.join(__dirname,'icon.png'),show:process.platform==='linux',webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   win.webContents.on('will-navigate',(event,url)=>{if(url!==home)event.preventDefault();});
   win.webContents.on('will-frame-navigate',event=>{if(!trusted(event.url))event.preventDefault();});
   win.webContents.session.setPermissionRequestHandler((_wc,_permission,callback)=>callback(false));
   win.on('close',event=>{if(!quitting){event.preventDefault();win.hide();}});
-  win.once('ready-to-show',()=>{show();});
+  if(process.platform!=='linux')win.once('ready-to-show',()=>{show();});
   const {Updates}=require('./updates.cjs');
   updates=new Updates({updater:require('electron-updater').autoUpdater,currentVersion:app.getVersion(),packaged:app.isPackaged,
    ask:async message=>{show();return (await dialog.showMessageBox(win,{type:'question',title:'Pocket Deckの更新',message,buttons:['更新する','後で'],defaultId:1,cancelId:1})).response===0;},

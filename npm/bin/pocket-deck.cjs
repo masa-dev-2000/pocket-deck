@@ -27,7 +27,7 @@ async function download({ cacheDir, fetchImpl = fetch, manifest = release, log =
   }
   cacheDir ||= path.join(process.env.LOCALAPPDATA || os.tmpdir(), 'Pocket Deck', 'downloads');
   await fs.mkdir(cacheDir, { recursive: true });
-  const extension=manifest.filename?.endsWith('.AppImage')?'.AppImage':'.exe';
+  const extension=manifest.filename?.endsWith('.AppImage')?'.AppImage':manifest.filename?.endsWith('.deb')?'.deb':'.exe';
   const target = path.join(cacheDir, `Pocket-Deck-${manifest.version}-${manifest.sha256.slice(0, 12)}${extension}`);
   try {
     if ((await fs.stat(target)).size === manifest.bytes && await hash(target) === manifest.sha256) {
@@ -94,7 +94,7 @@ async function main(args = process.argv.slice(2), {
   const manifest=platform==='linux'?releaseManifest.linux:releaseManifest;
   if(!manifest)throw new Error('このnpm版にはLinux配布ファイルがまだありません。');
   if(platform==='linux'&&command==='install'){
-    await linuxInstallImpl({version:manifest.version,downloadImpl:()=>downloadImpl({manifest}),log});
+    await linuxInstallImpl({version:manifest.version,format:manifest.filename?.endsWith('.deb')?'deb':'AppImage',downloadImpl:()=>downloadImpl({manifest}),log});
     return;
   }
   const installer = await downloadImpl({manifest});

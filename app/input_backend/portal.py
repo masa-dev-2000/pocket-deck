@@ -86,6 +86,10 @@ class PortalInput:
                 for interface in ('org.freedesktop.portal.Request','org.freedesktop.portal.Session',CLIPBOARD):
                     await self._call('AddMatch','s',[f"type='signal',sender='{SERVICE}',interface='{interface}'"],
                         interface='org.freedesktop.DBus',path='/org/freedesktop/DBus',destination='org.freedesktop.DBus')
+                await self._call('AddMatch','s',["type='signal',sender='org.freedesktop.DBus',interface='org.freedesktop.DBus',member='NameOwnerChanged',arg0='"+SERVICE+"'"],
+                    interface='org.freedesktop.DBus',path='/org/freedesktop/DBus',destination='org.freedesktop.DBus')
+            self._owner=(await self._call('GetNameOwner','s',[SERVICE],interface='org.freedesktop.DBus',
+                path='/org/freedesktop/DBus',destination='org.freedesktop.DBus'))[0]
             props=(await self._call('GetAll','s',[INTERFACE],interface='org.freedesktop.DBus.Properties'))[0]
             try:
                 clipboard=(await self._call('GetAll','s',[CLIPBOARD],interface='org.freedesktop.DBus.Properties'))[0]
@@ -107,6 +111,21 @@ class PortalInput:
             return False
 
     def _signal(self,message):
+        if (message.message_type == MessageType.SIGNAL and message.sender == 'org.freedesktop.DBus'
+            and message.interface == 'org.freedesktop.DBus' and message.member == 'NameOwnerChanged'
+            and message.body[0] == SERVICE and message.body[1] == self._owner):
+            self._owner=None;self._session=None;self._devices=0
+            self._clipboard_enabled=False;self._clipboard_data=None
+            # Losing the broker does not prove that the compositor released
+            # its virtual device. Preserve pending releases until confirmed.
+            self._scroll_x=self._scroll_y=0
+            for future in self._requests.values():
+                if not future.done():future.set_exception(RuntimeError('入力許可サービスが終了しました。'))
+            reason='入力許可サービスが終了しました。「入力を許可」から再接続してください。'
+            if self._held_keys or self._held_buttons:
+                reason='入力許可サービスが終了しました。保持中の入力の解除は確認できていません。OSのリモート共有を停止してから再接続してください。'
+            self._set('permission',reason)
+            return
         if message.message_type == MessageType.SIGNAL and message.sender==self._owner and message.interface==CLIPBOARD and message.member=='SelectionTransfer':
             session,mime,serial=message.body
             if session==self._session:self._loop.create_task(self._write_selection(session,mime,serial))
@@ -151,7 +170,9 @@ class PortalInput:
         session=None
         try:
             await asyncio.wrap_future(self._probe_future)
-            if not self._bus and not await self._probe():return
+            # Re-read the owner and capabilities after a service restart. Old
+            # unique bus names must never filter out the new owner's responses.
+            if not await self._probe():return
             self._set('pending','OSの入力許可を待っています…')
             created=await self._request('CreateSession','a{sv}',[],
                 {'session_handle_token':Variant('s','deck'+uuid.uuid4().hex)})

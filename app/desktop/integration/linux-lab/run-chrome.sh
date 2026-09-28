@@ -1,5 +1,6 @@
 #!/bin/sh
 set -eu
+test "$(id -u)" != 0
 . /tmp/deck-session.env
 if [ "${DECK_CHROME_PLATFORM:-wayland}" = x11 ]; then
     export DISPLAY="${DECK_CHROME_DISPLAY:?}" XAUTHORITY="${DECK_CHROME_AUTH:?}"

@@ -24,7 +24,7 @@ image=root/'data-home/pocket-deck'/state['file']
 feed=Path('/tmp/pocket-deck-update-fixture/feed/Pocket-Deck-1.0.5-x86_64.AppImage')
 assert hashlib.sha256(image.read_bytes()).digest()==hashlib.sha256(feed.read_bytes()).digest()
 assert state['process']['pid']!=json.loads((root/'initial-installation.json').read_text())['process']['pid']
-assert Path('/proc/'+str(state['process']['pid'])+'/exe').readlink().name=='pocket-deck-desktop'
+assert str(Path('/proc/'+str(state['process']['pid'])+'/exe').readlink()).removesuffix(' (deleted)').endswith('/pocket-deck-desktop')
 wrapper=root/'data-home/pocket-deck/pocket-deck'
 assert str(image) in wrapper.read_text()
 env={**os.environ,'DISPLAY':':178','XDG_SESSION_TYPE':'x11','XDG_RUNTIME_DIR':str(root/'runtime'),
@@ -40,7 +40,7 @@ for process in Path('/proc').iterdir():
         command=(process/'cmdline').read_bytes()
         if b'--type=renderer' in command and bytes(root/'config-home/Pocket Deck') in command:
             status=(process/'status').read_text()
-            assert 'Seccomp:\t2' in status and b'--enable-sandbox' in command
+            assert 'Seccomp:\t2' in status and b'--enable-sandbox' in command and b'--no-sandbox' not in command
             renderers.append(int(process.name))
     except OSError:pass
 assert renderers,'no sandboxed renderer found'

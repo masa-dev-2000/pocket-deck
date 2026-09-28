@@ -1,0 +1,12 @@
+{"event": "motion-notify-event", "key": null, "state": 0}
+{"event": "button-press-event", "key": null, "state": 0}
+{"event": "button-release-event", "key": null, "state": 256}
+{"event": "button-press-event", "key": null, "state": 0}
+{"event": "key-press-event", "key": 65505, "state": 256}
+{"event": "key-press-event", "key": 65, "state": 257}
+{"event": "key-release-event", "key": 65, "state": 257}
+{"event": "motion-notify-event", "key": null, "state": 257}
+{"event": "button-release-event", "key": null, "state": 257}
+{"event": "key-release-event", "key": 65505, "state": 1}
+{"event": "key-press-event", "key": 97, "state": 0}
+{"event": "key-release-event", "key": 97, "state": 0}

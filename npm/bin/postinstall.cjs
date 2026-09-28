@@ -11,7 +11,7 @@ async function postinstall({ env = process.env, platform = process.platform, arc
   if (!['win32','linux'].includes(platform) || arch !== 'x64') throw new Error('Windows / Ubuntu x64用です。');
   const manifest=platform==='linux'?release.linux:release;
   if(!manifest)throw new Error('このnpm版にはLinux配布ファイルがまだありません。');
-  await (installImpl||(platform==='linux'?linuxInstall:install))({ version:manifest.version,downloadImpl:()=>download({manifest}),log });
+  await (installImpl||(platform==='linux'?linuxInstall:install))({ version:manifest.version,...(platform==='linux'?{format:manifest.filename?.endsWith('.deb')?'deb':'AppImage'}:{}),downloadImpl:()=>download({manifest}),log });
 }
 if (require.main === module) postinstall().catch(error => { console.error(`Pocket Deck: ${error.message}`); process.exitCode = 1; });
 module.exports = { postinstall };

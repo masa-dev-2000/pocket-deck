@@ -3,9 +3,35 @@ import os
 from pathlib import Path
 import subprocess
 import sys
+import signal
+import time
 
 assert Path('/var/tmp/deck-lab-ready').exists(), 'disposable VM is not ready'
 assert os.getuid()!=0, 'run as the disposable desktop user'
+if sys.argv[1:]==['--stop-app']:
+    owned=set()
+    for child in Path('/proc').iterdir():
+        if not child.name.isdigit():continue
+        try:
+            if child.stat().st_uid!=os.getuid() or (child/'exe').readlink().name!='PocketDeckServer':continue
+            if b'/home/deck/pocket-deck-desktop-check/config/Pocket Deck/data' not in (child/'cmdline').read_bytes():continue
+            parent=Path('/proc')/(child/'stat').read_text().split(')')[-1].split()[1]
+            if parent.stat().st_uid==os.getuid() and str((parent/'exe').readlink()).removesuffix(' (deleted)').endswith('/pocket-deck-desktop'):
+                owned.add(parent)
+        except OSError:pass
+    assert len(owned)==1, 'expected one private desktop application'
+    for parent in owned:os.kill(int(parent.name),signal.SIGTERM)
+    until=time.monotonic()+15
+    while any((parent/'exe').exists() for parent in owned) and time.monotonic()<until:time.sleep(.1)
+    assert not any((parent/'exe').exists() for parent in owned), 'private app did not stop'
+    print('Stopped only the private VM desktop application')
+    raise SystemExit()
+if len(sys.argv)==3 and sys.argv[1]=='--trigger':
+    mode=sys.argv[2]
+    assert mode in ('enable','scroll','scroll-move','repeat','macro','cancel','replay','close')
+    Path('/tmp/probe-go').write_text(mode)
+    print('Requested '+mode+' in the disposable input probe')
+    raise SystemExit()
 session=None
 for process in Path('/proc').iterdir():
     if not process.name.isdigit():continue
@@ -26,9 +52,16 @@ for item in activation.splitlines():
 env.update(GDK_BACKEND='wayland')
 assert env.get('WAYLAND_DISPLAY'), 'native Wayland session required'
 name=sys.argv[1] if len(sys.argv)>1 else 'portal-probe.py'
-assert name in ('portal-probe.py','portal-scroll-probe.py'), 'unknown probe'
+assert name in ('portal-probe.py','portal-scroll-probe.py','passive-probe.py','AppImage','deb'), 'unknown probe'
 script=Path('/source/app/desktop/integration/linux-lab')/name
+command=['/usr/bin/python3',str(script)]
+if name in ('AppImage','deb'):
+    image=Path('/tmp/Pocket-Deck.AppImage') if name=='AppImage' else Path('/opt/Pocket Deck/pocket-deck-desktop')
+    if name=='AppImage':image.chmod(0o755);env['APPIMAGE_EXTRACT_AND_RUN']='1'
+    env.update(XDG_CONFIG_HOME='/home/deck/pocket-deck-desktop-check/config',
+               XDG_DATA_HOME='/home/deck/pocket-deck-desktop-check/data')
+    command=[str(image)]
 with Path('/tmp/'+name+'.log').open('ab') as output:
-    child=subprocess.Popen(['/usr/bin/python3',str(script)],env=env,start_new_session=True,
+    child=subprocess.Popen(command,env=env,start_new_session=True,
                            stdin=subprocess.DEVNULL,stdout=output,stderr=subprocess.STDOUT)
 print('Started '+name+' PID '+str(child.pid)+' in '+env['WAYLAND_DISPLAY'])

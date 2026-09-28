@@ -31,7 +31,31 @@ for signal in ('key-press-event', 'key-release-event', 'button-press-event', 'bu
 window.connect('destroy', Gtk.main_quit)
 window.show_all()
 field.grab_focus()
-backend = PortalInput()
+class ObservedPortalInput(PortalInput):
+    def send_text(self,text):
+        record({'textRequested':text})
+        return super().send_text(text)
+    async def _write_selection(self,session,mime,serial):
+        record({'clipboardTransfer':mime,'bytes':len(self._clipboard_data or b'')})
+        return await super()._write_selection(session,mime,serial)
+    async def _call(self,member,*args,**kwargs):
+        record({'portalCall':member,'phase':'start'})
+        try:
+            result=await super()._call(member,*args,**kwargs)
+            record({'portalCall':member,'phase':'done'})
+            return result
+        except Exception as error:
+            record({'portalCall':member,'phase':'error','error':str(error)})
+            raise
+backend = ObservedPortalInput()
+last_status=None
+def observe_status():
+    global last_status
+    status=backend.status()
+    if status!=last_status:
+        record({'status':status});last_status=status
+    return True
+GLib.timeout_add(500,observe_status)
 def enable():
     time.sleep(2)
     record({'before':backend.status()})
@@ -46,6 +70,8 @@ def run_input():
     return True
 def send_input(mode):
     try:
+        if mode=='enable':
+            record({'enable':backend.enable()});return
         if mode in ('macro','cancel','replay'):
             import server
             directory=Path('/tmp/probe-macro');directory.mkdir(exist_ok=True)
@@ -115,7 +141,7 @@ def send_input(mode):
         backend.send_mouse('mouse_scroll',0,120)
         backend.send_text('日本語の入力\n改行と絵文字🙂')
         record({'input':'sent', 'status':backend.status()})
-    except Exception as error: record({'error':str(error)})
+    except Exception as error: record({'error':str(error),'status':backend.status()})
 GLib.timeout_add(250, run_input)
 Gtk.main()
 backend.close()

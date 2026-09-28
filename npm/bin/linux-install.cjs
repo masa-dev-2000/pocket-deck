@@ -40,8 +40,10 @@ async function inspect(paths){
  if(state.version){if(typeof state.file!=='string'||path.basename(state.file)!==state.file||!state.file.endsWith('.AppImage'))throw Error('導入先の記録が不正です。');state.executable=path.join(paths.directory,state.file);await fs.access(state.executable);}
  return {...state,running:await running(paths.directory,state)};
 }
-function open(file,paths){return new Promise((resolve,reject)=>{const child=spawn(file,[],{detached:true,stdio:'ignore',env:{...process.env,APPIMAGE_EXTRACT_AND_RUN:'1',POCKET_DECK_NPM_INSTALL_DIR:paths.directory}});child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});});}
-async function install({version,downloadImpl,paths=locations(),inspectImpl=()=>inspect(paths),openImpl=file=>open(file,paths),log=console.log}){
+function open(file,paths){return new Promise((resolve,reject)=>{const child=spawn(file,[],{detached:true,stdio:'ignore',env:{...process.env,APPIMAGE_EXTRACT_AND_RUN:'1',NO_CLEANUP:'1',POCKET_DECK_NPM_INSTALL_DIR:paths.directory}});child.once('error',reject);child.once('spawn',()=>{child.unref();resolve();});});}
+async function install({version,downloadImpl,format='AppImage',paths=locations(),inspectImpl=()=>inspect(paths),openImpl=file=>open(file,paths),log=console.log}){
+ if(format==='deb')return require('./linux-deb-install.cjs').install({version,downloadImpl,log});
+ if(format!=='AppImage')throw Error('Linuxの配布形式を確認してください。');
  let state=await inspectImpl();
  if(state.version&&compare(state.version,version)>=0){await openImpl(state.executable);return;}
  if(state.running)throw Error('Pocket Deckを完全に終了し、再実行してください。');
@@ -54,7 +56,8 @@ async function install({version,downloadImpl,paths=locations(),inspectImpl=()=>i
  const file='Pocket-Deck.AppImage',executable=path.join(paths.directory,file);
  await fs.copyFile(source,executable+'.tmp');await fs.chmod(executable+'.tmp',0o755);await fs.rename(executable+'.tmp',executable);
  const quote=value=>"'"+String(value).replaceAll("'","'\\''")+"'";
- await fs.writeFile(paths.wrapper,'#!/bin/sh\nexport APPIMAGE_EXTRACT_AND_RUN=1\nexport POCKET_DECK_NPM_INSTALL_DIR='+quote(paths.directory)+'\nexec '+quote(executable)+' "$@"\n',{mode:0o755});
+  // A second extract-and-run instance must not delete the first one's resources.
+  await fs.writeFile(paths.wrapper,'#!/bin/sh\nexport APPIMAGE_EXTRACT_AND_RUN=1\nexport NO_CLEANUP=1\nexport POCKET_DECK_NPM_INSTALL_DIR='+quote(paths.directory)+'\nexec '+quote(executable)+' "$@"\n',{mode:0o755});
  await fs.mkdir(path.dirname(paths.desktop),{recursive:true});
  const desktopPath=paths.wrapper.replaceAll('\\','\\\\').replaceAll('"','\\"').replaceAll('`','\\`').replaceAll('$','\\$').replaceAll('%','%%');
  await fs.writeFile(paths.desktop,'[Desktop Entry]\nType=Application\nName=Pocket Deck\nExec="'+desktopPath+'"\nTerminal=false\nCategories=Utility;\n');

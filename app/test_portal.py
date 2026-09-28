@@ -49,6 +49,7 @@ class PortalWire(unittest.TestCase):
                 self.closed+=1
                 return Message.new_method_return(message)
         async def start():
+            self.handler=handler
             self.bus=await MessageBus().connect();self.bus.add_message_handler(handler)
             await self.bus.request_name(SERVICE);self.started.set()
         def run():
@@ -129,5 +130,28 @@ class PortalWire(unittest.TestCase):
         with self.assertRaises(RuntimeError):self.input.send_key('A',False)
         self.input.enable();self.wait_state('ready')
         self.assertEqual(sum(c[0]=='Start' for c in self.calls),2)
+
+    def test_service_owner_replacement_requires_explicit_permission(self):
+        self.input.enable();self.wait_state('ready')
+        self.input.send_key('SHIFT',False)
+        async def release_name():await self.bus.release_name(self.service)
+        asyncio.run_coroutine_threadsafe(release_name(),self.loop).result(5)
+        self.wait_state('permission')
+        self.assertFalse(self.input.status()['keyboard'])
+        self.assertEqual(self.input._held_keys,{'SHIFT'})
+        with self.assertRaises(RuntimeError):self.input.send_key('A',False)
+        async def replace_owner():
+            from input_backend.portal import ManagedMessageBus
+            replacement=await ManagedMessageBus().connect()
+            self.bus.remove_message_handler(self.handler)
+            replacement.add_message_handler(self.handler)
+            previous=self.bus;self.bus=replacement
+            await replacement.request_name(self.service)
+            previous.disconnect();await previous.wait_for_disconnect()
+        asyncio.run_coroutine_threadsafe(replace_owner(),self.loop).result(5)
+        self.assertEqual(sum(c[0]=='Start' for c in self.calls),1)
+        self.input.enable();self.wait_state('ready')
+        self.assertEqual(self.input._owner,self.bus.unique_name)
+        self.input.send_key('A',False);self.input.send_key('A',True)
 
 if __name__=='__main__':unittest.main()

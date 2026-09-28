@@ -23,6 +23,18 @@ test('download verifies checksum; cached file is rechecked without fetching', as
   } finally { await fs.rm(cacheDir, { recursive: true, force: true }); }
 });
 
+test('Linux artifact cache preserves AppImage and deb file types',async()=>{
+ const cacheDir=await fs.mkdtemp(path.join(os.tmpdir(),'deck-npm-types-'));
+ try{
+  for(const extension of ['.AppImage','.deb']){
+   const f=fixture();f.manifest.filename='Pocket-Deck'+extension;
+   const file=await download({...f,cacheDir,fetchImpl:async()=>new Response(f.bytes)});
+   assert.equal(path.extname(file),extension);
+   assert.deepEqual(await fs.readFile(file),f.bytes);
+  }
+ }finally{await fs.rm(cacheDir,{recursive:true,force:true});}
+});
+
 test('corrupted same-size download is refused and incomplete file is removed', async () => {
   const cacheDir = await fs.mkdtemp(path.join(os.tmpdir(), 'deck-npm-'));
   const f = fixture();
@@ -56,11 +68,14 @@ test('Linux CLI selects the Linux artifact and installer; missing releases never
  const linux={version:'1.1.0',filename:'linux.AppImage'},events=[];
  const options={platform:'linux',arch:'x64',log(){},releaseManifest:{linux},
   downloadImpl:async({manifest})=>{assert.equal(manifest,linux);events.push('verified');return 'verified.AppImage';},
-  linuxInstallImpl:async({version,downloadImpl})=>{assert.equal(version,linux.version);events.push('install');await downloadImpl();},
+  linuxInstallImpl:async({version,format,downloadImpl})=>{assert.equal(version,linux.version);assert.equal(format,'AppImage');events.push('install');await downloadImpl();},
   launchImpl(){assert.fail('Windows installer must not launch on Linux');}};
  await main(['install'],options);assert.deepEqual(events,['install','verified']);
  events.length=0;await main(['download'],options);assert.deepEqual(events,['verified']);
  await assert.rejects(main(['install'],{...options,releaseManifest:{},downloadImpl(){assert.fail('missing release must not download');}}),/Linux配布/);
+ const deb={...linux,filename:'linux.deb'};
+ await main(['install'],{...options,releaseManifest:{linux:deb},downloadImpl:async({manifest})=>{assert.equal(manifest,deb);return 'verified.deb';},
+  linuxInstallImpl:async({format,downloadImpl})=>{assert.equal(format,'deb');assert.equal(await downloadImpl(),'verified.deb');}});
 });
 
 test('download-only does not launch; install launches only after successful download', async () => {
