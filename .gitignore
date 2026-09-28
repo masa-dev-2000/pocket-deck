@@ -9,6 +9,9 @@
 **/backend-work/
 **/dist/
 **/build/
+!/app/desktop/build/
+!/app/desktop/build/installer.nsh
+**/desktop-test-dist/
 *.exe
 *.exe.blockmap
 *.spec

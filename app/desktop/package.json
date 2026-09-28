@@ -1,13 +1,13 @@
 {
   "name": "pocket-deck-desktop",
   "productName": "Pocket Deck",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "Pocket Deck Windows desktop companion",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-updates.cjs",
     "package": "electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
@@ -29,7 +29,8 @@
       "index.html",
       "desktop.css",
       "icon.png",
-      "package.json"
+      "package.json",
+      "updates.cjs"
     ],
     "extraResources": [
       {
@@ -59,8 +60,16 @@
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
-      "deleteAppDataOnUninstall": false
-    }
+      "deleteAppDataOnUninstall": false,
+      "include": "build/installer.nsh"
+    },
+    "publish": {
+      "provider": "github",
+      "owner": "masa-dev-2000",
+      "repo": "pocket-deck",
+      "releaseType": "release"
+    },
+    "artifactName": "Pocket-Deck-Setup-${version}.${ext}"
   },
   "license": "MIT",
   "author": "masa-dev-2000",
@@ -72,5 +81,9 @@
   "homepage": "https://github.com/masa-dev-2000/pocket-deck",
   "bugs": {
     "url": "https://github.com/masa-dev-2000/pocket-deck/issues"
+  },
+  "dependencies": {
+    "electron-updater": "6.8.10",
+    "semver": "7.8.5"
   }
 }

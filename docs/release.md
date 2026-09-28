@@ -1,27 +1,25 @@
 # 配布とリリース
 
-Gitにはソース、テスト、文書、ライセンスを入れます。実行ファイルはコミットせずReleasesへ添付します。個人設定・画像・トークン・PC固有のファイアウォールスクリプトは配布しません。
+Gitにはソース、テスト、文書、ライセンスを入れます。実行ファイル・個人設定・画像・トークンはコミットしません。
 
-## 添付ファイル
+## 成果物
 
-- `Pocket Deck Setup <version>.exe`：Windows x64インストーラー。
-- `SHA256SUMS.txt`：インストーラーのSHA-256。
-- `LICENSE`、`THIRD_PARTY_NOTICES.md`：本体・依存ライセンス案内。原文はインストール先の `resources/license-notices/` にも同梱。
+同じGitHub Releaseへ次のファイルを添付します。
+
+- `Pocket-Deck-Setup-<version>.exe`：Windows x64インストーラー。
+- `Pocket-Deck-Setup-<version>.exe.blockmap`：更新の差分情報。
+- `latest.yml`：更新情報。exeの名前・サイズ・ハッシュと一致する必要があります。
+- `SHA256SUMS.txt`、`LICENSE`、`THIRD_PARTY_NOTICES.md`。
 
 ## 手順
 
-1. `app/desktop/package.json` とロックファイルのバージョンを一致させます。
-2. [開発ガイド](development.md)の検証とビルド、またはActionsの手動ビルドを実行します。
-3. 新規導入、更新時のデータ保持、QR接続、スマホ入力、終了、任意のChrome連携を確認します。未確認項目はリリースノートに記載します。
-4. 個人データを含まないこと、依存ライセンスが同梱されていることを確認します。
-5. チェックサム、Gitタグ `v<version>`、GitHub Releaseを作成し成果物を添付します。
+1. Desktopとnpmの版を一致させ、[開発ガイド](development.md)の検証とビルドを実行します。
+2. 新規導入、npmによる導入と更新、確認付き更新、データ保持、QR接続、入力、終了を検証します。未確認項目はリリースノートに記載します。
+3. 個人データの除外とライセンス同梱を確認します。インストーラーのSHA-256・bytes・取得URLを`npm/release.json`へ反映します。
+4. npmのテスト・pack・publish dry-runを実行します。グローバル導入の試験は隔離環境で行い、既存ユーザーのアプリを更新しません。
+5. 公開承認後、ソースをpushしてタグ`v<version>`とGitHub Releaseを作成します。下書きへ全成果物を添付してから公開します。通常の更新は正式リリースだけを対象とし、試用版リリースは対象外です。
+6. 公開URLの取得・ハッシュを確認してからnpmの確認済みtgzを公開し、レジストリのハッシュ・npxの実行・取得を確認します。
 
-PowerShellでのチェックサム作成例：
+1.0.3には更新機能がありません。1.0.4以降の更新対応版を一度npmまたはexeで導入する必要があります。公開済みの同名・同バージョンの成果物を差し替えず、新しいバージョンで配布します。
 
-```powershell
-$deckInstaller = 'app\desktop-dist\Pocket Deck Setup 1.0.3.exe'
-$deckHash = (Get-FileHash -LiteralPath $deckInstaller -Algorithm SHA256).Hash.ToLowerInvariant()
-"$deckHash  $(Split-Path -Leaf $deckInstaller)" | Set-Content -LiteralPath 'app\desktop-dist\SHA256SUMS.txt' -Encoding ASCII
-```
-
-チェックサムはコード署名とは別です。現在は未署名、自動更新なし、スマホ接続は認証・HTTPSなしのMVPです。別PCでの新規導入・全機能確認は未実施で、保持ドラッグにも既知の問題があります。広い配布には実機確認・接続認証・コード署名・更新方法を別途整備してください。
+チェックサムはコード署名とは別です。現在は未署名、スマホ接続は認証・HTTPSなしのMVPです。保持ドラッグにも既知の問題があります。別PCやスマホの全機能検証は自動チェックとは別に必要です。

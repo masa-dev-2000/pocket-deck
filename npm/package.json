@@ -1,6 +1,6 @@
 {
   "name": "@masadev/pocket-deck",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Install Pocket Deck for Windows: a phone shortcut keyboard and touchpad",
   "license": "MIT",
   "author": "masa-dev-2000",
@@ -36,6 +36,7 @@
     "registry": "https://registry.npmjs.org/"
   },
   "scripts": {
-    "test": "node --test test/*.test.cjs"
+    "test": "node --test test/*.test.cjs",
+    "postinstall": "node bin/postinstall.cjs"
   }
 }

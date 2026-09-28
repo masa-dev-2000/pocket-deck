@@ -52,7 +52,7 @@ jobs:
       - name: Checksum
         if: github.event_name == 'workflow_dispatch'
         run: |
-          $deckInstaller = Get-ChildItem -LiteralPath 'app/desktop-dist' -Filter 'Pocket Deck Setup *.exe' | Select-Object -First 1
+          $deckInstaller = Get-ChildItem -LiteralPath 'app/desktop-dist' -Filter 'Pocket-Deck-Setup-*.exe' | Select-Object -First 1
           $deckHash = (Get-FileHash -LiteralPath $deckInstaller.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
           "$deckHash  $($deckInstaller.Name)" | Set-Content -LiteralPath 'app/desktop-dist/SHA256SUMS.txt' -Encoding ASCII
       - name: Upload package
@@ -61,7 +61,9 @@ jobs:
         with:
           name: pocket-deck-windows-x64
           path: |
-            app/desktop-dist/Pocket Deck Setup *.exe
+            app/desktop-dist/Pocket-Deck-Setup-*.exe
+            app/desktop-dist/Pocket-Deck-Setup-*.exe.blockmap
+            app/desktop-dist/latest.yml
             app/desktop-dist/SHA256SUMS.txt
             LICENSE
             THIRD_PARTY_NOTICES.md

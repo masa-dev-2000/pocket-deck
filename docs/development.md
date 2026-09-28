@@ -11,6 +11,7 @@
 | PyInstaller 6.19.0 | バックエンドの実行ファイル化 | `app/desktop/requirements-build.txt` |
 | Electron 44.4.5 | PCアプリUI | `app/desktop/package.json`・ロックファイル |
 | electron-builder 26.15.3 | NSISインストーラー | 同上 |
+| electron-updater 6.8.10・semver 7.8.5 | 確認付き更新・バージョン比較 | 同上 |
 
 Windows x64、Python 3.13、Node.js 22.12以上、npm、Gitが必要です。C#ビルドは `%WINDIR%\Microsoft.NET\Framework64\v4.0.30319\csc.exe` を使用します。依存の変更時にはロックファイルとライセンスも更新してください。
 
@@ -58,7 +59,18 @@ npm run package
 cd ..\..
 ```
 
-生成先は `app/desktop-dist/Pocket Deck Setup <version>.exe`。`win-unpacked` は展開済みの確認用アプリ、`.blockmap` は補助生成物です。自動更新未対応のため、利用者へはインストーラーを配布します。Electron開発起動の前にもバックエンドをビルドしてください。
+生成先は `app/desktop-dist/Pocket-Deck-Setup-<version>.exe`。`win-unpacked`は展開済みの確認用アプリです。更新にはインストーラーに加えて`.blockmap`と`latest.yml`を同じGitHub Releaseへ添付します。開発起動では実際の更新を行いません。Electron開発起動の前にもバックエンドをビルドしてください。
+
+## 隔離環境での導入・更新テスト
+
+`app/desktop/integration/` はWindows Sandbox専用です。普段のPC上では実行しないでください。Sandboxにはリポジトリを `C:\deck-test`、Node.jsの導入フォルダーを `C:\deck-node` として読み取り専用でマップし、結果用の空フォルダーだけを `C:\deck-results` として書き込み可能にマップします。ネットワークとクリップボード共有は無効にします。
+
+1. バージョン1.0.4のバックエンド・インストーラーをビルドし、`npm/release.json` のサイズとSHA-256を実物に合わせます。
+2. `app/desktop` で `npm exec -- electron-builder --win nsis --x64 --publish never --config.extraMetadata.version=1.0.5 --config.directories.output=../desktop-test-dist` を実行し、更新先のテスト版を作ります。この1.0.5は公開しません。
+3. Sandbox内で `powershell.exe -NoProfile -ExecutionPolicy Bypass -File C:\deck-test\app\desktop\integration\sandbox.ps1` を実行します。ホスト側に開発用Electronの実行ファイルも必要です（`npm ci`で導入）。
+4. 結果フォルダーの `result.json`、`install.log`、`update-events.json` を確認します。
+
+テストはSandbox内の既存テストアプリを終了・削除してから、新規導入、バックエンド起動、実際のelectron-updater/NSISによる更新、設定の保持、再起動を検証します。npmの配布前なので、ダウンロード元だけをローカルの生成物に置き換え、サイズ・ハッシュ検証と導入処理は本番と同じコードを通します。更新への同意はテスト内で返します。実際の確認ダイアログ、公開URLからの取得、別PCやスマホの操作は別途確認が必要です。
 
 ## Git管理
 

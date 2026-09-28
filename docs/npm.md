@@ -2,9 +2,11 @@
 
 ## npmに何を置くか
 
-`npm/` に導入用の小さなNode.jsコマンドを置きます。約136MBのElectronアプリ本体はGitHub Releasesで配布します。利用者が `npx @masadev/pocket-deck install` を実行すると、npmから導入コマンドを取得し、GitHubからPCアプリのインストーラーを取得して、SHA-256が一致した場合だけインストーラーを開きます。
+`npm/` に導入用の小さなNode.jsコマンドを置きます。約136MBのElectronアプリ本体はGitHub Releasesで配布します。1.0.4以降は`npm install -g @masadev/pocket-deck`で、GitHubからexeを取得・SHA-256検証し、現在のユーザー用にサイレント導入して起動します。
 
-引数なしはヘルプ、`download`は取得と検証だけです。postinstallでアプリを勝手に起動する仕組みはありません。npmコマンドを使う人にはWindows x64・Node.js 22.12以上が必要ですが、直接インストーラーを利用する人には追加のNode.jsやPythonは不要です。
+グローバル導入のpostinstallがPCアプリを導入・起動します。ローカル導入やnpxのパッケージ取得だけでは自動導入しません。引数なしはヘルプ、`download`は取得と検証だけ、`install`は通常のインストーラーを開きます。npmコマンドを使う人にはWindows x64・Node.js 22.12以上が必要ですが、直接インストーラーを利用する人には追加のNode.jsやPythonは不要です。
+
+npm更新時も新しい版が入ればPCアプリを導入します。同じ版・新版の既存アプリは再導入せず起動します。起動中のアプリや全ユーザー用の導入は置き換えません。導入スクリプトを禁止するnpm設定では実行許可が必要です。`npm uninstall`だけではPCアプリは消えず、Windowsから削除します。
 
 公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。
 
@@ -62,10 +64,10 @@ npm publish --access public
 
 ```powershell
 npm view @masadev/pocket-deck version dist.tarball
-npx @masadev/pocket-deck@1.0.3 --version
+npx @masadev/pocket-deck@1.0.4 --version
 npx @masadev/pocket-deck@1.0.3 download
 ```
 
-レジストリ上の版・配布URL、npxの実行、実インストーラーの取得とSHA-256を確認します。`download`はアプリの更新・再インストールを行いません。新しいPCでの実機確認は別に必要です。
+レジストリ上の版・配布URL、npxの実行、実インストーラーの取得とSHA-256を確認します。`download`はアプリの更新・再インストールを行いません。新規導入・更新・初回起動は隔離したWindows環境で別途検証します。PCアプリの更新にはGitHub Releaseのexe・blockmap・latest.ymlが必要です。既存利用者のデータとアプリを検証のために変更しません。
 
 初回は手動公開です。GitHub Actionsからのnpm自動公開やTrusted Publishingの設定は行いません。必要になった段階で別途設定できます。

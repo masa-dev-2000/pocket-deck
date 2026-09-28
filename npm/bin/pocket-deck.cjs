@@ -82,7 +82,7 @@ async function main(args = process.argv.slice(2), {
 } = {}) {
   const command = args[0];
   if (!command || command === '--help' || command === '-h') {
-    log(`Pocket Deck ${metadata.version}\n\n使い方:\n  npx ${metadata.name} install   取得・検証後にWindowsインストーラーを開く\n  npx ${metadata.name} download  取得・検証のみ\n  npx ${metadata.name} --version\n\nWindows x64・Node.js 22.12以上が必要です。npm installだけではPCアプリを導入しません。\n同じWi-Fiでスマホから操作するローカル用MVPです。詳細はnpm/GitHubのREADMEをご覧ください。`);
+    log(`Pocket Deck ${metadata.version}\n\n使い方:\n  npm install -g ${metadata.name}  PCアプリを自動導入して起動\n  npm update -g ${metadata.name}   PCアプリも更新（終了してから実行）\n  npx ${metadata.name} install     Windowsインストーラーを開く\n  npx ${metadata.name} download    取得・検証のみ\n  npx ${metadata.name} --version\n\nWindows x64・Node.js 22.12以上、npmの導入スクリプト実行許可が必要です。\n同じWi-Fiでスマホから操作するローカル用MVPです。詳細はnpm/GitHubのREADMEをご覧ください。`);
     return;
   }
   if (command === '--version' && args.length === 1) { log(metadata.version); return; }

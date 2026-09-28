@@ -17,4 +17,6 @@ $('hide').onclick=()=>window.deckDesktop.hide();$('quit').onclick=()=>{if(confir
 $('chromePrepare').onclick=async()=>{const b=$('chromePrepare');b.disabled=true;try{await window.deckDesktop.chromePrepare();await refreshChrome();notify('PC側の連携を準備しました。次にChromeへ拡張を追加してください。');}catch(e){$('chromeStatus').textContent=e.message;}finally{b.disabled=false;}};
 $('chromeRefresh').onclick=refreshChrome;
 for(const [id,action] of [['chromeUrlCopy',()=>window.deckDesktop.chromeCopy('url')],['chromeFolderCopy',()=>window.deckDesktop.chromeCopy('folder')],['chromeFolderOpen',()=>window.deckDesktop.chromeFolder()]])$(id).onclick=async()=>{try{await action();if(id!=='chromeFolderOpen')notify('コピーしました');}catch(e){notify(e.message);}};
+$('updateCheck').onclick=()=>window.deckDesktop.updateCheck();
+window.deckDesktop.onUpdateState(s=>{const busy=['checking','downloading','installing'].includes(s.phase);$('updateCheck').disabled=busy;$('updateStatus').textContent=s.phase==='checking'?'更新を確認中…':s.phase==='downloading'?`更新を取得中 ${s.percent}%`:s.phase==='installing'?'更新して再起動しています…':s.phase==='error'?s.message:'';});
 window.deckDesktop.onRefresh(refresh);refresh();
