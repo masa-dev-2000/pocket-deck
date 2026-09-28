@@ -28,6 +28,9 @@ jobs:
       - name: Desktop checks
         working-directory: app/desktop
         run: npm test
+      - name: npm launcher checks
+        working-directory: npm
+        run: npm test
       - name: Source checks
         working-directory: app
         run: python run_checks.py

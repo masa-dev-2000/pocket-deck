@@ -16,6 +16,8 @@
 *.pid
 *.tmp
 *.bak
+*.tgz
+.npmrc
 # User data and credentials
 /app/config.json*
 /app/assets/

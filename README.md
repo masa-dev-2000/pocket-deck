@@ -14,6 +14,14 @@
 
 Windowsのファイアウォール確認が出た場合は、信頼できるプライベートネットワークだけに通信を許可してください。アプリはファイアウォールを自動変更しません。インストーラーは未署名なので発行元不明の警告が表示される場合があります。
 
+Node.js 22.12以上を使っている人向けに、npmの導入コマンドも用意します。公開後は次のコマンドで、固定バージョンのインストーラーを取得・チェックサム検証して開けます。
+
+```powershell
+npx @masadev/pocket-deck install
+```
+
+npm版は小さな導入コマンドです。PCアプリ本体はGitHub Releasesから取得します。`npm install`だけではアプリを導入しません。[npmの配布手順](docs/npm.md)を参照してください。
+
 ## 機能
 
 | 機能 | 内容 |
@@ -54,6 +62,7 @@ app/                      スマホUI、入力サーバー、テスト
   chrome-extension/       任意のChrome連携
   vendor/                 同梱qrcodeとライセンス
 .github/workflows/        Windows検証・パッケージ作成
+npm/                      npm公開用の導入コマンド
 ```
 
 依存パッケージの役割と再現手順は[開発ガイド](docs/development.md)、公開方法は[配布ガイド](docs/release.md)に記載しています。生成物・個人設定はGitへ入れません。インストーラーはReleases、CIの検証用パッケージはActionsのArtifactsで配布します。

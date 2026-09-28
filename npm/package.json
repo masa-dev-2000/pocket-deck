@@ -1,0 +1,41 @@
+{
+  "name": "@masadev/pocket-deck",
+  "version": "1.0.3",
+  "description": "Install Pocket Deck for Windows: a phone shortcut keyboard and touchpad",
+  "license": "MIT",
+  "author": "masa-dev-2000",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/masa-dev-2000/pocket-deck.git",
+    "directory": "npm"
+  },
+  "homepage": "https://github.com/masa-dev-2000/pocket-deck",
+  "bugs": {
+    "url": "https://github.com/masa-dev-2000/pocket-deck/issues"
+  },
+  "bin": {
+    "pocket-deck": "bin/pocket-deck.cjs"
+  },
+  "files": [
+    "bin/",
+    "release.json",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=22.12.0"
+  },
+  "os": [
+    "win32"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.cjs"
+  }
+}

@@ -1,0 +1,71 @@
+# npmで配布する仕組みと実行手順
+
+## npmに何を置くか
+
+`npm/` に導入用の小さなNode.jsコマンドを置きます。約136MBのElectronアプリ本体はGitHub Releasesで配布します。利用者が `npx @masadev/pocket-deck install` を実行すると、npmから導入コマンドを取得し、GitHubからPCアプリのインストーラーを取得して、SHA-256が一致した場合だけインストーラーを開きます。
+
+引数なしはヘルプ、`download`は取得と検証だけです。postinstallでアプリを勝手に起動する仕組みはありません。npmコマンドを使う人にはWindows x64・Node.js 22.12以上が必要ですが、直接インストーラーを利用する人には追加のNode.jsやPythonは不要です。
+
+公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。
+
+## 1. ログインを確認する
+
+```powershell
+npm whoami
+```
+
+npmの認証済みユーザー名を確認します。401が出た場合、アカウントが存在しないという意味ではなく、このPCの認証が無効な状態です。
+
+```powershell
+npm login --auth-type=web --registry=https://registry.npmjs.org/
+```
+
+表示されたブラウザーで本人がログインし、必要な二段階認証を完了します。パスワードや認証コードをソース・チャット・文書へ記載しないでください。npmユーザー名とGitHubユーザー名は同じとは限りません。公開前に `npm/package.json` のスコープ名と、READMEのコマンドを実際のnpmユーザー名へ合わせます。
+
+## 2. 公開名と依存するReleaseを確認する
+
+```powershell
+npm view @masadev/pocket-deck version
+```
+
+未公開なら404です。公開済みの名前・バージョンの組み合わせは再利用できません。初回の候補名が使えるかは、実際のnpmユーザーで再確認します。
+
+GitHub Releaseを先に公開し、`npm/release.json` に記載したURLからインストーラーを取得できることを確認します。ファイルを作り直した場合、SHA-256とbytesも更新してください。後から同じバージョンの配布ファイルを差し替えると、固定チェックサムに一致せず導入が失敗します。更新は新しいバージョンで行います。
+
+## 3. npmパッケージを作り、送信内容を確認する
+
+リポジトリ直下から実行します。
+
+```powershell
+cd npm
+npm test
+npm pack --dry-run --json
+npm pack
+npm publish --dry-run --access public
+```
+
+`npm test`は取得失敗・チェックサム不一致・キャッシュの再検証・未対応環境・実行順序を検証します。実際のインストーラーは起動しません。
+
+`npm pack`は配布する `.tgz` をローカルに作成します。`--dry-run`はファイル一覧だけを確認し、公開しません。`npm publish --dry-run`もレジストリへ公開せず、公開対象の形を確認します。
+
+## 4. 公開する
+
+確認した公開名・バージョン・配布内容で、必要な公開承認を得てから実行します。
+
+```powershell
+npm publish --access public
+```
+
+実行場所は `npm/` です。`app/desktop/` はPCアプリのビルド用で `private: true` のため、ここから公開しません。公開時にブラウザー認証・二段階認証が追加で求められる場合は本人が完了します。
+
+## 5. 公開結果を確認する
+
+```powershell
+npm view @masadev/pocket-deck version dist.tarball
+npx @masadev/pocket-deck@1.0.3 --version
+npx @masadev/pocket-deck@1.0.3 download
+```
+
+レジストリ上の版・配布URL、npxの実行、実インストーラーの取得とSHA-256を確認します。`download`はアプリの更新・再インストールを行いません。新しいPCでの実機確認は別に必要です。
+
+初回は手動公開です。GitHub Actionsからのnpm自動公開やTrusted Publishingの設定は行いません。必要になった段階で別途設定できます。
