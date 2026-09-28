@@ -11,7 +11,7 @@
 | L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11の実入力検証済み。両Ubuntuのnative Waylandでキー・保持ドラッグ・1.2秒反復・終了解除を確認。22.04のホイールも確認。24.04のホイールと切断失効時の実確認が残る |
 | L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 両Ubuntuのnative WaylandでUnicode初回受信と連続操作・キャンセルを確認。端末への貼り付けと実再送抑止確認が残る |
 | L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | 実Chromeの2プロファイル接続、X11とWayland上のXWayland Chromeで相互切り替えを確認。native Wayland Chromeは別ウィンドウへのフォーカス拒否を検出。22.04側と修復の実確認が残る |
-| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | AppImage/deb生成、Pythonなしの実バックエンド再起動と設定維持、sandbox有効のAppImage起動と実更新・設定保持を確認。deb/npm実導入、複数デスクトップの最終確認、公開用メタデータは未完了 |
+| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | AppImage/deb生成、Pythonなしの実バックエンド再起動と設定維持、sandbox有効のAppImage起動と実更新・設定保持、deb/npm実導入と更新を確認。複数デスクトップの最終確認、公開用メタデータは未完了 |
 
 初回配布はWindows/Ubuntu x64。ARM64は別の追加段階。Ubuntuの複数LTSでX11/Waylandを検証し、環境ごとの確認結果を残す。未検証の組み合わせや制限を対応済みと表示しない。
 
@@ -61,6 +61,12 @@
 - Ubuntu 22.04の隔離コンテナにdebをaptで実インストール。旧生成物の即時再起動失敗を検出し、修正済みソースからバックエンドとdebを再生成してdpkgで更新。インストール先`/opt/Pocket Deck/resources/backend/PocketDeckServer`を対象に、PythonをPATHから除いた起動、排他的bind、即時再起動、配置保存維持の試験が成功。deb版デスクトップの画面とアンインストール時のデータ保持はまだ未検証。
 - インストールしたdeb版のホームと接続可能表示を実画面で確認。コンテナだけの`--no-sandbox`指定なので、sandbox有効の証拠とは分ける。実アプリのHTTP経由で配置を変更・保存し、検証アプリを終了後に`dpkg -r pocket-deck-desktop`を実行。実行ファイルの削除と、`/tmp/deck-deb-check/Pocket Deck/data/config.json`の保存データ完全一致を確認。手順は`verify-deb-lifecycle.py`。
 
+- Ubuntu 22.04 / WSLの隔離Xvfbで、検証用npm tarballを実際の`npm install -g --offline --foreground-scripts`で導入。AppImage、ラッパー、デスクトップ項目をユーザー用XDG領域に配置し、sandboxを有効にしたPCアプリの起動を確認。公開前のLinux配布ファイルは検証用キャッシュから取得しており、公開サーバーからの導入確認ではない。
+- 同npm版のアプリ起動中に新しい版を導入すると拒否し、AppImageのハッシュ、導入記録、保存配置が変化しないことを実確認。Chromiumが元の環境変数を消すため、環境変数だけでは起動検出できない事例を発見。PID・起動時刻・boot IDと同一ユーザーの実行ファイルを確認する方式へ修正した。
+- npm版のアプリ内更新で1.0.4→1.0.5を実行し、版番号、更新ファイルのハッシュ、保存配置の完全一致、起動用ラッパーの再利用、rendererのsandboxを確認。AppImageの名前を版番号なしで固定し、更新後もデスクトップ項目と導入記録のパスを維持する。`verify-npm-updated.py`は全条件成功。
+- 最新の検証用npm版をグローバル導入し、実CLIの`--version`、`--help`、`install`のLinux分岐を確認。既存の同版アプリを開き、配置と導入記録を変更しないことを確認。Linuxのnpm自動テスト16件も成功。
+- Ubuntu 24.04の通常起動したGNOMEを確認するため、公式cloud imageをSHA-256検証して隔離QEMU VMを構築中。nested Waylandの24.04側ではホイールの実受信を確認できていないため、対応済みとは扱わず通常起動の環境で切り分ける。VMのログイン鍵と個別データはリポジトリへ含めない。
+
 ## Chromeの実検証で確認した制限
 
 Native Messagingが接続中でも、Chromeが入力フォーカスを取得できるとは限らない。確認したGNOME Wayland環境では、native Wayland Chromeの別プロファイルを前面化して入力先にする要求が拒否された。同じデスクトップでChromeだけをX11モードで起動すると、XWayland経由で両プロファイルへの切り替えが成功した。これはキーボード・マウス入力をX11へ迂回する変更ではない。Pocket DeckのWayland入力は許可済みRemoteDesktop portalを維持する。
@@ -73,4 +79,4 @@ Native Messagingが接続中でも、Chromeが入力フォーカスを取得で�
 - Ubuntu 22.04コンテナ：`pocket-deck-lab-22`。noVNC `http://127.0.0.1:6085/vnc.html?autoconnect=1&resize=scale`。初回起動時のXWayland検出待ちを修正する前に作ったイメージなので、このコンテナの`/tmp/deck-session.env`だけにDISPLAY=:0とXAUTHORITYを追記してある。次回ビルドでは修正済みスクリプトを使う。
 - 22.04のイメージ生成は`docker build --build-arg UBUNTU_VERSION=22.04 -t pocket-deck-linux-lab:22.04 app/desktop/integration/linux-lab`。デスクトップ用スクリプトをリポジトリに保存してある。
 - WSLのビルドコピー：`/tmp/pocket-deck-package`。生成物は`app/desktop-dist`。最後の生成物には後から追加したClipboard portalなどをまだ反映していないため、最終検証前にソースを同期し、バックエンドとデスクトップを再ビルドする。
-- 残る実動作：24.04のWaylandホイール/反復と両環境の終了解除、連続操作・キャンセルと端末貼り付け、22.04のChrome連携と実修復、deb/npm実導入と複数環境の最終パッケージ確認。公開版番号とLinux配布ハッシュは全生成物の確定後に決める。
+- 残る実動作：24.04のWaylandホイールと両環境の切断失効、許可拒否時の画面、端末貼り付けと実再送抑止、22.04のChrome連携と実修復、複数環境の最終パッケージ確認。公開版番号とLinux配布ハッシュは全生成物の確定後に決める。

@@ -46,10 +46,21 @@ test('invalid source URL is rejected before a network request', async () => {
 });
 
 test('help and unsupported platforms never download or launch', async () => {
-  const options = { platform: 'linux', arch: 'x64', log() {}, downloadImpl() { assert.fail('should not download'); }, launchImpl() { assert.fail('should not launch'); } };
+  const options = { platform: 'darwin', arch: 'x64', log() {}, downloadImpl() { assert.fail('should not download'); }, launchImpl() { assert.fail('should not launch'); } };
   await main([], options);
   await assert.rejects(main(['install'], options), /Windows/);
   await assert.rejects(main(['unknown'], options), /引数/);
+});
+
+test('Linux CLI selects the Linux artifact and installer; missing releases never download',async()=>{
+ const linux={version:'1.1.0',filename:'linux.AppImage'},events=[];
+ const options={platform:'linux',arch:'x64',log(){},releaseManifest:{linux},
+  downloadImpl:async({manifest})=>{assert.equal(manifest,linux);events.push('verified');return 'verified.AppImage';},
+  linuxInstallImpl:async({version,downloadImpl})=>{assert.equal(version,linux.version);events.push('install');await downloadImpl();},
+  launchImpl(){assert.fail('Windows installer must not launch on Linux');}};
+ await main(['install'],options);assert.deepEqual(events,['install','verified']);
+ events.length=0;await main(['download'],options);assert.deepEqual(events,['verified']);
+ await assert.rejects(main(['install'],{...options,releaseManifest:{},downloadImpl(){assert.fail('missing release must not download');}}),/Linux配布/);
 });
 
 test('download-only does not launch; install launches only after successful download', async () => {

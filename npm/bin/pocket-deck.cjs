@@ -79,19 +79,25 @@ function launch(installer, launchImpl = spawn) {
 
 async function main(args = process.argv.slice(2), {
   platform = process.platform, arch = process.arch, downloadImpl = download, launchImpl = launch,
-  log = console.log
+  log = console.log, releaseManifest = release, linuxInstallImpl = require('./linux-install.cjs').install
 } = {}) {
   const command = args[0];
   if (!command || command === '--help' || command === '-h') {
-    log(`Pocket Deck ${metadata.version}\n\n使い方:\n  npm install -g ${metadata.name}  PCアプリを自動導入して起動\n  npm update -g ${metadata.name}   PCアプリも更新（終了してから実行）\n  npx ${metadata.name} install     Windowsインストーラーを開く\n  npx ${metadata.name} download    取得・検証のみ\n  npx ${metadata.name} --version\n\nWindows x64・Node.js 22.12以上、npmの導入スクリプト実行許可が必要です。\n同じWi-Fiでスマホから操作するローカル用MVPです。詳細はnpm/GitHubのREADMEをご覧ください。`);
+    log(`Pocket Deck ${metadata.version}\n\n使い方:\n  npm install -g ${metadata.name}  PCアプリを自動導入して起動\n  npm update -g ${metadata.name}   PCアプリも更新（終了してから実行）\n  npx ${metadata.name} install     OSに応じてPCアプリを導入\n  npx ${metadata.name} download    取得・検証のみ\n  npx ${metadata.name} --version\n\nWindows / Ubuntu x64・Node.js 22.12以上、npmの導入スクリプト実行許可が必要です。\nLinux配布ファイルの有無はこのnpm版の配布情報で確認します。\n同じWi-Fiでスマホから操作するローカル用MVPです。詳細はnpm/GitHubのREADMEをご覧ください。`);
     return;
   }
   if (command === '--version' && args.length === 1) { log(metadata.version); return; }
   if (!['install', 'download'].includes(command) || args.length !== 1) {
     throw new Error('引数が不正です。--helpで使い方を確認してください。');
   }
-  if (platform !== 'win32' || arch !== 'x64') throw new Error('Windows x64専用です。');
-  const installer = await downloadImpl();
+  if (!['win32','linux'].includes(platform) || arch !== 'x64') throw new Error('Windows / Ubuntu x64用です。');
+  const manifest=platform==='linux'?releaseManifest.linux:releaseManifest;
+  if(!manifest)throw new Error('このnpm版にはLinux配布ファイルがまだありません。');
+  if(platform==='linux'&&command==='install'){
+    await linuxInstallImpl({version:manifest.version,downloadImpl:()=>downloadImpl({manifest}),log});
+    return;
+  }
+  const installer = await downloadImpl({manifest});
   log(`インストーラー: ${installer}`);
   if (command === 'install') {
     log('インストーラーを開きます。画面の案内に従ってください。');

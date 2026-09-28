@@ -39,20 +39,24 @@ def enable():
     record({'before': backend.status()})
     backend.enable()
 threading.Thread(target=enable, daemon=True).start()
-def send():
+def send(mode):
     try:
         backend.send_mouse('mouse_move',1,0)
         for _ in range(4):
-            backend.send_mouse('mouse_scroll',0,-120)
+            if mode=='smooth':
+                backend._notify('NotifyPointerAxis','dd',[0.,10.],2)
+            else:
+                backend.send_mouse('mouse_scroll',0,-120)
             time.sleep(.1)
-        record({'sent':True,'status':backend.status()})
+        record({'sent':True,'mode':mode,'status':backend.status()})
     except Exception as error:
         record({'error':str(error)})
 def poll():
     flag = Path('/tmp/scroll-probe-go')
     if flag.exists():
+        mode=flag.read_text().strip()
         flag.unlink()
-        threading.Thread(target=send,daemon=True).start()
+        threading.Thread(target=send,args=(mode,),daemon=True).start()
     return True
 GLib.timeout_add(250,poll)
 try:

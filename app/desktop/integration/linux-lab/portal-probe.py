@@ -46,18 +46,44 @@ def run_input():
     return True
 def send_input(mode):
     try:
-        if mode in ('macro','cancel'):
+        if mode in ('macro','cancel','replay'):
             import server
             directory=Path('/tmp/probe-macro');directory.mkdir(exist_ok=True)
             app=server.App(directory/'config.json',server.Keyboard(backend.send_key),
                            text_emit=backend.send_text,mouse_emit=backend.send_mouse)
-            if mode=='macro':
+            if mode in ('macro','replay'):
                 steps=[{'kind':'shortcut','keys':'Ctrl+A'},
                        {'kind':'text','text':'連続操作🙂'}, {'kind':'wait','ms':150},
                        {'kind':'shortcut','keys':'Enter'}, {'kind':'text','text':'完了'}]
             else:
                 steps=[{'kind':'press','key':'SHIFT'}, {'kind':'wait','ms':5000},
                        {'kind':'text','text':'SHOULD_NOT_EXECUTE'}]
+            if mode=='replay':
+                from urllib.request import Request, urlopen
+                config=json.loads(json.dumps(app.config))
+                button=config['layouts'][0]['buttons'][0]
+                button.update(type='macro',steps=steps)
+                app.save(config)
+                http=server.ThreadingHTTPServer(('127.0.0.1',0),server.handler(app))
+                worker=threading.Thread(target=http.serve_forever,daemon=True);worker.start()
+                def post(data):
+                    request=Request('http://127.0.0.1:'+str(http.server_port)+'/api/action',
+                                    data=json.dumps(data).encode(),headers={'Content-Type':'application/json'})
+                    with urlopen(request,timeout=5) as response:
+                        assert response.status==200
+                try:
+                    request={'action':'execute','id':button['id'],'owner':'real-http-replay'}
+                    post(request)
+                    deadline=time.monotonic()+5
+                    while app.features.running and time.monotonic()<deadline:time.sleep(.02)
+                    first=app.features.status()
+                    assert first['state']=='done',first
+                    for _ in range(3):post(request)
+                    assert app.features.status()==first,'replayed request started another sequence'
+                    record({'mode':mode,'httpReplaySuppressed':True,'sequence':first})
+                finally:
+                    http.shutdown();http.server_close();worker.join(timeout=2)
+                return
             app.features.start({'id':'probe','type':'macro','label':'Real Wayland macro','steps':steps},'lab-owner')
             if mode=='cancel':
                 time.sleep(.2);app.features.cancel_owner('lab-owner')
