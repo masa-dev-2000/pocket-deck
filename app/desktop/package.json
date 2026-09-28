@@ -7,7 +7,7 @@
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-updates.cjs",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-updates.cjs test-runtime-paths.cjs",
     "package": "electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
@@ -30,7 +30,8 @@
       "desktop.css",
       "icon.png",
       "package.json",
-      "updates.cjs"
+      "updates.cjs",
+      "runtime-paths.cjs"
     ],
     "extraResources": [
       {

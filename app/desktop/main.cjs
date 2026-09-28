@@ -3,6 +3,7 @@ const path=require('node:path');
 const fs=require('node:fs');
 const {pathToFileURL}=require('node:url');
 const {Backend,request,BASE}=require('./backend.cjs');
+const {runtimePaths}=require('./runtime-paths.cjs');
 const {ChromeSetup}=require('./chrome-setup.cjs');
 const {shell,clipboard}=require('electron');
 app.setName('Pocket Deck');app.setPath('userData',path.join(app.getPath('appData'),'Pocket Deck'));app.setAppUserModelId('local.pocket-deck.desktop');
@@ -12,7 +13,7 @@ const home=pathToFileURL(path.join(__dirname,'index.html')).href;
 const trusted=url=>url===home||url==='about:blank'||[BASE+'/',BASE+'/editor',BASE+'/connect'].includes(url);
 function show(){if(win){win.show();win.restore();win.focus();}}
 async function status(){
- try{const config=await request('/api/config');if(config.version!==4||!Array.isArray(config.layouts))throw new Error('接続先を確認してください');const connection=await request('/api/connect');ready=true;lastError='';return {ready:true,url:connection.url,layouts:config.layouts.length,buttons:config.layouts.reduce((n,l)=>n+l.buttons.length,0),owned:!!backend?.child};}
+ try{const config=await request('/api/config');if(config.version!==4||!Array.isArray(config.layouts))throw new Error('接続先を確認してください');const connection=await request('/api/connect');const input=await request('/api/input-status').catch(()=>({state:'unknown',reason:'入力機能の状態を取得できません。'}));ready=true;lastError='';return {ready:true,url:connection.url,input,layouts:config.layouts.length,buttons:config.layouts.reduce((n,l)=>n+l.buttons.length,0),owned:!!backend?.child};}
  catch(e){ready=false;return {ready:false,error:lastError||'PCとの接続が切れています。「再接続」を押してください。'};}
 }
 async function start(){try{await backend.ensure();lastError='';}catch(e){lastError=e.message;}return status();}
@@ -22,10 +23,10 @@ if(!single)app.quit();else{
  app.on('before-quit',e=>{if(!quitting){e.preventDefault();void quit();}});
  app.on('window-all-closed',()=>{});
  app.whenReady().then(async()=>{
-  const settings={executable:path.join(app.isPackaged?process.resourcesPath:path.join(__dirname,'backend-build'),'backend','PocketDeckServer.exe'),dataDir:path.join(app.getPath('userData'),'data')};
-  if(!app.isPackaged)settings.executable=path.join(__dirname,'backend-build','PocketDeckServer','PocketDeckServer.exe');
+  const runtime=runtimePaths({packaged:app.isPackaged,resourcesPath:process.resourcesPath,sourceDirectory:__dirname});
+  const settings={executable:runtime.executable,dataDir:path.join(app.getPath('userData'),'data')};
   backend=new Backend(settings);
-  const chromeSetup=new ChromeSetup({userDir:app.getPath('userData'),extensionSource:app.isPackaged?path.join(process.resourcesPath,'backend','chrome-extension'):path.join(__dirname,'..','chrome-extension'),launcher:path.join(path.dirname(settings.executable),'PocketDeckChromeHost.exe'),legacyManifest:path.resolve(__dirname,'..','chrome-native-host.json')});
+  const chromeSetup=new ChromeSetup({userDir:app.getPath('userData'),extensionSource:app.isPackaged?path.join(process.resourcesPath,'backend','chrome-extension'):path.join(__dirname,'..','chrome-extension'),launcher:runtime.launcher,legacyManifest:path.resolve(__dirname,'..','chrome-native-host.json')});
   win=new BrowserWindow({width:1120,height:800,minWidth:760,minHeight:540,title:'Pocket Deck',backgroundColor:'#101923',icon:path.join(__dirname,'icon.png'),show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
   win.webContents.on('will-navigate',(event,url)=>{if(url!==home)event.preventDefault();});

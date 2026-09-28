@@ -69,13 +69,13 @@ class Features(unittest.TestCase):
             self.macro(app,[{'kind':'press','key':'ALT'},{'kind':'shortcut','keys':'TAB'},{'kind':'wait','ms':50},{'kind':'shortcut','keys':'TAB'},{'kind':'release','key':'ALT'},{'kind':'text','text':'完了'}])
             action={'action':'execute','id':'0','owner':'macro'};app.action(action)
             self.wait_done(app)
-            self.assertEqual(events,[('key',18,False),('key',9,False),('key',9,True),('key',9,False),('key',9,True),('key',18,True),('text','完了')])
+            self.assertEqual(events,[('key','ALT',False),('key','TAB',False),('key','TAB',True),('key','TAB',False),('key','TAB',True),('key','ALT',True),('text','完了')])
             app.action(action);self.assertEqual(len(events),7)
             self.macro(app,[{'kind':'press','key':'CTRL'},{'kind':'wait','ms':10000},{'kind':'release','key':'CTRL'},{'kind':'text','text':'must not run'}])
             app.action(dict(action,owner='cancel'));time.sleep(.02)
             with self.assertRaises(ValueError):app.action({'action':'key_tap','key':'A','owner':'normal'})
             app.action({'action':'macro_cancel','owner':'stop'});self.wait_done(app)
-            self.assertFalse(app.keyboard.held);self.assertEqual(events[-1],('key',17,True));self.assertNotIn(('text','must not run'),events)
+            self.assertFalse(app.keyboard.held);self.assertEqual(events[-1],('key','CTRL',True));self.assertNotIn(('text','must not run'),events)
 
     def test_watchdog_and_edit_cancel(self):
         with tempfile.TemporaryDirectory() as d:
@@ -114,6 +114,7 @@ class Features(unittest.TestCase):
                             self.assertEqual(response.read(),app.web_assets[name])
             finally:http.shutdown();http.server_close()
 
+    @unittest.skipUnless(sys.platform == 'win32', 'Windows GUI launcher only')
     def test_gui_launcher_native_pipes(self):
         from build_chrome import build
         executable=build();binary=executable.read_bytes()

@@ -9,6 +9,7 @@ from urllib.request import Request, urlopen
 from urllib.error import HTTPError
 from http.server import ThreadingHTTPServer
 import server
+from input_backend import windows as windows_input
 
 class Tests(unittest.TestCase):
     def test_wheel_configuration_roundtrip(self):
@@ -26,11 +27,11 @@ class Tests(unittest.TestCase):
     def test_shared_modifier_and_timeout(self):
         events=[]
         k=server.Keyboard(lambda key,up:events.append((key,up)))
-        k.press('one',[17]); k.press('two',[17,90]); k.release('two')
-        self.assertEqual(events,[(17,False),(90,False),(90,True)])
+        k.press('one',['CTRL']); k.press('two',['CTRL','Z']); k.release('two')
+        self.assertEqual(events,[('CTRL',False),('Z',False),('Z',True)])
         k.held['one'][1]=time.monotonic()-3
         k.expire()
-        self.assertEqual(events[-1],(17,True))
+        self.assertEqual(events[-1],('CTRL',True))
         self.assertFalse(k.held)
 
     def test_migration_slots_conflict_and_hold_preservation(self):
@@ -64,12 +65,12 @@ class Tests(unittest.TestCase):
             data={'action':'text','id':'text','owner':'once'}
             app.action(data);app.action(data)
             self.assertEqual(texts,['日本語\n😀'])
-            keyboard.press('held',[17,65]);keyboard.repeat_at=0;keyboard.repeat()
-            self.assertEqual(events[-1],(65,False))
+            keyboard.press('held',['CTRL','A']);keyboard.repeat_at=0;keyboard.repeat()
+            self.assertEqual(events[-1],('A',False))
             with self.assertRaises(ValueError):app.action(dict(data,owner='blocked'))
             keyboard.release('held');size=len(events);keyboard.repeat_at=0;keyboard.repeat()
             self.assertEqual(len(events),size)
-            keyboard.press('modifier',[17]);keyboard.repeat_at=0;size=len(events);keyboard.repeat()
+            keyboard.press('modifier',['CTRL']);keyboard.repeat_at=0;size=len(events);keyboard.repeat()
             self.assertEqual(len(events),size)
 
     def test_unicode_event_encoding(self):
@@ -79,8 +80,8 @@ class Tests(unittest.TestCase):
                 captured.extend((items[i].ki.wVk,items[i].ki.wScan,items[i].ki.dwFlags) for i in range(count))
                 return count
         class User32:SendInput=Emit()
-        with patch.object(server.C,'WinDLL',return_value=User32()):
-            server.send_text('日😀\n\t')
+        with patch.object(windows_input.C,'WinDLL',return_value=User32(),create=True):
+            windows_input.send_text('日😀\n\t')
         self.assertEqual(captured[:6],[(0,ord('日'),4),(0,ord('日'),6),(0,0xD83D,4),(0,0xD83D,6),(0,0xDE00,4),(0,0xDE00,6)])
         self.assertEqual(captured[6:],[(13,0,0),(13,0,2),(9,0,0),(9,0,2)])
 
@@ -92,9 +93,9 @@ class Tests(unittest.TestCase):
             app.action({'action':'key_down','key':'A','owner':'letter'})
             app.action({'action':'up','owner':'letter'})
             app.action({'action':'release_all'})
-            self.assertEqual(keys,[(16,False),(65,False),(65,True),(16,True)])
+            self.assertEqual(keys,[('SHIFT',False),('A',False),('A',True),('SHIFT',True)])
             app.action({'action':'key_tap','key':'ENTER','owner':'enter'})
-            self.assertEqual(keys[-2:],[(13,False),(13,True)])
+            self.assertEqual(keys[-2:],[('ENTER',False),('ENTER',True)])
             for key in ('BOGUS','Ctrl+A',None):
                 with self.assertRaises(ValueError):app.action({'action':'key_down','key':key,'owner':'invalid'})
             app.action({'action':'mouse_move','dx':15,'dy':-7,'owner':'move'})
@@ -112,9 +113,9 @@ class Tests(unittest.TestCase):
                 captured.extend((items[i].mi.dx,items[i].mi.dy,items[i].mi.dwFlags) for i in range(count))
                 return count
         class User32:SendInput=Emit()
-        with patch.object(server.C,'WinDLL',return_value=User32()):
-            server.send_mouse('mouse_move',12,-4)
-            server.send_mouse('mouse_click')
+        with patch.object(windows_input.C,'WinDLL',return_value=User32(),create=True):
+            windows_input.send_mouse('mouse_move',12,-4)
+            windows_input.send_mouse('mouse_click')
         self.assertEqual(captured,[(12,-4,1),(0,0,2),(0,0,4)])
 
     def test_span_migration_overlap_and_navigation(self):
@@ -193,7 +194,7 @@ class Tests(unittest.TestCase):
                     self.assertIn(b'<svg', r.read())
                 with post('/api/action',{'action':'tap','id':'0','owner':'test'}) as r:
                     self.assertEqual(r.status,200)
-                self.assertEqual(events,[(17,False),(90,False),(90,True),(17,True)])
+                self.assertEqual(events,[('CTRL',False),('Z',False),('Z',True),('CTRL',True)])
                 config=server.defaults();config['columns']=5
                 with post('/api/config',server.migrate(config)):pass
                 self.assertEqual(server.App(app.path,app.keyboard).config['layouts'][0]['columns'],5)
