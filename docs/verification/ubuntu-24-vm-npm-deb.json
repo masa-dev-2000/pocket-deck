@@ -1,0 +1,14 @@
+{
+  "realGlobalNpmDebInstall": true,
+  "cancelledInstallDidNotLaunch": true,
+  "configurationUnchanged": true,
+  "configurationVersion": 4,
+  "privateBundledBackend": [32343],
+  "sandboxedRenderers": [32073],
+  "packageType": "deb",
+  "debSha256": "a34350ce297f732aba5d1b34ef0225d9fcb308633f42ecb524906d30a6c0ddc1",
+  "source": "private npm tarball with SHA-256-verified offline deb cache",
+  "normalOsAuthenticationCompleted": true,
+  "disposableAccountAuthenticationRestored": true,
+  "publicRegistryDownloadVerified": false
+}

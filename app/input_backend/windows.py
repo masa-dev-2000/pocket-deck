@@ -76,7 +76,9 @@ class WindowsInput:
         send_key(KEYS[key], up)
     def send_mouse(self, kind, dx=0, dy=0):
         send_mouse(kind, dx, dy)
-    def send_text(self, text):
+    def send_text(self, text,paste_mode='standard'):
+        if paste_mode not in ('standard','terminal'):raise ValueError('文字列の貼り付け先が不正です。')
+        # Windows sends Unicode directly; no terminal paste shortcut is needed.
         send_text(text)
     def repeat_settings(self):
         delay, speed = W.UINT(), W.UINT()

@@ -15,5 +15,8 @@ field=Gtk.TextView();field.add_events(Gdk.EventMask.ALL_EVENTS_MASK)
 window.add(field)
 for signal in ('key-press-event','key-release-event','button-press-event','button-release-event','motion-notify-event'):
     field.connect(signal,lambda widget,event,name=signal:record({'event':name,'key':getattr(event,'keyval',None),'state':int(event.state)}) or False)
+def text_changed(buffer):
+    record({'receivedText':buffer.get_text(buffer.get_start_iter(),buffer.get_end_iter(),True)})
+field.get_buffer().connect('changed',text_changed)
 window.connect('destroy',Gtk.main_quit)
 window.show_all();field.grab_focus();Gtk.main()

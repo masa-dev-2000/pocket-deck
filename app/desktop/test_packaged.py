@@ -1,11 +1,12 @@
-import subprocess,tempfile,time,json,urllib.request
+import subprocess,tempfile,time,json,urllib.request,socket
 from pathlib import Path
 exe=Path(__file__).parent/'backend-build/PocketDeckServer/PocketDeckServer.exe'
 with tempfile.TemporaryDirectory() as directory:
+    with socket.socket() as probe:probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]
     def start():
-        return subprocess.Popen([str(exe),'--host','127.0.0.1','--port','8769','--data-dir',directory,'--managed-stdio'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=subprocess.CREATE_NO_WINDOW)
+        return subprocess.Popen([str(exe),'--host','127.0.0.1','--port',str(port),'--data-dir',directory,'--managed-stdio'],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,creationflags=subprocess.CREATE_NO_WINDOW)
     def get(route):
-        with urllib.request.urlopen('http://127.0.0.1:8769'+route,timeout=2) as r:return r.read()
+        with urllib.request.urlopen(f'http://127.0.0.1:{port}'+route,timeout=2) as r:return r.read()
     p=start()
     try:
         for _ in range(80):
@@ -19,7 +20,7 @@ with tempfile.TemporaryDirectory() as directory:
         assert b'class WheelController' in get('/pad.js')
         assert b'<svg' in get('/connect.svg')
         config['layouts'][0]['buttons'][0]['type']='wheel'
-        req=urllib.request.Request('http://127.0.0.1:8769/api/config',json.dumps(config).encode(),{'Content-Type':'application/json'})
+        req=urllib.request.Request(f'http://127.0.0.1:{port}/api/config',json.dumps(config).encode(),{'Content-Type':'application/json'})
         with urllib.request.urlopen(req) as response:config=json.load(response)
         p.stdin.write(b'shutdown\n');p.stdin.flush();p.wait(timeout=5);assert p.returncode==0
         saved=(Path(directory)/'config.json').read_bytes()

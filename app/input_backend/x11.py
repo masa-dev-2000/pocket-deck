@@ -91,9 +91,9 @@ class X11Input:
             else: raise ValueError('マウス操作が不正です。')
             self.x.XFlush(self.display)
 
-    def send_text(self, text):
+    def send_text(self, text,paste_mode='standard'):
         from .text import paste
-        paste(self,text)
+        paste(self,text,paste_mode=paste_mode)
     def repeat_settings(self): return .5, 1/30
     def status(self):
         from .text import available

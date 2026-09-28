@@ -233,25 +233,25 @@ class PortalInput:
                     setattr(self,field,amount-steps*120)
         else:raise ValueError('マウス操作が不正です。')
 
-    def send_text(self,text):
+    def send_text(self,text,paste_mode='standard'):
         from .text import paste
         if not self._clipboard_enabled:
             if not self._clipboard_supported and self._legacy_clipboard:
-                return paste(self,text,clipboard=lambda value:self._legacy_clipboard.set(value,wait_for_offer=True))
+                return paste(self,text,clipboard=lambda value:self._legacy_clipboard.set(value,wait_for_offer=True),paste_mode=paste_mode)
             raise RuntimeError('このWayland環境では文字入力のクリップボード許可を利用できません。')
         def prepare(value):
             self._clipboard_data=value.encode('utf-8')
             asyncio.run_coroutine_threadsafe(self._call('SetSelection','oa{sv}',[self._session,{'mime_types':Variant('as',['text/plain;charset=utf-8','text/plain'])}],interface=CLIPBOARD),self._loop).result(timeout=12)
-        paste(self,text,clipboard=prepare)
+        paste(self,text,clipboard=prepare,paste_mode=paste_mode)
 
     async def _write_selection(self,session,mime,serial):
         ok=False;descriptor=None
         try:
             if mime not in ('text/plain;charset=utf-8','text/plain') or self._clipboard_data is None:return
+            data=self._clipboard_data
             reply=await asyncio.wait_for(self._bus.call(Message(destination=SERVICE,path=PATH,interface=CLIPBOARD,member='SelectionWrite',signature='ou',body=[session,serial])),10)
             if reply.message_type==MessageType.ERROR:raise RuntimeError('Clipboard transfer refused')
             descriptor=reply.unix_fds[reply.body[0]]
-            data=self._clipboard_data
             await asyncio.wait_for(self._write_fd(descriptor,data),5)
             ok=True
         finally:

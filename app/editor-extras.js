@@ -1,11 +1,12 @@
 let appearance={},macroSteps=[],profiles=[],extraGeneration=0,imagePending=false;
-function readExtraForm(){return {appearance:{...appearance,mode:$('appearanceMode').value},...($('type').value==='macro'?{steps:structuredClone(macroSteps)}:{}),...($('type').value==='profile'?{profileId:$('profileTarget').value}:{})};}
+function readExtraForm(){return {appearance:{...appearance,mode:$('appearanceMode').value},...($('type').value==='text'?{pasteMode:$('pasteMode').value}:{}),...($('type').value==='macro'?{steps:structuredClone(macroSteps)}:{}),...($('type').value==='profile'?{profileId:$('profileTarget').value}:{})};}
 function showExtraFields(){
  $('macroField').hidden=$('type').value!=='macro';$('profileField').hidden=$('type').value!=='profile';
  $('layoutTargetField').hidden=$('type').value!=='navigate'||$('target').value!=='layout';
 }
 function openExtras(b){
  extraGeneration++;imagePending=false;appearance=structuredClone(b?.appearance||{mode:'label'});macroSteps=structuredClone(b?.steps||[]);
+ $('pasteMode').value=b?.pasteMode||'standard';
  $('appearanceMode').value=appearance.mode||'label';$('imageFile').value='';$('imageState').textContent='PNG・JPEG・WebP / 5MBまで';
  $('layoutTarget').replaceChildren();for(const l of store.value.layouts){const o=make('option',l.name);o.value=l.id;$('layoutTarget').append(o);}$('layoutTarget').value=b?.layoutId||currentLayout().id;
  fillProfiles(b?.profileId||'');loadProfiles(b?.profileId||'');renderSteps();previewAppearance();
@@ -40,7 +41,7 @@ function validateExtraForm(b){
 }
 function previewAppearance(){const b={label:$('label').value||'プレビュー',color:$('color').value,type:$('type').value,appearance:{...appearance,mode:$('appearanceMode').value}};$('appearancePreview').replaceChildren(keyElement(b));}
 function extrasChanged(){previewAppearance();applyForm();}
-for(const id of ['appearanceMode','layoutTarget','profileTarget'])$(id).onchange=extrasChanged;
+for(const id of ['appearanceMode','layoutTarget','profileTarget','pasteMode'])$(id).onchange=extrasChanged;
 $('color').addEventListener('change',previewAppearance);$('label').addEventListener('input',previewAppearance);
 $('clearVisual').onclick=()=>{extraGeneration++;imagePending=false;appearance={mode:'label'};$('appearanceMode').value='label';$('imageState').textContent='画像・アイコンを解除しました';extrasChanged();};
 const icons=[['📋','コピー クリップボード'],['📄','書類 新規'],['💾','保存'],['↶','元に戻す undo'],['↷','やり直す redo'],['🔍','検索'],['✂️','切り取り'],['📁','フォルダ'],['🏠','ホーム'],['⚙️','設定'],['▶️','再生'],['⏸️','停止 pause'],['🔊','音量'],['🔇','ミュート'],['🎤','マイク'],['🎵','音楽'],['🎬','動画'],['🖼️','画像'],['🎨','デザイン'],['🖱️','マウス パッド'],['⌨️','キーボード'],['🌐','ブラウザ'],['💼','仕事'],['👤','個人'],['✉️','メール'],['⭐','お気に入り'],['🚀','起動'],['🔁','連続操作'],['⬅️','左 戻る'],['➡️','右 進む'],['⬆️','上'],['⬇️','下']];
@@ -76,7 +77,12 @@ function renderSteps(){
    button.onclick=()=>openKeyPicker(step[field]||'',value=>{step[field]=value;renderSteps();saveSteps();},step.kind!=='shortcut');edit.append(button);
   }else if(step.kind==='text'||step.kind==='wait'){
    const input=make(step.kind==='text'?'textarea':'input');input.setAttribute('aria-label',`手順${index+1}の${stepLabels[step.kind]}`);
-   if(step.kind==='wait'){input.type='number';input.min=0;input.max=10000;input.step=100;input.value=step.ms;edit.append(input,make('small','ミリ秒（1000 = 1秒）'));}else{input.rows=2;input.value=step.text;input.maxLength=2000;edit.append(input);}
+   if(step.kind==='wait'){input.type='number';input.min=0;input.max=10000;input.step=100;input.value=step.ms;edit.append(input,make('small','ミリ秒（1000 = 1秒）'));}else{
+    input.rows=2;input.value=step.text;input.maxLength=2000;edit.append(input);
+    const paste=make('select');paste.setAttribute('aria-label',`手順${index+1}の貼り付け先`);
+    for(const [value,label] of [['standard','通常の入力欄'],['terminal','Linuxの端末（Ctrl＋Shift＋V）']]){const option=make('option',label);option.value=value;paste.append(option);}
+    paste.value=step.pasteMode||'standard';paste.onchange=()=>{step.pasteMode=paste.value;saveSteps();};edit.append(paste);
+   }
    let composingStep=false;input.oncompositionstart=()=>{composingStep=true;clearTimeout(timer);};input.oncompositionend=()=>{composingStep=false;input.oninput();};
    input.oninput=()=>{step[step.kind==='wait'?'ms':'text']=step.kind==='wait'?Number(input.value):input.value;persist();state('入力中');clearTimeout(timer);if(!composingStep)timer=setTimeout(saveSteps,600);};input.onblur=()=>{if(!composingStep)saveSteps();};
   }else{

@@ -86,6 +86,17 @@
 - 保持中の実試験では異なる結果になった。実debのHTTPでShiftとマウスを保持し、heartbeatを送りながら`xdg-desktop-portal.service`だけ再起動すると、失効は検出したが受信側に解除イベントは届かず、次の実キーが`A`（state=257、Shift+Button1）となった。再許可もマウスgrabに妨げられた。GNOME側の`xdg-desktop-portal-gnome.service`を検証用VMで再起動するとButton1/Shift解除を受信し、次の実キーが`a`（state=0）へ戻った。`ubuntu-24-vm-session-loss.jsonl`に記録。通常のユーザー環境のサービスは変更していない。
 - この事実に合わせ、broker失効時には解除未確認の保持記録を消さず、OS側のリモート共有停止が必要な案内を追加した。OSの共有停止UIによる回復と、最終パッケージでの表示再検証は未完了。保持中の失効を自動復旧できるとは扱わない。GNOME実装の再起動をアプリが自動実行する方式は採用しない。
 - 最新自動テスト：Windows npm 21成功・Linux専用1除外、desktop 21成功・Linux専用2除外。Linux npm主要17件成功。公開用Linuxメタデータと版番号はまだ変更していない。
+- 24.04 VMのデスクトップ上のGNOME Terminalから、本物の`npm install -g --offline --foreground-scripts`で非公開の検証tarballを実行し、通常のpkexec/apt-get認証画面を確認。「Cancel」を押すとインストール失敗として終了し、実行ファイルは未導入、保存配置のSHA-256も一致した。`verify-vm-npm.py cancel`成功。SSHセッションにデスクトップ環境変数だけを渡した実行では認証agentへ接続できなかったため、その結果をデスクトップ導入の証拠にはしない。
+- 同じ実npmを再実行してOS認証を完了し、apt-getがdebを導入、dpkgの導入済み1.0.4確認後にアプリを起動した。実ホーム画面、同梱backend PID 32343、renderer PID 32073のsandbox有効と保存配置一致を確認。`verify-vm-npm.py installed`成功、`ubuntu-24-vm-npm-deb.json`に記録。VMの合成テストアカウントの認証設定は元のロック状態に復元済み。公開registry/リリースサーバーからのLinux導入試験ではない。低速TCG VMでは初回ホームに接続失敗が表示されることがあり、接続表示の回復も別途確認する。
+- 同じ導入アプリで接続可能表示とOSの再許可を確認。GNOME上部バーの共有停止ボタンで通常のSession.Closedとアプリの許可終了表示を確認した。一方、Shiftとマウスの押下を実GTK受信側で確認して保持すると、共有停止へのマウスクリックは届かなかった。Ctrl+Alt+Tabから上部バーを移動することはできたが、保持中の停止完了・両解除は確認できず、その試験を中断した。portalが生きている状態の製品APIによる全解除で検証入力は解除済み。OS停止UIによる保持中の回復を対応済みとは扱わない。
+
+## 端末向け文字入力の追加確認
+
+- 24.04 VMの再生成debで、実GNOME TerminalのPTY受信側へ文字列ボタンから`端末🙂\n改行`を送り、完全一致を確認。`docs/verification/ubuntu-24-vm-terminal-input.json`は受信した結果。端末のシェルとして実行せず、検証用の2行入力で受信した。
+- 文字列ボタンと連続操作の文字入力に、通常のCtrl+VとLinux端末向けCtrl+Shift+Vの選択を追加。WindowsのUnicode SendInputは維持。設定は既存config v4で保持し、省略時は従来の通常入力。
+- Clipboard portalの転送処理は、非同期FD要求前に今回のデータを固定し、要求待ち中に次の文字列へすり替わらないよう修正。private D-Busの9件で順序と保持解除を確認。ただし受信アプリの貼り付け完了を保証するものではなく、連続操作の待ち時間は必要。
+- 編集画面で端末向け選択と自動保存を実確認。今回のChrome viewport overrideは実寸に反映されなかったため、この追加項目のiPhone SE相当サイズの実画面確認としては扱わない。
+- 新しいdebを実npm経由で導入した24.04 VMのnative GTK入力先へ、実HTTPでCtrl+A→文字列→1500ms待機→Enter→文字列→1500ms待機を実行。受信結果は`連続操作🙂\n完了`で完全一致。同じownerの要求3回を再送してもjob/stateは変わらなかった。`ubuntu-24-vm-packaged-macro.json`。150msで欠けた過去の結果を取り消すものではなく、低速VMでは待ち時間調整が必要という確認。
 
 ## Chromeの実検証で確認した制限
 

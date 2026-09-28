@@ -36,6 +36,20 @@ class Features(unittest.TestCase):
         while app.features.running and time.monotonic()<until:time.sleep(.005)
         self.assertFalse(app.features.running)
 
+    def test_terminal_text_setting_survives_buttons_sequences_and_validation(self):
+        with tempfile.TemporaryDirectory() as d:
+            app=self.make_app(d);received=[]
+            app.text_emit=lambda text,**options:received.append((text,options))
+            config=copy.deepcopy(app.config);button=config['layouts'][0]['buttons'][0]
+            button.update(type='text',text='端末🙂',pasteMode='terminal');app.save(config)
+            app.action({'action':'text','id':button['id'],'owner':'terminal-button'})
+            self.assertEqual(received,[('端末🙂',{'paste_mode':'terminal'})])
+            self.macro(app,[{'kind':'text','text':'通常'},{'kind':'text','text':'端末', 'pasteMode':'terminal'}])
+            app.action({'action':'execute','id':button['id'],'owner':'terminal-sequence'});self.wait_done(app)
+            self.assertEqual(received[-2:],[('通常',{}),('端末',{'paste_mode':'terminal'})])
+            invalid=copy.deepcopy(app.config);invalid['layouts'][0]['buttons'][0]['steps'][0]['pasteMode']='shell'
+            with self.assertRaisesRegex(ValueError,'貼り付け先'):app.save(invalid)
+
     def test_v4_migration_and_layout_validation(self):
         with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'config.json';original=server.defaults();path.write_text(json.dumps(original),'utf-8')

@@ -21,6 +21,14 @@ class InputBackends(unittest.TestCase):
         for method,args in [('send_key',('A',False)),('send_mouse',('mouse_click',)),('send_text',('hello',))]:
             with self.assertRaises(RuntimeError):getattr(backend,method)(*args)
 
+    def test_linux_terminal_setting_keeps_windows_unicode_input(self):
+        with patch.object(windows,'send_text') as text,patch.object(windows,'send_key') as keys:
+            backend=WindowsInput()
+            backend.send_text('日本語\n🙂',paste_mode='terminal')
+            text.assert_called_once_with('日本語\n🙂');keys.assert_not_called()
+            with self.assertRaises(ValueError):backend.send_text('never send',paste_mode='shell')
+            self.assertEqual(text.call_count,1)
+
     def test_wayland_does_not_fall_back_to_xwayland(self):
         with patch.dict(os.environ, {'WAYLAND_DISPLAY':'wayland-test','DISPLAY':':999'},clear=True):
             with patch('input_backend.x11.X11Input') as x11:

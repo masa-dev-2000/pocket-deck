@@ -12,7 +12,8 @@ def available():
     if _clipboard:return True
     return bool(shutil.which('wl-copy' if os.environ.get('WAYLAND_DISPLAY') else 'xclip'))
 
-def paste(backend,text,clipboard=None):
+def paste(backend,text,clipboard=None,paste_mode='standard'):
+    if paste_mode not in ('standard','terminal'):raise ValueError('文字列の貼り付け先が不正です。')
     if not backend.status()['keyboard']:raise RuntimeError('文字入力にはキー入力の許可が必要です。')
     text=text.replace('\r\n','\n').replace('\r','\n')
     if clipboard:clipboard(text)
@@ -25,7 +26,8 @@ def paste(backend,text,clipboard=None):
         subprocess.run(args,input=text.encode('utf-8'),check=True,timeout=5)
     pressed=[]
     try:
-        for key in ('CTRL','V'):backend.send_key(key,False);pressed.append(key)
+        for key in (('CTRL','SHIFT','V') if paste_mode=='terminal' else ('CTRL','V')):
+            backend.send_key(key,False);pressed.append(key)
     finally:
         # Cleanup all keys, even when an intermediate release fails.
         error=None

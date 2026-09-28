@@ -13,7 +13,7 @@ function copyButton(layout,button){
 function copyLayout(layout){const copy=structuredClone(layout);copy.id=newId();copy.name=(copy.name+' コピー').slice(0,60);for(const b of copy.buttons){b.id=newId();if(b.type==='navigate'&&b.target==='layout'&&b.layoutId===layout.id)b.layoutId=copy.id;}return copy;}
 function buttonSteps(b){
  if(b.type==='shortcut')return [{kind:'shortcut',keys:b.keys}];
- if(b.type==='text')return [{kind:'text',text:b.text}];
+ if(b.type==='text')return [{kind:'text',text:b.text,...(b.pasteMode?{pasteMode:b.pasteMode}:{})}];
  if(b.type==='profile')return [{kind:'profile',profileId:b.profileId}];
  return [];
 }
@@ -33,7 +33,7 @@ function sameButtonForm(form,saved){
  if(!saved)return false;
  const project=b=>({id:b.id,label:b.label.trim(),type:b.type,color:b.color,width:b.width,height:b.height,
   appearance:{mode:b.appearance?.mode||'label',icon:b.appearance?.icon||'',asset:b.appearance?.asset||''},
-  keys:b.type==='shortcut'?b.keys:undefined,text:b.type==='text'?b.text:undefined,steps:b.type==='macro'?b.steps:undefined,
+  keys:b.type==='shortcut'?b.keys:undefined,text:b.type==='text'?b.text:undefined,pasteMode:b.type==='text'?(b.pasteMode||'standard'):undefined,steps:b.type==='macro'?b.steps:undefined,
   profileId:b.type==='profile'?b.profileId:undefined,target:b.type==='navigate'?b.target:undefined,layoutId:b.type==='navigate'&&b.target==='layout'?b.layoutId:undefined});
  return JSON.stringify(project(form))===JSON.stringify(project(saved));
 }

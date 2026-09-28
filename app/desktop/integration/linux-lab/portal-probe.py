@@ -32,9 +32,9 @@ window.connect('destroy', Gtk.main_quit)
 window.show_all()
 field.grab_focus()
 class ObservedPortalInput(PortalInput):
-    def send_text(self,text):
+    def send_text(self,text,paste_mode='standard'):
         record({'textRequested':text})
-        return super().send_text(text)
+        return super().send_text(text,paste_mode=paste_mode)
     async def _write_selection(self,session,mime,serial):
         record({'clipboardTransfer':mime,'bytes':len(self._clipboard_data or b'')})
         return await super()._write_selection(session,mime,serial)

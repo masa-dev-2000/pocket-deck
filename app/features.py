@@ -39,6 +39,7 @@ def validate_steps(steps, parse_keys):
             if kind == 'press': held.add(key.upper())
             else: held.discard(key.upper())
         elif kind == 'text':
+            if step.get('pasteMode','standard') not in ('standard','terminal'):raise ValueError('文字列の貼り付け先が不正です')
             if held: raise ValueError('文字列の前に保持キーを離してください')
             if not isinstance(step.get('text'), str) or not 1 <= len(step['text']) <= 1000:
                 raise ValueError('文字列は1〜1000文字です')
@@ -53,6 +54,8 @@ def validate_steps(steps, parse_keys):
 
 
 def validate_button(b, parse_keys):
+    if b['type']=='text' and b.get('pasteMode','standard') not in ('standard','terminal'):
+        raise ValueError('文字列の貼り付け先が不正です')
     appearance = b.get('appearance', {})
     if not isinstance(appearance, dict) or appearance.get('mode', 'label') not in ('label', 'both', 'visual'):
         raise ValueError('見た目の設定が不正です')
@@ -169,7 +172,7 @@ class Runtime:
                         self.app.keyboard.press(prefix+step['key'].upper(), server.parse_keys(step['key']))
                         self.app.keyboard.repeat_key = None
                     elif kind == 'release': self.app.keyboard.release(prefix+step['key'].upper())
-                    elif kind == 'text': self.app.text_emit(step['text'])
+                    elif kind == 'text': self.app.emit_text(step['text'],step.get('pasteMode','standard'))
                 if kind == 'wait':
                     if self.cancel_event.wait(step['ms']/1000): break
                 elif kind == 'profile': self.focus(step['profileId'], self.cancel_event)

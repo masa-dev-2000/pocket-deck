@@ -196,6 +196,9 @@ def validate_layout(config):
 class Conflict(ValueError):pass
 
 class App:
+    def emit_text(self,text,paste_mode='standard'):
+        if paste_mode=='standard':return self.text_emit(text)
+        return self.text_emit(text,paste_mode=paste_mode)
     def __init__(self,path,keyboard,text_emit=send_text,mouse_emit=send_mouse):
         self.path,self.keyboard,self.text_emit=path,keyboard,text_emit
         self.mouse_emit=mouse_emit
@@ -292,7 +295,7 @@ class App:
                 if kind!='text':raise ValueError('画面を再読み込みしてください')
                 with self.keyboard.lock:
                     if self.keyboard.held:raise ValueError('保持しているキーを離してから文字列を入力してください')
-                    self.text_emit(b['text'])
+                    self.emit_text(b['text'],b.get('pasteMode','standard'))
             else:
                 if kind=='text':raise ValueError('入力種類が異なります')
                 self.keyboard.press(owner,parse_keys(b['keys']))

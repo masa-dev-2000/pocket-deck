@@ -82,6 +82,32 @@ class PortalWire(unittest.TestCase):
         with self.assertRaisesRegex(RuntimeError,'クリップボード許可'):self.input.send_text('do not send')
         self.assertNotIn('NotifyKeyboardKeycode',[name for name,_ in self.calls])
 
+    def test_terminal_paste_uses_shift_and_releases_all_modifiers(self):
+        self.clipboard=True
+        self.input.enable();self.wait_state('ready')
+        self.input.send_text('端末🙂',paste_mode='terminal')
+        keys=[body[-2:] for member,body in self.calls if member=='NotifyKeyboardKeycode']
+        self.assertEqual(keys,[[29,1],[42,1],[47,1],[47,0],[42,0],[29,0]])
+        self.assertFalse(self.input._held_keys)
+
+    def test_selection_transfer_keeps_its_bytes_during_async_write_request(self):
+        self.clipboard=True
+        self.input.enable();self.wait_state('ready')
+        before='最初🙂'.encode();self.input._clipboard_data=before
+        read_fd,write_fd=os.pipe()
+        original=self.input._bus.call
+        async def delayed_call(message):
+            if message.member=='SelectionWrite':
+                self.input._clipboard_data=b'next offer'
+                return self.Message(message_type=self.Type.METHOD_RETURN,reply_serial=1,
+                                    signature='h',body=[0],unix_fds=[write_fd])
+            return await original(message)
+        try:
+            with patch.object(self.input._bus,'call',delayed_call):
+                asyncio.run_coroutine_threadsafe(self.input._write_selection(self.sessions[-1],'text/plain;charset=utf-8',1),self.input._loop).result(5)
+            self.assertEqual(os.read(read_fd,4096),before)
+        finally:os.close(read_fd)
+
     def tearDown(self):
         self.input.close()
         async def disconnect():
