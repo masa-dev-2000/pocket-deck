@@ -1,0 +1,27 @@
+{
+  "version": "1.1.0",
+  "releaseAssetsValidated": [
+    "Pocket-Deck-Setup-1.1.0.exe",
+    "latest.yml",
+    "Pocket-Deck-Setup-1.1.0.exe.blockmap",
+    "Pocket-Deck-1.1.0-x86_64.AppImage",
+    "Pocket-Deck-1.1.0-amd64.deb",
+    "latest-linux.yml",
+    "LICENSE",
+    "THIRD_PARTY_NOTICES.md",
+    "SHA256SUMS.txt"
+  ],
+  "npmFilesMatchSource": [
+    "package/LICENSE",
+    "package/bin/linux-deb-install.cjs",
+    "package/bin/linux-install.cjs",
+    "package/bin/pocket-deck.cjs",
+    "package/bin/postinstall.cjs",
+    "package/bin/windows-install.cjs",
+    "package/package.json",
+    "package/release.json",
+    "package/README.md"
+  ],
+  "npmManifestMatchesInstallers": true,
+  "published": false
+}

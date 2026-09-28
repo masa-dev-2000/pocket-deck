@@ -105,6 +105,7 @@
 - 再試行の通常OS認証後、検証専用deb 1.1.1へのapt導入・版確認・自動再起動を実行。sandboxed renderer PID 57033、同梱backend PID 57150、HTTP接続と保存配置一致を確認。`ubuntu-24-vm-deb-update-installed.json`。1.1.1は非公開試験版で、公開候補1.1.0とは別に保管。更新後の公開GitHub feed確認はLinux metadata未公開のため失敗表示となるが、接続は利用可。公開後に別途URL確認する。
 - 検証用VMの認証設定は試験後に元の状態へ復元済み。普段のWindows Pocket Deckとデータは変更していない。
 - 最新の自動テスト：desktopはWindows27成功・Linux専用2除外／Linux29成功。npmはWindows21成功・Linux専用1除外／Linux22成功。共有チェックは両OS成功、private D-Busのportal試験9成功。両OSの最終同梱依存確認とnpm publish dry-runも成功。GitHub Actionsでの実行は未着手。
+- 公開待ちの最終照合では、保存中の全Release添付ファイルをSHA256SUMSと再照合し、npm tgzの9ファイルを現在のソースとバイト単位で比較した。両OSのnpm manifestのサイズ・SHA-256も実インストーラーと一致。`docs/verification/release-1.1.0-local-audit.json`。まだ公開していない。
 
 ## Chromeの実検証で確認した制限
 
