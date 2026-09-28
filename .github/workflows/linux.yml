@@ -1,0 +1,63 @@
+name: Ubuntu checks and packages
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  ubuntu:
+    strategy:
+      matrix:
+        os: [ubuntu-22.04, ubuntu-24.04]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/desktop/package-lock.json
+      - name: Install build and isolated test dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libxtst6 xvfb xclip dbus-x11
+          python -m pip install -r app/desktop/requirements-build.txt
+          npm ci --prefix app/desktop
+      - name: Shared and OS integration checks
+        run: |
+          python app/run_checks.py
+          npm test --prefix app/desktop
+          npm test --prefix npm
+          cd app
+          env -u WAYLAND_DISPLAY DECK_XVFB_TEST=1 xvfb-run -a python -m unittest -v test_x11_integration.py
+          deck_runtime=$(mktemp -d)
+          chmod 700 "$deck_runtime"
+          XDG_RUNTIME_DIR="$deck_runtime" dbus-run-session -- python -m unittest -v test_portal.py
+      - name: Build Python-independent backend
+        run: |
+          python app/desktop/build_backend.py
+          env PATH=/nonexistent app/desktop/backend-build/PocketDeckServer/PocketDeckServer --help
+      - name: Build AppImage and deb
+        if: github.event_name == 'workflow_dispatch' && matrix.os == 'ubuntu-22.04'
+        run: |
+          npm run package:linux --prefix app/desktop
+          cd app/desktop-dist
+          sha256sum *.AppImage *.deb > SHA256SUMS.txt
+      - name: Upload packages without publishing
+        if: github.event_name == 'workflow_dispatch' && matrix.os == 'ubuntu-22.04'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocket-deck-ubuntu-x64
+          path: |
+            app/desktop-dist/*.AppImage
+            app/desktop-dist/*.deb
+            app/desktop-dist/latest-linux.yml
+            app/desktop-dist/SHA256SUMS.txt
+          if-no-files-found: error
+          retention-days: 14

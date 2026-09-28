@@ -23,9 +23,10 @@ if(!single)app.quit();else{
  app.on('before-quit',e=>{if(!quitting){e.preventDefault();void quit();}});
  app.on('window-all-closed',()=>{});
  app.whenReady().then(async()=>{
+  if(process.platform==='linux')require('./linux-install-state.cjs').recordLinuxInstall({directory:process.env.POCKET_DECK_NPM_INSTALL_DIR,currentImage:process.env.APPIMAGE,version:app.getVersion()});
   const runtime=runtimePaths({packaged:app.isPackaged,resourcesPath:process.resourcesPath,sourceDirectory:__dirname});
   const settings={executable:runtime.executable,dataDir:path.join(app.getPath('userData'),'data')};
-  backend=new Backend(settings);
+  backend=new Backend(settings,{clipboardWrite:async text=>clipboard.writeText(text)});
   const chromeSetup=new ChromeSetup({userDir:app.getPath('userData'),extensionSource:app.isPackaged?path.join(process.resourcesPath,'backend','chrome-extension'):path.join(__dirname,'..','chrome-extension'),launcher:runtime.launcher,legacyManifest:path.resolve(__dirname,'..','chrome-native-host.json')});
   win=new BrowserWindow({width:1120,height:800,minWidth:760,minHeight:540,title:'Pocket Deck',backgroundColor:'#101923',icon:path.join(__dirname,'icon.png'),show:false,webPreferences:{preload:path.join(__dirname,'preload.cjs'),nodeIntegration:false,contextIsolation:true,sandbox:true}});
   win.webContents.setWindowOpenHandler(()=>({action:'deny'}));
@@ -43,6 +44,7 @@ if(!single)app.quit();else{
    log:message=>{try{fs.appendFileSync(path.join(app.getPath('userData'),'updates.log'),`${new Date().toISOString()} ${message}\n`);}catch{}}
   });
   ipcMain.handle('deck:update-check',event=>{checkSender(event);void updates.check(true);return true;});
+  ipcMain.handle('deck:input-enable',async event=>{checkSender(event);return request('/api/input-enable',{});});
   ipcMain.handle('deck:status',event=>{checkSender(event);return status();});
   ipcMain.handle('deck:retry',event=>{checkSender(event);return start();});
   ipcMain.handle('deck:release',async event=>{checkSender(event);await request('/api/action',{action:'release_all'});return true;});

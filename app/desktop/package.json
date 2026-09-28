@@ -3,12 +3,13 @@
   "productName": "Pocket Deck",
   "version": "1.0.4",
   "private": true,
-  "description": "Pocket Deck Windows desktop companion",
+  "description": "Pocket Deck desktop companion for Windows and Ubuntu",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-updates.cjs test-runtime-paths.cjs",
-    "package": "electron-builder --win nsis --x64 --publish never"
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-runtime-paths.cjs",
+    "package": "electron-builder --win nsis --x64 --publish never",
+    "package:linux": "electron-builder --linux AppImage deb --x64 --publish never"
   },
   "devDependencies": {
     "electron": "44.4.5",
@@ -24,6 +25,8 @@
       "main.cjs",
       "backend.cjs",
       "chrome-setup.cjs",
+      "linux-chrome.cjs",
+      "linux-install-state.cjs",
       "preload.cjs",
       "renderer.js",
       "index.html",
@@ -55,6 +58,13 @@
       "target": "nsis",
       "icon": "icon.ico",
       "signAndEditExecutable": false
+    },
+    "linux": {
+      "target": ["AppImage", "deb"],
+      "maintainer": "masa-dev-2000 <masa-dev-2000@users.noreply.github.com>",
+      "category": "Utility",
+      "icon": "icon.png",
+      "artifactName": "Pocket-Deck-${version}-${arch}.${ext}"
     },
     "nsis": {
       "oneClick": false,

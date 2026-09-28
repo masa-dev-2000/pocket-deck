@@ -12,5 +12,6 @@ Pocket Deck is MIT-licensed; see `LICENSE`. Upstream components retain their own
 | electron-builder 26.15.3 / NSIS | Installer build | Upstream npm and installer component licenses |
 | electron-updater 6.8.10 and runtime dependencies | Confirmed desktop updates | Upstream license files in packaged `app.asar/node_modules/` |
 | semver 7.8.5 | Update version comparison | Upstream `LICENSE` in packaged `app.asar/node_modules/semver/` |
+| dbus-next 0.2.3 | Linux desktop permission and input protocol | `license-notices/dbus-next-LICENSE.txt` (MIT) |
 
 Runtime and development dependencies are locked by `app/desktop/package-lock.json` and retain their upstream licenses. Windows packages include Pocket Deck's license and the `license-notices/` directory under `resources/`, plus Electron's runtime notices. The updater and its runtime dependencies retain their license files inside `app.asar`. Refresh licenses when dependencies change.

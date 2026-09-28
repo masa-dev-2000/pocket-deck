@@ -4,7 +4,11 @@ from . import UnsupportedInput
 
 def create_linux_backend():
     if os.environ.get('WAYLAND_DISPLAY') or os.environ.get('XDG_SESSION_TYPE') == 'wayland':
-        return UnsupportedInput('linux','Wayland入力の許可機能は現在実装中です。配置の編集は利用できます。')
+        try:
+            from .portal import PortalInput
+            return PortalInput()
+        except (ImportError,OSError,RuntimeError) as error:
+            return UnsupportedInput('linux','Wayland入力サービスを開始できません。'+str(error))
     if os.environ.get('DISPLAY'):
         try:
             from .x11 import X11Input

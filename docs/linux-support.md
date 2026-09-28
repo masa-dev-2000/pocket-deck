@@ -7,11 +7,11 @@
 | 段階 | 完了に必要な内容 | 現状 |
 |---|---|---|
 | L1 | OS共通キーと入力API、Windows入力の分離、既存設定の互換性、Windows回帰テスト | 実装・自動回帰検証済み |
-| L2 | 環境・機能の実検出、利用可能/許可待ち/未対応のアプリ内表示と設定導線 | 検出APIとPCホームの表示を実装。許可導線と画面検証は未完了 |
-| L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11の実入力検証済み。Waylandと長時間反復は未完了 |
-| L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 未着手 |
-| L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | 未着手 |
-| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | 未着手 |
+| L2 | 環境・機能の実検出、利用可能/許可待ち/未対応のアプリ内表示と設定導線 | Ubuntu 24.04のPCホームで許可待ち→OS確認→利用可を実操作検証。別環境と拒否時の画面検証が残る |
+| L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11の実入力検証済み。Ubuntu 24.04のnative Waylandアプリでキー・保持ドラッグを確認。Waylandホイール、長時間反復、解除の実動作は未完了 |
+| L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 日本語・改行・絵文字をnative Waylandアプリが受信。旧portal向けクリップボード、実アプリでの連続操作・キャンセルは未完了 |
+| L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | Linux登録、未知ホスト保護、AppImage終了後も動くコピー済みホストを実装・自動テスト。実Chromeの接続と切り替えは未完了 |
+| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | AppImage/debを生成、Pythonなしで同梱バックエンド起動。npmのLinux導入処理・版記録・Ubuntu CIを実装。実導入・更新、複数デスクトップ確認、公開用メタデータは未完了 |
 
 初回配布はWindows/Ubuntu x64。ARM64は別の追加段階。Ubuntuの複数LTSでX11/Waylandを検証し、環境ごとの確認結果を残す。未検証の組み合わせや制限を対応済みと表示しない。
 
@@ -36,3 +36,24 @@
 - Ubuntu 22.04 / Python 3.10：Linux用一時venvで`run_checks.py`成功。Windows GUIランチャーの試験1件だけを対象OSの理由で除外。
 - Ubuntu 22.04 / Xvfb：`DECK_XVFB_TEST=1`、`WAYLAND_DISPLAY`を除外し、`xvfb-run -a ... -m unittest -v test_x11_integration.py`成功。別のX接続のウィンドウが実際に受け取ったキー、Ctrl同時押し、保持したマウス移動、部分ホイール量の蓄積、終了時のキーとボタンの解除を検証。
 - この記録はWayland、文字入力、LinuxのElectron画面、パッケージや更新の完成を証明するものではない。それぞれ後続段階で実装・検証する。
+
+### 追加検証
+
+- Ubuntu 24.04 / GNOME 46.2：Docker内でXvfb上にnested Wayland compositorを起動。ホストの画面・入力・ユーザーデータとは分離。noVNCは127.0.0.1限定の検証用アクセス。GNOMEのRemoteDesktop確認画面を操作し、native GTK Waylandアプリのキー押下・解除、Button1Mask付きの移動を確認した。
+- 同環境のPCアプリホーム：「入力を許可」から実OS確認を開始し、キー・マウス・文字入力が利用可へ変わることを確認。検証コンテナのElectronだけに`--no-sandbox`を指定しているため、この検証は製品のsandboxを有効にした通常導入の証明にはならない。製品にはその設定を追加していない。
+- 通常のElectron clipboard.writeTextでは、native Waylandの背面アプリからの貼り付けが届かない事例を実テストで検出。RemoteDesktopセッションにClipboard portalを追加し、OSが許可した選択データをUnix FDで渡す方式へ修正。
+- `docs/verification/ubuntu-24-wayland-input.jsonl`：実GTKアプリが日本語、改行、絵文字を受け取った文字列を記録。絵文字はラボのフォントにより四角表示だが、バッファ中のコードポイントは一致した。
+- 旧デスクトップでClipboard portalが存在しない場合だけ、常駐X11 clipboard ownerを利用する。キーは引き続き許可済みWayland portalから送る。Clipboard portalが存在して許可を拒否された場合は迂回しない。Xvfb上の実xclipへのUTF-8転送を検証済み。
+- Ubuntu 22.04 / GNOME 42.9：別の隔離コンテナでnative GTK Waylandアプリへのキー、保持ドラッグ、ホイール、初回Unicode貼り付け、1.2秒保持時のOS反復と解除を確認。旧MutterのXWayland選択データ通知より先に貼り付けてしまう問題を検出し、TARGETS要求への応答を待つよう修正。初回操作での日本語・改行・絵文字受信まで再検証した。
+- private D-Bus上の模擬portalで6件成功。確認画面の前後、早着Response、許可拒否、部分許可、失効、終了時解除、Clipboard準備順序を検証。これを実compositor入力検証の代用にしない。
+- Linuxのdesktopテスト21件成功。Windowsは19件成功、Linux専用2件除外。npmテスト14件成功。
+- Ubuntu 22.04でPyInstallerのLinuxバックエンドを生成し、`PATH=/nonexistent`で`--help`を実行できた。Linux filesystem上でelectron-builder 26.15.3からAppImageとdeb、latest-linux.ymlを生成。これらはローカル検証用1.0.4であり、新規公開済みLinuxリリースではない。
+- `.github/workflows/linux.yml`はUbuntu 22.04/24.04で共有・X11・模擬portal・同梱バックエンドを検証する定義。まだGitHubへpushしておらず、Actionsで実行済みとは扱わない。
+
+## 作業再開用の検証環境
+
+- Ubuntu 24.04コンテナ：`pocket-deck-lab-24`。noVNC `http://127.0.0.1:6084/vnc.html?autoconnect=1`。ラボのセッション変数は`/tmp/deck-session.env`。ソースは`/source`へread-only mount。検証専用データは`/tmp/deck-test-config/Pocket Deck`。
+- Ubuntu 22.04コンテナ：`pocket-deck-lab-22`。noVNC `http://127.0.0.1:6085/vnc.html?autoconnect=1&resize=scale`。初回起動時のXWayland検出待ちを修正する前に作ったイメージなので、このコンテナの`/tmp/deck-session.env`だけにDISPLAY=:0とXAUTHORITYを追記してある。次回ビルドでは修正済みスクリプトを使う。
+- 22.04のイメージ生成は`docker build --build-arg UBUNTU_VERSION=22.04 -t pocket-deck-linux-lab:22.04 app/desktop/integration/linux-lab`。デスクトップ用スクリプトをリポジトリに保存してある。
+- WSLのビルドコピー：`/tmp/pocket-deck-package`。生成物は`app/desktop-dist`。最後の生成物には後から追加したClipboard portalなどをまだ反映していないため、最終検証前にソースを同期し、バックエンドとデスクトップを再ビルドする。
+- 残る実動作：Waylandホイールと反復・終了解除、旧Wayland文字転送、連続操作・キャンセル、Chrome native messaging/profile切替、sandbox有効でのAppImage/deb導入、確認付き実更新とデータ保持、npm実導入。公開版番号とLinux配布ハッシュは全生成物の確定後に決める。

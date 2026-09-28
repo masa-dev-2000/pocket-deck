@@ -27,7 +27,8 @@ async function download({ cacheDir, fetchImpl = fetch, manifest = release, log =
   }
   cacheDir ||= path.join(process.env.LOCALAPPDATA || os.tmpdir(), 'Pocket Deck', 'downloads');
   await fs.mkdir(cacheDir, { recursive: true });
-  const target = path.join(cacheDir, `Pocket-Deck-${manifest.version}-${manifest.sha256.slice(0, 12)}.exe`);
+  const extension=manifest.filename?.endsWith('.AppImage')?'.AppImage':'.exe';
+  const target = path.join(cacheDir, `Pocket-Deck-${manifest.version}-${manifest.sha256.slice(0, 12)}${extension}`);
   try {
     if ((await fs.stat(target)).size === manifest.bytes && await hash(target) === manifest.sha256) {
       log('検証済みのインストーラーを使用します。');

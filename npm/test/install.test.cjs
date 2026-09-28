@@ -11,7 +11,8 @@ test('global lifecycle installs, local/npx lifecycle does not',async()=>{
   let calls=0;const options={platform:'win32',arch:'x64',log(){},installImpl:async()=>calls++};
   await postinstall({...options,env:{}});assert.equal(calls,0);
   await postinstall({...options,env:{npm_config_global:'true'}});assert.equal(calls,1);
-  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'linux'}),/Windows/);
+  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'darwin'}),/Ubuntu/);
+  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'linux'}),/Linux配布/);
 });
 test('fresh install verifies before running and checks installed version before opening',async()=>{
   const f=fixture([{}, {}, installed]);await install(f.options);assert.deepEqual(f.events,['verified','installed','opened']);

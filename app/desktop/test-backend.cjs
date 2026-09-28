@@ -17,3 +17,20 @@ test('missing bundled executable provides actionable error',async()=>{
  await assert.rejects(b.ensure(),/再インストール/);
 });
 test('config identity check',()=>{assert(!isConfig({layouts:[]}));assert(!isConfig({version:4,layouts:[{}]}));assert(isConfig({version:4,layouts:[]}));});
+
+test('owned backend clipboard requests survive split UTF-8 chunks and return a correlated ack',async()=>{
+ const {EventEmitter}=require('node:events'),{PassThrough}=require('node:stream');
+ const child=new EventEmitter();child.stdout=new PassThrough();child.stderr=new PassThrough();child.stdin=new PassThrough();
+ let checks=0;const texts=[],acks=[];child.stdin.on('data',chunk=>acks.push(JSON.parse(chunk.toString())));
+ const b=new Backend({executable:__filename,dataDir:'fixture'},{launch:()=>child,wait:async()=>{},clipboardWrite:async text=>texts.push(text),fetchConfig:async()=>{
+  if(!checks++){const error=Error('offline');error.cause={code:'ECONNREFUSED'};throw error;}return {version:4,layouts:[]};
+ }});
+ await b.ensure();const id='a'.repeat(32),text='日本語\n😀';
+ const wire=Buffer.from(JSON.stringify({deck:'clipboard',id,text})+'\n');
+ for(const byte of wire)child.stdout.write(Buffer.from([byte]));
+ await new Promise(resolve=>setImmediate(resolve));
+ assert.deepEqual(texts,[text]);assert.deepEqual(acks,[{deck:'clipboard-result',id,ok:true}]);
+ await b.desktopMessage({},JSON.stringify({deck:'clipboard',id,text}));assert.equal(texts.length,1);
+ assert.equal(child.stdin.listenerCount('error'),1);
+ child.stdout.destroy();child.stderr.destroy();child.stdin.destroy();
+});

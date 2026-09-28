@@ -92,11 +92,13 @@ class X11Input:
             self.x.XFlush(self.display)
 
     def send_text(self, text):
-        raise RuntimeError('Linuxの文字入力は現在実装中です。')
+        from .text import paste
+        paste(self,text)
     def repeat_settings(self): return .5, 1/30
     def status(self):
+        from .text import available
         return {'platform':'linux','session':'x11','backend':'xtest','state':'ready',
-                'keyboard':True,'pointer':True,'text':False,'reason':''}
+                'keyboard':True,'pointer':True,'text':available(),'reason':''}
     def close(self):
         with self.lock:
             if not self.display: return

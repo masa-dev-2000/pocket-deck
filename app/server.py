@@ -368,7 +368,13 @@ def handler(app):
                 if not isinstance(data, dict):
                     raise ValueError('リクエストが不正です')
                 if features.handle_post(self,app,data):return
-                if self.path == '/api/action':
+                if self.path == '/api/input-enable':
+                    if self.client_address[0] != '127.0.0.1':
+                        self.reply(403, {'error':'入力の許可はPCアプリから行ってください。'});return
+                    enable=getattr(get_backend(),'enable',None)
+                    if enable is None:raise ValueError('この環境では入力の許可操作を利用できません。')
+                    self.reply(200,enable());return
+                elif self.path == '/api/action':
                     app.action(data)
                 elif self.path == '/api/config':
                     result = app.save(data)
@@ -398,6 +404,12 @@ def main():
         import chrome_host
         chrome_host.main(args.data_dir,args.port)
         return
+    bridge=None
+    if args.managed_stdio:
+        from desktop_bridge import DesktopBridge
+        from input_backend.text import set_clipboard_provider
+        bridge=DesktopBridge(sys.stdout)
+        set_clipboard_provider(bridge.clipboard)
     keyboard = Keyboard()
     args.data_dir.mkdir(parents=True, exist_ok=True)
     app = App(args.data_dir/'config.json', keyboard)
@@ -415,7 +427,10 @@ def main():
     if args.managed_stdio:
         def parent_watch():
             # EOF also releases held inputs when the desktop parent exits unexpectedly.
-            sys.stdin.readline()
+            for line in sys.stdin:
+                if line.strip() == 'shutdown':break
+                bridge.receive(line)
+            bridge.close()
             server.shutdown()
         threading.Thread(target=parent_watch, daemon=True).start()
     def watchdog():

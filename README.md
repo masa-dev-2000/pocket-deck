@@ -4,6 +4,8 @@
 
 **Windows x64向けのローカルネットワーク用MVPです。スマホ接続はHTTP・認証なしなので、信頼できる家庭内などのネットワークで使用してください。外部公開・ポート転送には対応していません。**
 
+Ubuntu対応は開発中です。AppImage/debのビルドとWayland入力の実検証を進めていますが、公開版はまだWindows用です。確認できた範囲と残作業は[Linux対応の実装・検証記録](docs/linux-support.md)にまとめています。
+
 ## ダウンロードと初回設定
 
 1. [Releases](https://github.com/masa-dev-2000/pocket-deck/releases)から `Pocket-Deck-Setup-<version>.exe` をダウンロードします。ソースコードのZIPはインストーラーではありません。

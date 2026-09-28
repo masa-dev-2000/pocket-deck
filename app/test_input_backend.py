@@ -25,8 +25,9 @@ class InputBackends(unittest.TestCase):
         with patch.dict(os.environ, {'WAYLAND_DISPLAY':'wayland-test','DISPLAY':':999'},clear=True):
             with patch('input_backend.x11.X11Input') as x11:
                 backend=create_backend('linux')
-                self.assertEqual(backend.status()['state'],'unsupported')
+                self.assertNotEqual(backend.status()['backend'],'xtest')
                 x11.assert_not_called()
+                backend.close()
 
     def test_failed_release_keeps_remaining_keys_and_stops_released_key_repeat(self):
         attempts=[]
