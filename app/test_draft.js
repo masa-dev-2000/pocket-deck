@@ -1,0 +1,18 @@
+const assert = require('node:assert/strict');
+const DeckDraft = require('./draft.js');
+const original = {columns:3,buttons:[{id:'a',label:'Original',keys:'Ctrl+Z'}, {id:'b',label:'Second',keys:'Ctrl+C'}]};
+const draft = new DeckDraft(original);
+draft.put({...draft.value.buttons[0], label:'Changed'},2);
+assert.equal(draft.dirty,true);
+assert.equal(original.buttons[0].label,'Original');
+assert.deepEqual(draft.value.buttons.map(b=>b.id),['b','a']);
+draft.remove('b');
+draft.discard();
+assert.deepEqual(draft.value,original);
+assert.equal(draft.dirty,false);
+draft.value.columns=4;
+draft.accept(draft.value);
+draft.value.columns=5;
+draft.discard();
+assert.equal(draft.value.columns,4);
+console.log('Draft isolation, move, delete, discard and save baseline: OK');

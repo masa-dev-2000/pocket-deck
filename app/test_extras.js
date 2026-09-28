@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');
+global.buttonCells=require('./layout.js').buttonCells;
+const {copyButton,copyLayout,buttonSteps}=require('./extras.js');
+const layout={id:'main',name:'Main',columns:4,rows:4,buttons:[{id:'a',label:'A',type:'macro',slot:0,width:2,height:2,appearance:{asset:'image',mode:'both'},steps:[{kind:'text',text:'hello'}]}]};
+const copy=copyButton(layout,layout.buttons[0]);assert.equal(copy.slot,2);assert.notEqual(copy.id,'a');copy.steps[0].text='changed';assert.equal(layout.buttons[0].steps[0].text,'hello');
+const full={...layout,columns:2,rows:2};assert.equal(copyButton(full,layout.buttons[0]),null);
+layout.buttons.push({id:'nav',label:'Main',type:'navigate',target:'layout',layoutId:'main',slot:8,width:1,height:1});
+const second=copyLayout(layout);assert.notEqual(second.id,layout.id);assert.equal(second.buttons[1].layoutId,second.id);assert.notEqual(second.buttons[0].id,'a');
+const source={type:'text',text:'hello'};const steps=buttonSteps(source);source.text='new';assert.equal(steps[0].text,'hello');assert.deepEqual(buttonSteps(layout.buttons[0]),[]);
+console.log('Copies: independent nested actions, unique IDs, self-navigation, first fitting space and no-space rejection OK');

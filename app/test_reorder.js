@@ -1,0 +1,15 @@
+const assert=require('node:assert/strict'),vm=require('node:vm'),fs=require('node:fs');
+let timer,move=[],ghostRemoved=false;
+const events={},windows={};
+const classes=()=>({add(){},remove(){}});
+const el={dataset:{slot:'0',button:'a'},classList:classes(),setPointerCapture(){},getBoundingClientRect:()=>({width:100,height:100}),cloneNode:()=>({style:{},classList:classes(),removeAttribute(){},setAttribute(){},remove(){ghostRemoved=true;},getBoundingClientRect:()=>({width:100,height:100})})};
+const target={dataset:{slot:'1'},classList:classes()};target.closest=()=>target;
+const deck={addEventListener:(name,fn)=>events[name]=fn,contains:()=>true,querySelectorAll:()=>[],querySelector:()=>target};
+const sandbox={console,Math,Number,setTimeout:fn=>{timer=fn;return 1;},clearTimeout(){},window:{addEventListener:(name,fn)=>windows[name]=fn},document:{body:{append(){}},elementFromPoint:()=>target}};
+vm.createContext(sandbox);vm.runInContext(fs.readFileSync('reorder.js','utf8'),sandbox);sandbox.deck=deck;sandbox.options={move:(a,b)=>move.push([a,b])};vm.runInContext('installReorder(deck,options)',sandbox);
+const event={target:{closest:()=>el},pointerId:1,button:0,clientX:10,clientY:10,preventDefault(){}};
+events.pointerdown(event);assert.equal(move.length,0);timer();events.pointermove({...event,clientX:120});events.pointerup({...event,clientX:120});assert.deepEqual(move,[[0,1]]);assert(ghostRemoved);
+let suppressed=false;events.click({preventDefault(){},stopImmediatePropagation(){suppressed=true;}});assert(suppressed);
+events.pointerdown(event);timer();events.pointercancel(event);assert.equal(move.length,1);
+events.pointerdown(event);timer();windows.blur();assert.equal(move.length,1);
+console.log('Long press: delay, drop, click suppression, cancellation, blur OK');

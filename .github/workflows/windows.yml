@@ -1,0 +1,75 @@
+name: Windows checks and package
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/desktop/package-lock.json
+      - name: Install Python dependencies
+        run: python -m pip install -r app/desktop/requirements-build.txt
+      - name: Install desktop dependencies
+        working-directory: app/desktop
+        run: npm ci
+      - name: Desktop checks
+        working-directory: app/desktop
+        run: npm test
+      - name: Source checks
+        working-directory: app
+        run: python run_checks.py
+      - name: Build backend
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: app/desktop
+        run: python build_backend.py
+      - name: Packaged checks
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: app/desktop
+        run: |
+          python test_packaged.py
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          python test_packaged_chrome.py
+      - name: Build installer
+        if: github.event_name == 'workflow_dispatch'
+        working-directory: app/desktop
+        run: npm run package
+      - name: Checksum
+        if: github.event_name == 'workflow_dispatch'
+        run: |
+          $deckInstaller = Get-ChildItem -LiteralPath 'app/desktop-dist' -Filter 'Pocket Deck Setup *.exe' | Select-Object -First 1
+          $deckHash = (Get-FileHash -LiteralPath $deckInstaller.FullName -Algorithm SHA256).Hash.ToLowerInvariant()
+          "$deckHash  $($deckInstaller.Name)" | Set-Content -LiteralPath 'app/desktop-dist/SHA256SUMS.txt' -Encoding ASCII
+      - name: Upload package
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocket-deck-windows-x64
+          path: |
+            app/desktop-dist/Pocket Deck Setup *.exe
+            app/desktop-dist/SHA256SUMS.txt
+            LICENSE
+            THIRD_PARTY_NOTICES.md
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-diagnostics
+          path: |
+            app/checks.log
+            app/desktop/backend-build.log
+          if-no-files-found: ignore

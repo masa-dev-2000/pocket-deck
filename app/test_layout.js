@@ -1,0 +1,10 @@
+const assert=require('node:assert/strict');const {buttonCells,validLayout,placeButton,movedLayout}=require('./layout.js');
+const b=(id,slot,w=1,h=1)=>({id,slot,width:w,height:h});
+const c={columns:4,rows:3,buttons:[b('a',0),b('b',1),b('c',4),b('d',11)]};
+const next=placeButton(c,b('a',0,2,2));assert(validLayout(next));assert.equal(next.buttons.find(x=>x.id==='d').slot,11);assert.deepEqual(buttonCells(next,next.buttons[0]),[0,1,4,5]);assert.equal(c.buttons[0].width,1);
+const full={columns:2,rows:1,buttons:[b('a',0),b('b',1)]};assert.equal(placeButton(full,b('a',0,2)),null);assert.equal(full.buttons[0].width,1);
+assert.equal(placeButton(c,b('a',3,2)),null);
+const exchanged=movedLayout(c,0,1);assert.equal(exchanged.buttons[0].slot,1);assert.equal(exchanged.buttons[1].slot,0);
+const moved=movedLayout(next,0,6);assert(validLayout(moved));assert.equal(moved.buttons[0].slot,6);
+assert.equal(validLayout({...next,columns:1}),false);
+console.log('Layout: spans, reflow, stable unaffected keys, no-space rollback, exchange, move and bounds OK');

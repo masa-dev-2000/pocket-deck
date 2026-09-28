@@ -1,0 +1,23 @@
+const assert=require('node:assert/strict');
+const {WheelController}=require('./pad.js');
+let events=[],id=0,enabled=true;
+const wheel=new WheelController({send:async e=>events.push(e),owner:()=>String(++id),enabled:()=>enabled});
+(async()=>{
+ wheel.down(1,0,0);await wheel.up(1);wheel.click();assert.equal(events.length,0);
+ wheel.down(1,0,0);wheel.move(1,20,-40);await wheel.up(1);
+ assert.deepEqual(events.map(e=>[e.action,e.dx,e.dy]),[['mouse_scroll',-30,-60]]);
+ events=[];wheel.down(1,0,0);wheel.move(1,10000,10000);await wheel.up(1);
+ assert(events.every(e=>Math.abs(e.dx)<=2048&&Math.abs(e.dy)<=2048));
+ assert.equal(events.reduce((n,e)=>n+e.dx,0),-15000);
+ assert.equal(events.reduce((n,e)=>n+e.dy,0),15000);
+ events=[];wheel.down(1,0,0);wheel.move(1,10,10);wheel.down(2,0,0);
+ wheel.move(1,100,100);await wheel.up(2);wheel.move(1,200,200);await wheel.up(1);
+ assert.equal(events.length,0);
+ wheel.down(1,0,0);wheel.move(1,10,10);await wheel.cancel();assert.equal(events.length,0);
+ wheel.down(1,0,0);wheel.move(1,10,10);enabled=false;wheel.move(1,20,20);await wheel.up(1);assert.equal(events.length,0);
+ enabled=true;wheel.down(1,0,0);wheel.move(1,1,1);await wheel.up(1);assert.equal(events.length,1);
+ assert(events.every(e=>e.action==='mouse_scroll'));
+ let errors=0;const broken=new WheelController({send:async()=>{throw Error('offline')},owner:()=>String(++id),enabled:()=>true,onError:()=>errors++});
+ broken.down(1,0,0);broken.move(1,20,20);await broken.up(1);assert.equal(errors,1);assert.equal(broken.points.size,0);
+ console.log('Wheel: tap no-op, diagonal direction, packet limits, multitouch blocking, cancellation, macro guard and transport error OK');
+})().catch(e=>{console.error(e);process.exitCode=1});

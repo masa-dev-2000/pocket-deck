@@ -1,0 +1,19 @@
+{
+  "manifest_version": 3,
+  "name": "Pocket Deck Profile Bridge",
+  "version": "1.0.1",
+  "description": "Pocket Deckから、このChromeプロフィールのウィンドウへ切り替えます。",
+  "permissions": [
+    "storage",
+    "nativeMessaging",
+    "alarms"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Pocket Deck プロフィール連携"
+  },
+  "key": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxE/+qEbAKQOIxjkuNN+wP5v0RQ+7vtCTNwYh0ybwzcZWyk4cjACtvziFuTK/J3Wg5evZWOo3brOf5288AeQF4E1xWk+oa9KojcPbpOQrSVsfLd6h35lYGJ4wxWd4x2tJ+CFEXcWjzdsOtpPRKl9AedwgX4BDZSR+QAKvT5lPyGikJ/8VS12O2XiNf4J59z7Jz5YcVnpMID500km+oNplzEJdsQFKRZGzHwYZ0+su4E3Y9AztLMIrftvq6dqtmXCBrrkStba4+VxFuapP+7dJYkAGkr4XJUDxpnNy2snIpMDBM2kr1dDAFim95nm9j9CF7uiPF2GVvyaSwxHNcxZBeQIDAQAB"
+}

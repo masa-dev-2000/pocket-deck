@@ -1,0 +1,76 @@
+{
+  "name": "pocket-deck-desktop",
+  "productName": "Pocket Deck",
+  "version": "1.0.3",
+  "private": true,
+  "description": "Pocket Deck Windows desktop companion",
+  "main": "main.cjs",
+  "scripts": {
+    "start": "electron .",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs",
+    "package": "electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "44.4.5",
+    "electron-builder": "26.15.3"
+  },
+  "build": {
+    "appId": "local.pocket-deck.desktop",
+    "productName": "Pocket Deck",
+    "directories": {
+      "output": "../desktop-dist"
+    },
+    "files": [
+      "main.cjs",
+      "backend.cjs",
+      "chrome-setup.cjs",
+      "preload.cjs",
+      "renderer.js",
+      "index.html",
+      "desktop.css",
+      "icon.png",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "backend-build/PocketDeckServer",
+        "to": "backend"
+      },
+      {
+        "from": "../../LICENSE",
+        "to": "LICENSE"
+      },
+      {
+        "from": "../../THIRD_PARTY_NOTICES.md",
+        "to": "THIRD_PARTY_NOTICES.md"
+      },
+      {
+        "from": "../../license-notices",
+        "to": "license-notices"
+      }
+    ],
+    "win": {
+      "target": "nsis",
+      "icon": "icon.ico",
+      "signAndEditExecutable": false
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "deleteAppDataOnUninstall": false
+    }
+  },
+  "license": "MIT",
+  "author": "masa-dev-2000",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/masa-dev-2000/pocket-deck.git",
+    "directory": "app/desktop"
+  },
+  "homepage": "https://github.com/masa-dev-2000/pocket-deck",
+  "bugs": {
+    "url": "https://github.com/masa-dev-2000/pocket-deck/issues"
+  }
+}

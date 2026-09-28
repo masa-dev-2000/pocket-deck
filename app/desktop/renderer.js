@@ -1,0 +1,20 @@
+const $=id=>document.getElementById(id);let state={ready:false},view='home',refreshing=false,toastTimer,chromeRefreshing=false;
+const routes={editor:'http://127.0.0.1:8765/editor',connect:'http://127.0.0.1:8765/connect'};
+function notify(text){$('toast').textContent=text;clearTimeout(toastTimer);toastTimer=setTimeout(()=>$('toast').textContent='',5000);}
+function select(next){if(next!==view&&view==='editor'&&!confirm('編集中の内容が「保存済み」になっていることを確認してください。画面を切り替えますか？'))return;view=next;document.querySelectorAll('nav [data-view]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.view===view)));$('home').hidden=view!=='home';$('chrome').hidden=view!=='chrome';$('workspace').hidden=!routes[view]||!state.ready;if(routes[view]&&state.ready&&$('workspace').getAttribute('src')!==routes[view])$('workspace').src=routes[view];if(view==='chrome')refreshChrome();}
+function paint(s){state=s;$('connection').textContent=s.ready?'● スマホ接続可能':'○ 未接続';$('error').hidden=s.ready;$('errorText').textContent=s.error||'サーバーを起動しています…';$('summary').textContent=s.ready?`${s.layouts}つの配置 · ${s.buttons}個のボタン · ${s.url}`:'';$('release').disabled=!s.ready;$('workspace').hidden=!routes[view]||!s.ready;if(s.ready&&routes[view]&&!$('workspace').getAttribute('src'))$('workspace').src=routes[view];}
+async function refresh(){if(refreshing)return;refreshing=true;try{paint(await window.deckDesktop.status());if(view==='chrome')await refreshChrome();}catch(e){paint({ready:false,error:e.message});}finally{refreshing=false;}}
+async function refreshChrome(){if(chromeRefreshing)return;chromeRefreshing=true;try{
+ const s=await window.deckDesktop.chromeStatus();$('chromeStatus').textContent=s.prepared?'PC側の準備は完了しています。':s.issue;$('chromeFolderPath').textContent=s.folder;$('chromePrepare').textContent=s.prepared?'準備を確認・修復':'連携を準備';
+ for(const id of ['chromeFolderOpen','chromeFolderCopy'])$(id).disabled=!s.prepared;
+ $('chromeProfiles').replaceChildren();const profiles=s.profiles||[];for(const p of profiles){const li=document.createElement('li');li.textContent=`${p.online?'● 接続中':'○ 未接続'} — ${p.name}`;$('chromeProfiles').append(li);}
+ $('chromeConnectionHint').textContent=s.serverOffline?'PCとの接続が切れています。「再接続」を押してください。':!s.prepared?'先にPC側の連携を準備してください。':!profiles.length?'まだプロフィールが登録されていません。上の手順で拡張を追加し、名前を登録してください。':profiles.some(p=>p.online)?'接続中のプロフィールをボタンへ割り当てられます。':'対象のChromeを開き、拡張の「登録・再接続」を押してください。';
+ }catch(e){$('chromeStatus').textContent=e.message;}finally{chromeRefreshing=false;}}
+document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>select(b.dataset.view));
+$('retry').onclick=async()=>{const b=$('retry');b.disabled=true;try{paint(await window.deckDesktop.retry());if(state.ready&&routes[view])$('workspace').src=routes[view];if(view==='chrome')await refreshChrome();}finally{b.disabled=false;}};
+$('release').onclick=async()=>{try{await window.deckDesktop.release();notify('全キーを解除しました');}catch(e){notify(e.message);}};
+$('hide').onclick=()=>window.deckDesktop.hide();$('quit').onclick=()=>{if(confirm('Pocket Deckを終了しますか？ このアプリが起動した接続サーバーも停止します。'))window.deckDesktop.quit();};
+$('chromePrepare').onclick=async()=>{const b=$('chromePrepare');b.disabled=true;try{await window.deckDesktop.chromePrepare();await refreshChrome();notify('PC側の連携を準備しました。次にChromeへ拡張を追加してください。');}catch(e){$('chromeStatus').textContent=e.message;}finally{b.disabled=false;}};
+$('chromeRefresh').onclick=refreshChrome;
+for(const [id,action] of [['chromeUrlCopy',()=>window.deckDesktop.chromeCopy('url')],['chromeFolderCopy',()=>window.deckDesktop.chromeCopy('folder')],['chromeFolderOpen',()=>window.deckDesktop.chromeFolder()]])$(id).onclick=async()=>{try{await action();if(id!=='chromeFolderOpen')notify('コピーしました');}catch(e){notify(e.message);}};
+window.deckDesktop.onRefresh(refresh);refresh();
