@@ -1,0 +1,28 @@
+{"before": {"platform": "linux", "session": "wayland", "backend": "remote-desktop-portal", "state": "permission", "keyboard": false, "pointer": false, "text": false, "clipboard": "xwayland", "canEnable": true, "reason": "\u300c\u5165\u529b\u3092\u8a31\u53ef\u300d\u3092\u62bc\u3057\u3001OS\u306e\u78ba\u8a8d\u753b\u9762\u3067\u30ad\u30fc\u30fb\u30de\u30a6\u30b9\u64cd\u4f5c\u3092\u8a31\u53ef\u3057\u3066\u304f\u3060\u3055\u3044\u3002"}}
+{"after": {"platform": "linux", "session": "wayland", "backend": "remote-desktop-portal", "state": "pending", "keyboard": false, "pointer": false, "text": false, "clipboard": "xwayland", "canEnable": false, "reason": "OS\u306e\u5165\u529b\u8a31\u53ef\u3092\u5f85\u3063\u3066\u3044\u307e\u3059\u2026"}}
+{"event": "key-press-event", "key": 65507, "state": 0, "x": null, "y": null}
+{"event": "key-press-event", "key": 97, "state": 4, "x": null, "y": null}
+{"event": "key-release-event", "key": 97, "state": 4, "x": null, "y": null}
+{"event": "key-release-event", "key": 65507, "state": 4, "x": null, "y": null}
+{"event": "key-press-event", "key": 65507, "state": 0, "x": null, "y": null}
+{"event": "key-press-event", "key": 118, "state": 4, "x": null, "y": null}
+{"event": "key-release-event", "key": 118, "state": 4, "x": null, "y": null}
+{"event": "key-release-event", "key": 65507, "state": 4, "x": null, "y": null}
+{"text": "\u9023\u7d9a\u64cd\u4f5c\ud83d\ude42"}
+{"event": "key-press-event", "key": 65293, "state": 0, "x": null, "y": null}
+{"text": "\u9023\u7d9a\u64cd\u4f5c\ud83d\ude42\n"}
+{"event": "key-release-event", "key": 65293, "state": 0, "x": null, "y": null}
+{"mode": "macro", "sequence": {"id": "4e8e61a340214a7b9e5ef35d56119b65", "owner": "lab-owner", "state": "done", "index": 5, "total": 5, "label": "Real Wayland macro"}, "heldKeys": {}}
+{"event": "key-press-event", "key": 65507, "state": 0, "x": null, "y": null}
+{"event": "key-press-event", "key": 118, "state": 4, "x": null, "y": null}
+{"event": "key-release-event", "key": 118, "state": 4, "x": null, "y": null}
+{"event": "key-release-event", "key": 65507, "state": 4, "x": null, "y": null}
+{"text": "\u9023\u7d9a\u64cd\u4f5c\ud83d\ude42\n\u5b8c\u4e86"}
+{"event": "key-press-event", "key": 65505, "state": 0, "x": null, "y": null}
+{"event": "key-release-event", "key": 65505, "state": 1, "x": null, "y": null}
+{"mode": "cancel", "sequence": {"id": "dc4cac22bfaf416f96025165cb1c3a5f", "owner": "lab-owner", "state": "cancelled", "index": 2, "total": 3, "label": "Real Wayland macro"}, "heldKeys": {}}
+{"event": "key-press-event", "key": 65505, "state": 0, "x": null, "y": null}
+{"event": "button-press-event", "key": null, "state": 1, "x": 521.0, "y": 80.0}
+{"event": "key-release-event", "key": 65505, "state": 257, "x": null, "y": null}
+{"event": "button-release-event", "key": null, "state": 256, "x": 521.0, "y": 80.0}
+{"close": "completed"}

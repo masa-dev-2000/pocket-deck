@@ -414,7 +414,9 @@ def main():
     args.data_dir.mkdir(parents=True, exist_ok=True)
     app = App(args.data_dir/'config.json', keyboard)
     class ExclusiveServer(ThreadingHTTPServer):
-        allow_reuse_address = False
+        # Windows SO_REUSEADDR can admit another live listener. On Linux it
+        # only permits reuse of a closed socket's TIME_WAIT state (no REUSEPORT).
+        allow_reuse_address = sys.platform != 'win32'
 
         def server_bind(self):
             if hasattr(socket, 'SO_EXCLUSIVEADDRUSE'):

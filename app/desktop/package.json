@@ -1,6 +1,7 @@
 {
   "name": "pocket-deck-desktop",
   "productName": "Pocket Deck",
+  "desktopName": "pocket-deck-desktop.desktop",
   "version": "1.0.4",
   "private": true,
   "description": "Pocket Deck desktop companion for Windows and Ubuntu",
@@ -60,6 +61,7 @@
       "signAndEditExecutable": false
     },
     "linux": {
+      "syncDesktopName": true,
       "target": ["AppImage", "deb"],
       "maintainer": "masa-dev-2000 <masa-dev-2000@users.noreply.github.com>",
       "category": "Utility",

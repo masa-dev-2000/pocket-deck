@@ -20,7 +20,10 @@ def record(value):
 window = Gtk.Window(title='Pocket Deck isolated Wayland input probe')
 window.set_default_size(640, 420)
 field = Gtk.TextView()
-window.add(field)
+scroller = Gtk.ScrolledWindow()
+scroller.add(field)
+window.add(scroller)
+scroller.get_vadjustment().connect('value-changed',lambda adjustment:record({'scrollPosition':adjustment.get_value()}))
 field.get_buffer().connect('changed',lambda buffer:record({'text':buffer.get_text(buffer.get_start_iter(),buffer.get_end_iter(),True)}))
 for signal in ('key-press-event', 'key-release-event', 'button-press-event', 'button-release-event', 'motion-notify-event', 'scroll-event'):
     field.add_events(Gdk.EventMask.ALL_EVENTS_MASK)
@@ -43,10 +46,39 @@ def run_input():
     return True
 def send_input(mode):
     try:
+        if mode in ('macro','cancel'):
+            import server
+            directory=Path('/tmp/probe-macro');directory.mkdir(exist_ok=True)
+            app=server.App(directory/'config.json',server.Keyboard(backend.send_key),
+                           text_emit=backend.send_text,mouse_emit=backend.send_mouse)
+            if mode=='macro':
+                steps=[{'kind':'shortcut','keys':'Ctrl+A'},
+                       {'kind':'text','text':'連続操作🙂'}, {'kind':'wait','ms':150},
+                       {'kind':'shortcut','keys':'Enter'}, {'kind':'text','text':'完了'}]
+            else:
+                steps=[{'kind':'press','key':'SHIFT'}, {'kind':'wait','ms':5000},
+                       {'kind':'text','text':'SHOULD_NOT_EXECUTE'}]
+            app.features.start({'id':'probe','type':'macro','label':'Real Wayland macro','steps':steps},'lab-owner')
+            if mode=='cancel':
+                time.sleep(.2);app.features.cancel_owner('lab-owner')
+            until=time.monotonic()+4
+            while app.features.running and time.monotonic()<until:time.sleep(.02)
+            record({'mode':mode,'sequence':app.features.status(),'heldKeys':app.keyboard.held})
+            return
         if mode=='repeat':
             backend.send_key('A',False);time.sleep(1.2);backend.send_key('A',True)
             record({'repeat':'sent'});return
-        if mode=='scroll':
+        if mode in ('scroll','scroll-move'):
+            prepared=threading.Event()
+            def prepare_scroll():
+                field.get_buffer().set_text('\n'.join('Scroll proof line '+str(i) for i in range(200)))
+                field.get_buffer().place_cursor(field.get_buffer().get_start_iter())
+                prepared.set()
+                return False
+            GLib.idle_add(prepare_scroll)
+            if not prepared.wait(2):raise RuntimeError('scroll target did not prepare')
+            time.sleep(.2)
+            if mode=='scroll-move':backend.send_mouse('mouse_move',1,0);time.sleep(.1)
             for _ in range(4):backend.send_mouse('mouse_scroll',0,-120);time.sleep(.05)
             record({'scroll':'sent'});return
         if mode=='close':

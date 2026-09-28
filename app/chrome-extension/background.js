@@ -30,7 +30,14 @@ async function focus(command){
   if(Date.now()/1000>command.expires)throw Error('切り替え要求の期限が切れました');
   if(target.state==='minimized')await chrome.windows.update(target.id,{state:'normal'});
   await chrome.windows.update(target.id,{focused:true});
-  const actual=await chrome.windows.get(target.id);
+  // Wayland activation is asynchronous: update() can return before the
+  // compositor reports focus. Observe its result without re-sending activation.
+  const until=Math.min(command.expires*1000,Date.now()+1200);
+  let actual=await chrome.windows.get(target.id);
+  while(!actual.focused&&Date.now()<until){
+   await new Promise(resolve=>setTimeout(resolve,50));
+   actual=await chrome.windows.get(target.id);
+  }
   if(!actual.focused)throw Error('Chromeを前面に出せませんでした');
   result.ok=true;
  }catch(e){result.error=e.message;}

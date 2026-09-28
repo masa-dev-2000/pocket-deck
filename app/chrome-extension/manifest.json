@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Pocket Deck Profile Bridge",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Pocket Deckから、このChromeプロフィールのウィンドウへ切り替えます。",
   "permissions": [
     "storage",
