@@ -8,6 +8,8 @@
 
 npm更新時も新しい版が入ればPCアプリを導入します。同じ版・新版の既存アプリは再導入せず起動します。起動中のアプリや全ユーザー用の導入は置き換えません。導入スクリプトを禁止するnpm設定では実行許可が必要です。`npm uninstall`だけではPCアプリは消えず、Windowsから削除します。
 
+1.1.0以降はUbuntu x64にも対応します。通常ユーザーの`npm install -g --prefix "$HOME/.local" --foreground-scripts @masadev/pocket-deck`から検証済みdebを取得し、OSの管理者認証後に導入・起動します。npm全体をsudoで実行しません。`release.json`の`linux`にdebの版・URL・SHA-256・bytesを固定し、Windowsの配布情報を維持します。Ubuntu本体の削除は`sudo apt remove pocket-deck-desktop`です。
+
 公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。
 
 ## 1. ログインを確認する
@@ -64,8 +66,8 @@ npm publish --access public
 
 ```powershell
 npm view @masadev/pocket-deck version dist.tarball
-npx @masadev/pocket-deck@1.0.4 --version
-npx @masadev/pocket-deck@1.0.3 download
+npx @masadev/pocket-deck@1.1.0 --version
+npx @masadev/pocket-deck@1.1.0 download
 ```
 
 レジストリ上の版・配布URL、npxの実行、実インストーラーの取得とSHA-256を確認します。`download`はアプリの更新・再インストールを行いません。新規導入・更新・初回起動は隔離したWindows環境で別途検証します。PCアプリの更新にはGitHub Releaseのexe・blockmap・latest.ymlが必要です。既存利用者のデータとアプリを検証のために変更しません。

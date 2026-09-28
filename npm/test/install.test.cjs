@@ -8,11 +8,12 @@ function fixture(states) {
   return {events,options:{version:'1.0.4',log(){},inspectImpl:async()=>states.shift(),downloadImpl:async()=>{events.push('verified');return 'setup.exe';},runImpl:async()=>events.push('installed'),openImpl:async()=>events.push('opened')}};
 }
 test('global lifecycle installs, local/npx lifecycle does not',async()=>{
-  let calls=0;const options={platform:'win32',arch:'x64',log(){},installImpl:async()=>calls++};
+  let calls=0,selected;const options={platform:'win32',arch:'x64',log(){},installImpl:async options=>{calls++;selected=options;}};
   await postinstall({...options,env:{}});assert.equal(calls,0);
   await postinstall({...options,env:{npm_config_global:'true'}});assert.equal(calls,1);
   await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'darwin'}),/Ubuntu/);
-  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'linux'}),/Linux配布/);
+  await postinstall({...options,env:{npm_config_global:'true'},platform:'linux'});
+  assert.equal(calls,2);assert.equal(selected.format,'deb');assert.equal(selected.version,require('../release.json').linux.version);
 });
 test('fresh install verifies before running and checks installed version before opening',async()=>{
   const f=fixture([{}, {}, installed]);await install(f.options);assert.deepEqual(f.events,['verified','installed','opened']);

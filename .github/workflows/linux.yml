@@ -48,6 +48,7 @@ jobs:
         if: github.event_name == 'workflow_dispatch' && matrix.os == 'ubuntu-22.04'
         run: |
           npm run package:linux --prefix app/desktop
+          python app/desktop/integration/linux-lab/verify-desktop-runtime.py app/desktop-dist/linux-unpacked
           cd app/desktop-dist
           sha256sum *.AppImage *.deb > SHA256SUMS.txt
       - name: Upload packages without publishing

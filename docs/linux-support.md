@@ -8,10 +8,10 @@
 |---|---|---|
 | L1 | OS共通キーと入力API、Windows入力の分離、既存設定の互換性、Windows回帰テスト | 実装・自動回帰検証済み |
 | L2 | 環境・機能の実検出、利用可能/許可待ち/未対応のアプリ内表示と設定導線 | Ubuntu 24.04のPCホームで許可待ち→OS確認→利用可を実操作検証。別環境と拒否時の画面検証が残る |
-| L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11の実入力検証済み。両Ubuntuのnative Waylandでキー・保持ドラッグ・1.2秒反復・終了解除・ホイールを確認。切断失効時の実確認が残る |
-| L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 両Ubuntuのnative WaylandでUnicode初回受信と連続操作・キャンセルを確認。24.04 VMの実HTTPで3回の再送抑止も確認。端末貼り付けと、負荷の高いVMの初回貼り付け欠落が残る |
+| L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11と両Ubuntuのnative Waylandでキー・保持ドラッグ・反復・終了解除・ホイールを確認。24.04の通常失効と明示再許可も確認。brokerの異常終了ではOSに保持が残る制限を記録し、解除未確認を表示する |
+| L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 両UbuntuでUnicode初回受信・連続操作・キャンセルを確認。24.04の実debで端末貼り付け、1500ms待機付き連続操作の完全一致、3回の再送抑止を確認。待ち時間は受信アプリの負荷に合わせて調整する |
 | L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | 両Ubuntuで実Chromeの2プロファイル接続と相互切り替え、22.04で修復後の再接続も確認。native Wayland Chromeは別ウィンドウへのフォーカス拒否を検出して案内する |
-| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | AppImage/deb生成、Pythonなしの実バックエンド再起動と設定維持、sandbox有効のAppImage起動と実更新・設定保持、deb/npm実導入と更新を確認。複数デスクトップの最終確認、公開用メタデータは未完了 |
+| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | ローカルの生成物・検証・配布文書は準備済み。両OS1.1.0のハッシュ・更新情報・npm tgzを照合しdry-run成功。24.04の実npm 1.1.0更新とアプリ内deb更新・認証取消・再試行・配置保持を確認。公開承認、Actionsと公開URLの確認が残る |
 
 初回配布はWindows/Ubuntu x64。ARM64は別の追加段階。Ubuntuの複数LTSでX11/Waylandを検証し、環境ごとの確認結果を残す。未検証の組み合わせや制限を対応済みと表示しない。
 
@@ -98,6 +98,14 @@
 - 編集画面で端末向け選択と自動保存を実確認。今回のChrome viewport overrideは実寸に反映されなかったため、この追加項目のiPhone SE相当サイズの実画面確認としては扱わない。
 - 新しいdebを実npm経由で導入した24.04 VMのnative GTK入力先へ、実HTTPでCtrl+A→文字列→1500ms待機→Enter→文字列→1500ms待機を実行。受信結果は`連続操作🙂\n完了`で完全一致。同じownerの要求3回を再送してもjob/stateは変わらなかった。`ubuntu-24-vm-packaged-macro.json`。150msで欠けた過去の結果を取り消すものではなく、低速VMでは待ち時間調整が必要という確認。
 
+## 最終1.1.0の導入・更新確認
+
+- 正確な公開候補npm 1.1.0 tgzから、通常のGNOME Terminal内で実`npm install -g --offline --foreground-scripts`を実行。認証取消時は旧deb 1.0.4と保存配置を維持。再試行でdeb 1.1.0導入・起動、sandboxed rendererと同梱backend、設定のSHA-256一致を確認。`ubuntu-24-vm-final-npm-deb.json`。公開registry取得の検証ではなく、SHA-256検証した公開候補debのオフライン導入。
+- 実1.1.0 debのアプリ内更新をprivate localhost feedで検証。「後で」は導入せず継続。OS認証Cancelで1.1.0と設定を保持し、同じrendererのままbackendを再起動してHTTP接続を復帰した。別のapt修復・再認証は起動しなかった。`ubuntu-24-vm-deb-update-cancel.json`。
+- 再試行の通常OS認証後、検証専用deb 1.1.1へのapt導入・版確認・自動再起動を実行。sandboxed renderer PID 57033、同梱backend PID 57150、HTTP接続と保存配置一致を確認。`ubuntu-24-vm-deb-update-installed.json`。1.1.1は非公開試験版で、公開候補1.1.0とは別に保管。更新後の公開GitHub feed確認はLinux metadata未公開のため失敗表示となるが、接続は利用可。公開後に別途URL確認する。
+- 検証用VMの認証設定は試験後に元の状態へ復元済み。普段のWindows Pocket Deckとデータは変更していない。
+- 最新の自動テスト：desktopはWindows27成功・Linux専用2除外／Linux29成功。npmはWindows21成功・Linux専用1除外／Linux22成功。共有チェックは両OS成功、private D-Busのportal試験9成功。両OSの最終同梱依存確認とnpm publish dry-runも成功。GitHub Actionsでの実行は未着手。
+
 ## Chromeの実検証で確認した制限
 
 Native Messagingが接続中でも、Chromeが入力フォーカスを取得できるとは限らない。確認したGNOME Wayland環境では、native Wayland Chromeの別プロファイルを前面化して入力先にする要求が拒否された。同じデスクトップでChromeだけをX11モードで起動すると、XWayland経由で両プロファイルへの切り替えが成功した。これはキーボード・マウス入力をX11へ迂回する変更ではない。Pocket DeckのWayland入力は許可済みRemoteDesktop portalを維持する。
@@ -109,5 +117,6 @@ Native Messagingが接続中でも、Chromeが入力フォーカスを取得で�
 - Ubuntu 24.04コンテナ：`pocket-deck-lab-24`。noVNC `http://127.0.0.1:6084/vnc.html?autoconnect=1`。ラボのセッション変数は`/tmp/deck-session.env`。ソースは`/source`へread-only mount。検証専用データは`/tmp/deck-test-config/Pocket Deck`。
 - Ubuntu 22.04コンテナ：`pocket-deck-lab-22`。noVNC `http://127.0.0.1:6085/vnc.html?autoconnect=1&resize=scale`。初回起動時のXWayland検出待ちを修正する前に作ったイメージなので、このコンテナの`/tmp/deck-session.env`だけにDISPLAY=:0とXAUTHORITYを追記してある。次回ビルドでは修正済みスクリプトを使う。
 - 22.04のイメージ生成は`docker build --build-arg UBUNTU_VERSION=22.04 -t pocket-deck-linux-lab:22.04 app/desktop/integration/linux-lab`。デスクトップ用スクリプトをリポジトリに保存してある。
-- WSLのビルドコピー：`/tmp/pocket-deck-package`。生成物は`app/desktop-dist`。最後の生成物には後から追加したClipboard portalなどをまだ反映していないため、最終検証前にソースを同期し、バックエンドとデスクトップを再ビルドする。
-- 残る実動作：両環境の切断失効、許可拒否時の画面、端末貼り付け、24.04 VMでの初回文字列欠落の解消、22.04のChrome連携と実修復、複数環境の最終パッケージ確認。公開版番号とLinux配布ハッシュは全生成物の確定後に決める。
+- WSLのビルドコピー：`/tmp/pocket-deck-package`。Windowsの独立ビルドコピー：隣接する`pocket-deck-release-work`。最終1.1.0生成物には端末向け入力、Clipboard転送、修正版deb更新を反映済み。両OSの同梱依存を実ElectronバイナリのNodeモードで確認した。
+- 公開用生成物：隣接する`pocket-deck-release-staging/1.1.0`。Windows exe・blockmap・latest.yml、Ubuntu deb・AppImage・latest-linux.yml、ライセンス・SHA256SUMSと正確なnpm tgzを保管。リポジトリにバイナリやVM個別データは入れない。
+- 端末貼り付け、24.04 VMの連続文字入力、22.04のChrome連携・修復、実npmによる最終1.1.0更新は確認済み。OS失効中の保持解除とnative Wayland Chrome前面化は既知の制限として記載し、未確認の全環境対応を主張しない。公開承認とGitHub Actions・公開配布URLの確認は残る。

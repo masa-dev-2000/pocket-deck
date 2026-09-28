@@ -2,13 +2,13 @@
   "name": "pocket-deck-desktop",
   "productName": "Pocket Deck",
   "desktopName": "pocket-deck-desktop.desktop",
-  "version": "1.0.4",
+  "version": "1.1.0",
   "private": true,
   "description": "Pocket Deck desktop companion for Windows and Ubuntu",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-runtime-paths.cjs test-sandbox-policy.cjs",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-linux-deb-update.cjs test-runtime-paths.cjs test-sandbox-policy.cjs",
     "package": "electron-builder --win nsis --x64 --publish never",
     "package:linux": "electron-builder --linux AppImage deb --x64 --publish never"
   },
@@ -28,6 +28,7 @@
       "chrome-setup.cjs",
       "linux-chrome.cjs",
       "linux-install-state.cjs",
+      "linux-deb-update.cjs",
       "sandbox-policy.cjs",
       "preload.cjs",
       "renderer.js",

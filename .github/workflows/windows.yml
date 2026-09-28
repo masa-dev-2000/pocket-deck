@@ -49,6 +49,9 @@ jobs:
         if: github.event_name == 'workflow_dispatch'
         working-directory: app/desktop
         run: npm run package
+      - name: Verify packaged desktop dependency graph without opening UI
+        if: github.event_name == 'workflow_dispatch'
+        run: python app/desktop/integration/linux-lab/verify-desktop-runtime.py app/desktop-dist/win-unpacked
       - name: Checksum
         if: github.event_name == 'workflow_dispatch'
         run: |

@@ -1,7 +1,7 @@
 'use strict';
 class Updates {
-  constructor({ updater, currentVersion, packaged, ask, inform, prepare, publish = () => {}, log = () => {} }) {
-    Object.assign(this, { updater, currentVersion, packaged, ask, inform, prepare, publish, log });
+  constructor({ updater, currentVersion, packaged, ask, inform, prepare, apply, recover = async () => {}, publish = () => {}, log = () => {} }) {
+    Object.assign(this, { updater, currentVersion, packaged, ask, inform, prepare, apply, recover, publish, log });
     this.busy = false;
     this.closed = false;
     this.deferred = new Set();
@@ -18,7 +18,7 @@ class Updates {
     if (this.busy || this.closed) return;
     if (!this.packaged) { if (manual) await this.inform('開発版では更新しません。インストールしたアプリで確認してください。'); return; }
     this.busy = true;
-    let downloading = false, failed = false;
+    let downloading = false, failed = false, prepared = false;
     this.publish({ phase: 'checking' });
     try {
       const result = await this.updater.checkForUpdates();
@@ -36,15 +36,20 @@ class Updates {
       if (this.closed) return;
       downloading = true;
       this.publish({ phase: 'downloading', percent: 0 });
-      await this.updater.downloadUpdate();
+      const files = await this.updater.downloadUpdate();
       if (this.closed) return;
       this.publish({ phase: 'installing' });
+      prepared = true;
       await this.prepare();
       if (this.closed) return;
-      this.updater.quitAndInstall(true, true);
+      if (this.apply) await this.apply({files,version});
+      else this.updater.quitAndInstall(true, true);
     } catch (error) {
       failed = true;
       this.log(error.message);
+      if (prepared && !this.closed) {
+        try { await this.recover(); } catch (recoveryError) { this.log(recoveryError.message); }
+      }
       this.publish({ phase: 'error', message: '更新できませんでした。通信を確認し、「更新を確認」から再試行してください。' });
       if (!this.closed && (manual || downloading)) await this.inform('更新できませんでした。通信を確認し、再試行してください。');
     } finally {

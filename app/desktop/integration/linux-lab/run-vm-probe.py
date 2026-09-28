@@ -52,7 +52,7 @@ for item in activation.splitlines():
 env.update(GDK_BACKEND='wayland')
 assert env.get('WAYLAND_DISPLAY'), 'native Wayland session required'
 name=sys.argv[1] if len(sys.argv)>1 else 'portal-probe.py'
-assert name in ('portal-probe.py','portal-scroll-probe.py','passive-probe.py','terminal','npm','AppImage','deb'), 'unknown probe'
+assert name in ('portal-probe.py','portal-scroll-probe.py','passive-probe.py','terminal','npm','deb-session','update-feed','AppImage','deb'), 'unknown probe'
 script=Path(__file__).resolve().parent/name
 if not script.is_file():script=Path('/source/app/desktop/integration/linux-lab')/name
 command=['/usr/bin/python3',str(script)]
@@ -64,12 +64,18 @@ if name=='npm':
     assert (fixture/'package.tgz').is_file(), 'private npm fixture missing'
     env.update(PATH=str(fixture/'node/bin')+':'+env['PATH'],
                LOCALAPPDATA=str(fixture/'download-cache'),
+               XDG_CACHE_HOME=str(fixture/'download-cache'),
                XDG_CONFIG_HOME='/home/deck/pocket-deck-desktop-check/config',
                XDG_DATA_HOME='/home/deck/pocket-deck-desktop-check/data')
     # Authentication must originate in the desktop's own terminal session,
     # rather than an SSH session merely carrying the desktop environment.
     command=['gnome-terminal','--wait','--title=Pocket Deck npm install probe','--',
              '/usr/bin/python3','/home/deck/pocket-deck-lab/vm-npm-command.py']
+if name=='deb-session':
+    command=['gnome-terminal','--wait','--title=Pocket Deck update probe','--',
+             '/usr/bin/python3','/home/deck/pocket-deck-lab/vm-app-command.py']
+if name=='update-feed':
+    command=['/usr/bin/python3','/home/deck/pocket-deck-lab/setup-vm-update.py','serve']
 if name in ('AppImage','deb'):
     image=Path('/tmp/Pocket-Deck.AppImage') if name=='AppImage' else Path('/opt/Pocket Deck/pocket-deck-desktop')
     if name=='AppImage':image.chmod(0o755);env['APPIMAGE_EXTRACT_AND_RUN']='1'

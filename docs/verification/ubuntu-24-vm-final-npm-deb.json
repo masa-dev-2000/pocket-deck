@@ -1,0 +1,14 @@
+{
+  "environment": "Disposable Ubuntu 24.04 GNOME Wayland VM",
+  "realGlobalNpmDebInstall": true,
+  "installedVersion": "1.1.0",
+  "previousVersion": "1.0.4",
+  "cancelledUpdatePreservedPreviousVersion": true,
+  "configurationUnchanged": true,
+  "privateBundledBackend": [50790],
+  "sandboxedRenderers": [50696],
+  "debSha256": "c5036a73cb65ef582fc25df9b203984fb5c920afef7d7b0ad5fd9cbc70e0426d",
+  "source": "Exact staged npm 1.1.0 tarball and SHA-256-verified offline deb cache",
+  "publicRegistryDownloadTested": false,
+  "evidence": "Successful verify-vm-npm.py cancel-update and installed output, and ubuntu-24-vm-1.1.0-home.png"
+}

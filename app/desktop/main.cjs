@@ -39,10 +39,15 @@ if(!single)app.quit();else{
   win.on('close',event=>{if(!quitting){event.preventDefault();win.hide();}});
   if(process.platform!=='linux')win.once('ready-to-show',()=>{show();});
   const {Updates}=require('./updates.cjs');
+  const debUpdate=process.platform==='linux'&&app.isPackaged&&!process.env.APPIMAGE;
   updates=new Updates({updater:require('electron-updater').autoUpdater,currentVersion:app.getVersion(),packaged:app.isPackaged,
    ask:async message=>{show();return (await dialog.showMessageBox(win,{type:'question',title:'Pocket Deckの更新',message,buttons:['更新する','後で'],defaultId:1,cancelId:1})).response===0;},
    inform:message=>dialog.showMessageBox(win,{type:'info',title:'Pocket Deckの更新',message}),
-   prepare:async()=>{await request('/api/action',{action:'release_all'}).catch(()=>{});await backend.stop();quitting=true;clearTimeout(updateTimer);clearInterval(healthTimer);},
+   prepare:async()=>{await request('/api/action',{action:'release_all'}).catch(()=>{});await backend.stop();if(!debUpdate)quitting=true;clearTimeout(updateTimer);clearInterval(healthTimer);},
+   ...(debUpdate?{
+    apply:options=>require('./linux-deb-update.cjs').apply({...options,relaunch:async()=>{if(updates.closed)return;quitting=true;app.relaunch();app.quit();}}),
+    recover:async()=>{quitting=false;await start();healthTimer=setInterval(()=>{if(!win.isDestroyed())win.webContents.send('deck:refresh');},4000);if(!win.isDestroyed())win.webContents.send('deck:refresh');}
+   }:{}),
    publish:state=>{if(!win.isDestroyed()){win.webContents.send('deck:update-state',state);win.setProgressBar(state.phase==='downloading'?state.percent/100:-1);}},
    log:message=>{try{fs.appendFileSync(path.join(app.getPath('userData'),'updates.log'),`${new Date().toISOString()} ${message}\n`);}catch{}}
   });

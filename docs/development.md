@@ -63,7 +63,7 @@ cd ..\..
 
 ## 隔離環境での導入・更新テスト
 
-`app/desktop/integration/` はWindows Sandbox専用です。普段のPC上では実行しないでください。Sandboxにはリポジトリを `C:\deck-test`、Node.jsの導入フォルダーを `C:\deck-node` として読み取り専用でマップし、結果用の空フォルダーだけを `C:\deck-results` として書き込み可能にマップします。ネットワークとクリップボード共有は無効にします。
+`app/desktop/integration/sandbox.ps1` はWindows Sandbox専用です。普段のPC上では実行しないでください。Sandboxにはリポジトリを `C:\deck-test`、Node.jsの導入フォルダーを `C:\deck-node` として読み取り専用でマップし、結果用の空フォルダーだけを `C:\deck-results` として書き込み可能にマップします。ネットワークとクリップボード共有は無効にします。
 
 1. バージョン1.0.4のバックエンド・インストーラーをビルドし、`npm/release.json` のサイズとSHA-256を実物に合わせます。
 2. `app/desktop` で `npm exec -- electron-builder --win nsis --x64 --publish never --config.extraMetadata.version=1.0.5 --config.directories.output=../desktop-test-dist` を実行し、更新先のテスト版を作ります。この1.0.5は公開しません。
@@ -71,6 +71,28 @@ cd ..\..
 4. 結果フォルダーの `result.json`、`install.log`、`update-events.json` を確認します。
 
 テストはSandbox内の既存テストアプリを終了・削除してから、新規導入、バックエンド起動、実際のelectron-updater/NSISによる更新、設定の保持、再起動を検証します。npmの配布前なので、ダウンロード元だけをローカルの生成物に置き換え、サイズ・ハッシュ検証と導入処理は本番と同じコードを通します。更新への同意はテスト内で返します。実際の確認ダイアログ、公開URLからの取得、別PCやスマホの操作は別途確認が必要です。
+
+## Ubuntuのビルドと検証
+
+配布物はUbuntu 22.04 x64でPython 3.10とNode.js 22.12以上を使って生成します。古いLTS上でビルドし、22.04／24.04の利用環境を別に検証します。X11にはXTest、WaylandにはOSのRemoteDesktop portalを使い、許可の拒否を別方式で迂回しません。
+
+```sh
+sudo apt install python3-venv libxtst6 xvfb xclip dbus-x11
+python3 -m venv .venv
+.venv/bin/python -m pip install -r app/desktop/requirements-build.txt
+npm ci --prefix app/desktop
+.venv/bin/python app/run_checks.py
+npm test --prefix app/desktop
+npm test --prefix npm
+.venv/bin/python app/desktop/build_backend.py
+DECK_PACKAGED_TEST=1 .venv/bin/python app/desktop/test_packaged_linux.py
+npm run package:linux --prefix app/desktop
+.venv/bin/python app/desktop/integration/linux-lab/verify-desktop-runtime.py app/desktop-dist/linux-unpacked
+```
+
+X11の実入力テストは`DECK_XVFB_TEST=1`の隔離Xvfb、portal transportはprivate D-Busで行います。GNOMEの実許可・受信・保持・失効、実deb/npm導入、更新は`app/desktop/integration/linux-lab/`の隔離コンテナ／VMで確認し、[検証記録](linux-support.md)に残します。VMのOSサービスや合成テストアカウントを変更するfixtureはラボ用マーカーを必須とし、普段のデスクトップ上では実行しません。
+
+Windowsの隔離ビルドは、依存フォルダーへのjunctionを使わず、コピーしたpackage-lock.jsonから`npm ci`で独立した依存環境を用意します。junctionを使ったビルドでは、更新用依存がapp.asarから抜ける事例を検出しました。パッケージの依存グラフを`ELECTRON_RUN_AS_NODE`で検査し、PCアプリのmainやGUIを起動せず不足を検出します。
 
 ## Git管理
 

@@ -25,7 +25,8 @@ async function download({ cacheDir, fetchImpl = fetch, manifest = release, log =
   if (!/^[a-f0-9]{64}$/.test(manifest.sha256) || !Number.isSafeInteger(manifest.bytes) || manifest.bytes <= 0) {
     throw new Error('配布ファイル情報が不正です。');
   }
-  cacheDir ||= path.join(process.env.LOCALAPPDATA || os.tmpdir(), 'Pocket Deck', 'downloads');
+  const cacheBase=process.platform==='linux'?(process.env.XDG_CACHE_HOME||path.join(os.homedir(),'.cache')):(process.env.LOCALAPPDATA||os.tmpdir());
+  cacheDir ||= path.join(cacheBase, 'Pocket Deck', 'downloads');
   await fs.mkdir(cacheDir, { recursive: true });
   const extension=manifest.filename?.endsWith('.AppImage')?'.AppImage':manifest.filename?.endsWith('.deb')?'.deb':'.exe';
   const target = path.join(cacheDir, `Pocket-Deck-${manifest.version}-${manifest.sha256.slice(0, 12)}${extension}`);

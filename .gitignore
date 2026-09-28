@@ -14,6 +14,11 @@
 **/desktop-test-dist/
 *.exe
 *.exe.blockmap
+*.AppImage
+*.AppImage.zsync
+*.deb
+*.qcow2
+*.iso
 *.spec
 *.log
 *.pid
