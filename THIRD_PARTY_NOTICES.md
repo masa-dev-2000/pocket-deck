@@ -4,7 +4,7 @@ Pocket Deck is MIT-licensed; see `LICENSE`. Upstream components retain their own
 
 | Component | Purpose | License location |
 | --- | --- | --- |
-| Python 3.13 | Backend runtime | `license-notices/Python-LICENSE.txt` (PSF and included notices) |
+| Python 3.13 (Windows) / 3.10 (Ubuntu) | Backend runtime | `license-notices/Python-LICENSE.txt`, `license-notices/Python-Linux-copyright.txt` (PSF and included notices) |
 | Pillow 12.2.0 | Image processing | `license-notices/Pillow-LICENSE.txt` (including binary dependency notices) |
 | qrcode 8.2 | QR generation | `license-notices/qrcode-LICENSE.txt`, `app/vendor/qrcode-8.2.dist-info/LICENSE` (BSD-3-Clause and inherited notices) |
 | PyInstaller 6.19.0 | Bootloader/build | `license-notices/PyInstaller-COPYING.txt` (GPL with distribution exception) |

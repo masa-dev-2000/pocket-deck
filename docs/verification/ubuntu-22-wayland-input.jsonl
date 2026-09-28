@@ -68,3 +68,8 @@
 {"text": "a\u65e5\u672c\u8a9e\u306e\u5165\u529b\n\u6539\u884c\u3068\u7d75\u6587\u5b57\ud83d\ude42aaaaaaaaaaaaaaaaaaaaaaaaa"}
 {"repeat": "sent"}
 {"event": "key-release-event", "key": 97, "state": 0, "x": null, "y": null}
+{"event": "scroll-event", "key": null, "state": 0, "x": 259.0, "y": 168.0}
+{"event": "scroll-event", "key": null, "state": 0, "x": 259.0, "y": 168.0}
+{"event": "scroll-event", "key": null, "state": 0, "x": 259.0, "y": 168.0}
+{"event": "scroll-event", "key": null, "state": 0, "x": 259.0, "y": 168.0}
+{"scroll": "sent"}
