@@ -62,6 +62,8 @@ npm publish --access public
 
 実行場所は `npm/` です。`app/desktop/` はPCアプリのビルド用で `private: true` のため、ここから公開しません。公開時にブラウザー認証・二段階認証が追加で求められる場合は本人が完了します。
 
+公開コマンドが成功しても、取得可能になるまで時間がかかる場合があります。npmは公開時にパッケージをスキャンするため、通常約5分、混雑時は15分以上の遅延も案内しています。直後の`npm view`が404でも再公開せず、npmサイトのバージョン状態とregistryへの反映を確認します。[公式案内](https://github.blog/changelog/2026-07-28-npm-publish-time-malware-scanning-and-dual-use-metadata/)。本人認証の完了待ちURLで発生する404とは別の確認です。
+
 ## 5. 公開結果を確認する
 
 ```powershell

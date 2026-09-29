@@ -1,0 +1,43 @@
+{
+  "verifiedAt": "2026-09-29T01:42:59.448265+00:00",
+  "package": "@masadev/pocket-deck",
+  "version": "1.1.0",
+  "latest": "1.1.0",
+  "publishExitCode": 0,
+  "authCompletionHTTP": 200,
+  "publishHTTP": 202,
+  "initialViewHTTP": 404,
+  "eventualViewSucceeded": true,
+  "tarball": {
+    "tarball": "https://registry.npmjs.org/@masadev/pocket-deck/-/pocket-deck-1.1.0.tgz",
+    "shasum": "726b4fbf173290adabd815ded673f7d145210127",
+    "integrity": "sha512-g/BuCOir5JzA9UqZejMf1gVrCvUJg29qeOytVXbW0UJp7XYbKeadlqrkC49mZWyl7nG5AYuAIFPelX7QcqqPXg==",
+    "fileCount": 9,
+    "unpackedSize": 28030
+  },
+  "publicTarballBytes": 10206,
+  "exactLocalTarballMatch": true,
+  "npxChecks": [
+    {
+      "platform": "windows",
+      "npxVersion": "1.1.0",
+      "versionExitCode": 0,
+      "downloadExitCode": 0,
+      "bytes": 136205417,
+      "sha256": "386e6ef3fbce8306d690f575c0a3c900041fbad7d03b8640abbf33effef33843",
+      "manifestMatch": true,
+      "installedDesktopApp": false
+    },
+    {
+      "platform": "linux",
+      "npxVersion": "1.1.0",
+      "versionExitCode": 0,
+      "downloadExitCode": 0,
+      "bytes": 113239932,
+      "sha256": "c5036a73cb65ef582fc25df9b203984fb5c920afef7d7b0ad5fd9cbc70e0426d",
+      "manifestMatch": true,
+      "installedDesktopApp": false
+    }
+  ],
+  "scope": "Public registry and release download checks only. Global install and update were previously tested in isolated environments. Existing user application and data were not changed."
+}
