@@ -79,6 +79,15 @@ class MacLifecycle(unittest.TestCase):
             with self.assertRaisesRegex(RuntimeError,'対応'):self.backend.send_key(key,False)
         self.assertEqual(self.api.events,[])
 
+    def test_manual_release_recovers_failed_direct_click_without_closing_backend(self):
+        self.api.allowed=True;self.api.failure='mouse_up'
+        with self.assertRaises(RuntimeError):self.backend.send_mouse('mouse_click')
+        self.assertTrue(self.backend.button_held)
+        self.api.failure=None;self.backend.release_all()
+        self.assertFalse(self.backend.button_held);self.assertFalse(self.backend.closed)
+        self.backend.send_key('A',False);self.backend.release_all()
+        self.assertFalse(self.backend.held_keys)
+
     def test_macos_defaults_use_command_without_rewriting_existing_configs(self):
         import server
         original=server.defaults()

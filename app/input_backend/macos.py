@@ -147,7 +147,7 @@ class MacInput:
         self.api.request_access()
         return self.status()  # request does not mean permission has been granted
 
-    def close(self):
+    def release_all(self):
         with self.lock:
             if self.closed:return
             errors=[]
@@ -158,4 +158,8 @@ class MacInput:
                 try:self.send_mouse('mouse_up')
                 except Exception as error:errors.append(error)
             if errors:raise errors[0]  # do not claim releases succeeded after revocation
+    def close(self):
+        with self.lock:
+            if self.closed:return
+            self.release_all()
             self.api.close();self.closed=True

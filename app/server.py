@@ -262,7 +262,12 @@ class App:
             kind=data.get('action')
             if kind=='release_all':
                 self.features.cancel()
-                self.keyboard.release_all();self.mouse.release_all();return
+                self.keyboard.release_all();self.mouse.release_all()
+                # Text paste and direct clicks can retain a native hold if their
+                # cleanup failed; release only the backend's own recorded inputs.
+                native_release=getattr(get_backend(),'release_all',None)
+                if native_release:native_release()
+                return
             owner=data.get('owner')
             if not isinstance(owner,str) or not 1<=len(owner)<=120:raise ValueError('操作IDが不正です')
             if kind=='mouse_up':self.mouse.release(owner);return
