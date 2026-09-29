@@ -1,7 +1,7 @@
 'use strict';
 class Updates {
-  constructor({ updater, currentVersion, packaged, ask, inform, prepare, apply, recover = async () => {}, publish = () => {}, log = () => {} }) {
-    Object.assign(this, { updater, currentVersion, packaged, ask, inform, prepare, apply, recover, publish, log });
+  constructor({ updater, currentVersion, packaged, manualOnlyReason = '', ask, inform, prepare, apply, recover = async () => {}, publish = () => {}, log = () => {} }) {
+    Object.assign(this, { updater, currentVersion, packaged, manualOnlyReason, ask, inform, prepare, apply, recover, publish, log });
     this.busy = false;
     this.closed = false;
     this.deferred = new Set();
@@ -16,6 +16,7 @@ class Updates {
   }
   async check(manual = false) {
     if (this.busy || this.closed) return;
+    if (this.manualOnlyReason) { if (manual) await this.inform(this.manualOnlyReason); return; }
     if (!this.packaged) { if (manual) await this.inform('開発版では更新しません。インストールしたアプリで確認してください。'); return; }
     this.busy = true;
     let downloading = false, failed = false, prepared = false;

@@ -2,15 +2,16 @@
   "name": "pocket-deck-desktop",
   "productName": "Pocket Deck",
   "desktopName": "pocket-deck-desktop.desktop",
-  "version": "1.1.0",
+  "version": "1.2.0-beta.1",
   "private": true,
-  "description": "Pocket Deck desktop companion for Windows and Ubuntu",
+  "description": "Pocket Deck desktop companion for Windows, Ubuntu and macOS",
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-linux-deb-update.cjs test-runtime-paths.cjs test-sandbox-policy.cjs",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-linux-deb-update.cjs test-runtime-paths.cjs test-sandbox-policy.cjs test-mac-chrome.cjs",
     "package": "electron-builder --win nsis --x64 --publish never",
-    "package:linux": "electron-builder --linux AppImage deb --x64 --publish never"
+    "package:linux": "electron-builder --linux AppImage deb --x64 --publish never",
+    "package:mac": "electron-builder --mac dmg zip --publish never"
   },
   "devDependencies": {
     "electron": "44.4.5",
@@ -37,7 +38,8 @@
       "icon.png",
       "package.json",
       "updates.cjs",
-      "runtime-paths.cjs"
+      "runtime-paths.cjs",
+      "mac-chrome.cjs"
     ],
     "extraResources": [
       {
@@ -64,7 +66,10 @@
     },
     "linux": {
       "syncDesktopName": true,
-      "target": ["AppImage", "deb"],
+      "target": [
+        "AppImage",
+        "deb"
+      ],
       "maintainer": "masa-dev-2000 <masa-dev-2000@users.noreply.github.com>",
       "category": "Utility",
       "icon": "icon.png",
@@ -84,7 +89,20 @@
       "repo": "pocket-deck",
       "releaseType": "release"
     },
-    "artifactName": "Pocket-Deck-Setup-${version}.${ext}"
+    "artifactName": "Pocket-Deck-Setup-${version}.${ext}",
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.utilities",
+      "icon": "icon.png",
+      "artifactName": "Pocket-Deck-${version}-${arch}.${ext}",
+      "minimumSystemVersion": "13.0",
+      "identity": "-",
+      "hardenedRuntime": false,
+      "notarize": false
+    }
   },
   "license": "MIT",
   "author": "masa-dev-2000",

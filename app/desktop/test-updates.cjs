@@ -1,5 +1,11 @@
 const test=require('node:test'),assert=require('node:assert/strict'),{EventEmitter}=require('node:events');
 const {Updates}=require('./updates.cjs');
+test('manual-only mac trial never checks or shuts down the backend',async()=>{
+ const f=fixture();f.controller.manualOnlyReason='macOS trial requires manual update';
+ f.updater.checkForUpdates=async()=>{throw Error('must not contact updater');};
+ await f.controller.check();assert.deepEqual(f.events,[]);
+ await f.controller.check(true);assert.deepEqual(f.events,['info']);
+});
 function fixture({version='1.0.5',accept=true,downloadError=false}={}){
  const events=[],updater=new EventEmitter();updater.checkForUpdates=async()=>({updateInfo:{version}});updater.downloadUpdate=async()=>{events.push('download');if(downloadError)throw Error('network');};updater.quitAndInstall=(silent,restart)=>events.push(['apply',silent,restart]);
  const controller=new Updates({updater,currentVersion:'1.0.4',packaged:true,ask:async()=>{events.push('ask');return accept;},inform:async()=>events.push('info'),prepare:async()=>events.push('stop-backend'),publish:s=>events.push(s.phase)});

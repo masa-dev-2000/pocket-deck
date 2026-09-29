@@ -2,6 +2,7 @@
 import os
 import shutil
 import subprocess
+import sys
 
 _clipboard=None
 def set_clipboard_provider(provider):
@@ -10,6 +11,7 @@ def set_clipboard_provider(provider):
 
 def available():
     if _clipboard:return True
+    if sys.platform=='darwin':return os.path.isfile('/usr/bin/pbcopy')
     return bool(shutil.which('wl-copy' if os.environ.get('WAYLAND_DISPLAY') else 'xclip'))
 
 def paste(backend,text,clipboard=None,paste_mode='standard'):
@@ -20,13 +22,13 @@ def paste(backend,text,clipboard=None,paste_mode='standard'):
     elif _clipboard:_clipboard(text)
     else:
         wayland=bool(os.environ.get('WAYLAND_DISPLAY'))
-        command=shutil.which('wl-copy' if wayland else 'xclip')
+        command='/usr/bin/pbcopy' if sys.platform=='darwin' else shutil.which('wl-copy' if wayland else 'xclip')
         if not command:raise RuntimeError('PCアプリから起動してください。文字入力用の接続がありません。')
-        args=[command,'--type','text/plain;charset=utf-8'] if wayland else [command,'-selection','clipboard','-in']
+        args=[command] if sys.platform=='darwin' else [command,'--type','text/plain;charset=utf-8'] if wayland else [command,'-selection','clipboard','-in']
         subprocess.run(args,input=text.encode('utf-8'),check=True,timeout=5)
     pressed=[]
     try:
-        for key in (('CTRL','SHIFT','V') if paste_mode=='terminal' else ('CTRL','V')):
+        for key in getattr(backend,'paste_keys',('CTRL','SHIFT','V') if paste_mode=='terminal' else ('CTRL','V')):
             backend.send_key(key,False);pressed.append(key)
     finally:
         # Cleanup all keys, even when an intermediate release fails.

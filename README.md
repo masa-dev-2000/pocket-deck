@@ -6,6 +6,8 @@
 
 Ubuntu対応は1.1.0以降です。[Ubuntuの導入案内](docs/ubuntu.md)と[実装・検証記録](docs/linux-support.md)を参照してください。X11／Waylandの選択はアプリが検出します。
 
+macOS 13以降のApple Silicon／Intel向け試験版は1.2.0-beta.1で開発中です。正式な署名・公証、実機での入力許可と操作確認はまだ完了していません。[Mac試験版の案内](docs/macos.md)を参照してください。公開済みnpm版1.1.0はWindows／Ubuntu用です。
+
 ## ダウンロードと初回設定
 
 1. [Releases](https://github.com/masa-dev-2000/pocket-deck/releases)から `Pocket-Deck-Setup-<version>.exe` をダウンロードします。ソースコードのZIPはインストーラーではありません。

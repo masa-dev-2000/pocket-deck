@@ -61,6 +61,8 @@ for(const keys of keyboardRows){
  $('keyboardPanel').append(row);
 }
 const keyboardBack=document.createElement('button');keyboardBack.className='keyboard-back';keyboardBack.textContent='配置へ戻る';keyboardBack.onclick=()=>setMode('deck');$('keyboardPanel').append(keyboardBack);
+// Label keys from the connected PC, never from the phone's operating system.
+api('keys').then(catalog=>{for(const key of ['WIN','ALT']){const label=catalog.find(item=>item.key===key)?.label;if(label)for(const button of $('keyboardPanel').querySelectorAll('button'))if(button.getAttribute('aria-label')===key){button.textContent=label;button.setAttribute('aria-label',label);}}}).catch(()=>{});
 async function setMode(next){
  if(switching||next===mode)return;switching=true;
  try{await stopAll();mode=next;for(const [id,value] of [['deck','deck'],['keyboardPanel','keyboard'],['padPanel','pad']])$(id).hidden=mode!==value;

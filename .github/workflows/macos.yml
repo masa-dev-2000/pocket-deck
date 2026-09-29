@@ -1,0 +1,78 @@
+name: macOS trial checks and packages
+on:
+  push:
+    branches: [feat/macos-support]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  macos:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-15
+            arch: arm64
+          - os: macos-15-intel
+            arch: x64
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: app/desktop/package-lock.json
+      - name: Verify native architecture and install dependencies
+        run: |
+          test "$(node -p process.arch)" = '${{ matrix.arch }}'
+          python -m pip install -r app/desktop/requirements-build.txt
+          npm ci --prefix app/desktop
+      - name: Shared, desktop and native Quartz ABI checks (no input posted)
+        run: |
+          python app/run_checks.py
+          npm test --prefix app/desktop
+      - name: Build Python-independent macOS backend
+        run: |
+          python app/desktop/build_backend.py
+          env PATH=/nonexistent app/desktop/backend-build/PocketDeckServer/PocketDeckServer --help
+          DECK_PACKAGED_TEST=1 python app/desktop/test_packaged_linux.py
+      - name: Build ad-hoc signed trial DMG and ZIP
+        run: |
+          npm run package:mac --prefix app/desktop -- --${{ matrix.arch }}
+          app_folder=app/desktop-dist/mac
+          if [ '${{ matrix.arch }}' = arm64 ]; then app_folder=app/desktop-dist/mac-arm64; fi
+          python app/desktop/integration/linux-lab/verify-desktop-runtime.py "$app_folder/Pocket Deck.app"
+          codesign --verify --deep --strict --verbose=2 "$app_folder/Pocket Deck.app"
+          # Ad-hoc signature is not Developer ID signing or notarization.
+          codesign -dv --verbose=2 "$app_folder/Pocket Deck.app" 2> app/desktop-dist/signature.txt
+          DECK_PACKAGED_TEST=1 DECK_PACKAGED_EXEC="$PWD/$app_folder/Pocket Deck.app/Contents/Resources/backend/PocketDeckServer" python app/desktop/test_packaged_linux.py
+          cd app/desktop-dist
+          shasum -a 256 *.dmg *.zip > SHA256SUMS.txt
+      - name: Upload trial packages (no GitHub Release or npm publication)
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocket-deck-macos-${{ matrix.arch }}-trial
+          path: |
+            app/desktop-dist/*.dmg
+            app/desktop-dist/*.zip
+            app/desktop-dist/SHA256SUMS.txt
+            app/desktop-dist/signature.txt
+            LICENSE
+            THIRD_PARTY_NOTICES.md
+          if-no-files-found: error
+          retention-days: 14
+      - name: Upload diagnostic logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocket-deck-macos-${{ matrix.arch }}-logs
+          path: |
+            app/checks.log
+            app/desktop/backend-build.log
+          retention-days: 7

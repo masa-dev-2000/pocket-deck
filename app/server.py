@@ -30,8 +30,15 @@ def key_catalog():
               'PAGEUP': ('PageUp', 'ページ 上'), 'PAGEDOWN': ('PageDown', 'ページ 下'),
               'VOLUMEUP': ('VolumeUp', '音量 上げる'), 'VOLUMEDOWN': ('VolumeDown', '音量 下げる'),
               'MUTE': ('Mute', '消音 ミュート'), 'PLAYPAUSE': ('PlayPause', '再生 一時停止')}
+    if sys.platform=='darwin':
+        labels['WIN']=('Cmd','command コマンド ⌘ win')
+        labels['ALT']=('Option','option オプション ⌥ alt')
+    supported=None
+    if sys.platform=='darwin':
+        from input_backend.macos import KEYCODES
+        supported=set(KEYCODES)
     return [{'key': key, 'label': labels.get(key, (key, ''))[0],
-             'search': labels.get(key, (key, ''))[1]} for key in KEYS]
+             'search': labels.get(key, (key, ''))[1]} for key in KEYS if supported is None or KEYS[key] in supported]
 
 def parse_keys(value):
     names = [x.strip().upper() for x in value.split('+')]
@@ -132,6 +139,11 @@ def defaults():
                ('貼り付け','Ctrl+V'), ('保存','Ctrl+S'), ('すべて選択','Ctrl+A'),
                ('検索','Ctrl+F'), ('新規タブ','Ctrl+T'), ('タブを閉じる','Ctrl+W'),
                ('再読み込み','F5'), ('Shift','Shift'), ('Ctrl','Ctrl')]
+    if sys.platform=='darwin':
+        presets=[(name,keys.replace('Ctrl+','Win+')) for name,keys in presets]
+        presets[1]=('やり直す','Win+Shift+Z')
+        presets[9]=('再読み込み','Win+R')
+        presets[11]=('Cmd','Win')
     return {'version':3, 'revision':0, 'columns':3, 'rows':4, 'buttons':[
         dict(id=str(i),label=n,keys=k,type='shortcut',slot=i,width=1,height=1,color='#294b68')
         for i,(n,k) in enumerate(presets)]}
@@ -311,7 +323,8 @@ def handler(app):
                         probe.connect(('192.0.2.1', 80))
                         address = probe.getsockname()[0]
                     except OSError:
-                        address = socket.gethostbyname(socket.gethostname())
+                        try:address = socket.gethostbyname(socket.gethostname())
+                        except OSError:address = '127.0.0.1'
             return f'http://{address}:{self.server.server_port}/'
 
         def log_message(self, *args):
@@ -450,7 +463,8 @@ def main():
             except Exception:
                 pass
     threading.Thread(target=watchdog, daemon=True).start()
-    addresses = set(socket.gethostbyname_ex(socket.gethostname())[2])
+    try:addresses = set(socket.gethostbyname_ex(socket.gethostname())[2])
+    except OSError:addresses = set()  # an unresolved Mac host name must not stop the server
     print('Pocket Deck is running. Open on your phone:', flush=True)
     for address in sorted(addresses):
         print(f'  http://{address}:{args.port}', flush=True)

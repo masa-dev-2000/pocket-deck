@@ -25,6 +25,12 @@ def create_backend(platform=None):
     if platform == 'linux':
         from .linux import create_linux_backend
         return create_linux_backend()
+    if platform == 'darwin':
+        try:
+            from .macos import MacInput
+            return MacInput()
+        except (OSError,AttributeError,RuntimeError) as error:
+            return UnsupportedInput('darwin','macOS入力サービスを開始できません。'+str(error))
     return UnsupportedInput(platform)
 
 def get_backend():

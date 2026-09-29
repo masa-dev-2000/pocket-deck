@@ -1,4 +1,4 @@
-"""Opt-in Linux packaged runtime and rapid restart checks, with no desktop input."""
+"""Opt-in Unix packaged runtime and rapid restart checks, with no desktop input."""
 import json
 import os
 from pathlib import Path
@@ -10,7 +10,7 @@ import time
 import unittest
 from urllib.request import Request, urlopen
 
-@unittest.skipUnless(sys.platform=='linux' and os.environ.get('DECK_PACKAGED_TEST')=='1','opt-in Linux package test')
+@unittest.skipUnless(sys.platform in ('linux','darwin') and os.environ.get('DECK_PACKAGED_TEST')=='1','opt-in Unix package test')
 class PackagedLinux(unittest.TestCase):
     def test_embedded_python_exclusive_listener_and_saved_config_survive_restart(self):
         executable=Path(os.environ.get('DECK_PACKAGED_EXEC',Path(__file__).parent/'backend-build/PocketDeckServer/PocketDeckServer'))
@@ -34,7 +34,7 @@ class PackagedLinux(unittest.TestCase):
                         _,failure=child.communicate(timeout=5)
                         self.fail('packaged backend did not start: '+failure.decode())
                     if generation==0:
-                        config['layouts'][0]['buttons'][0]['label']='Linux package persistence proof'
+                        config['layouts'][0]['buttons'][0]['label']='Unix package persistence proof'
                         saved=request(config)
                         second=subprocess.run(command,env=environment,input=b'shutdown\n',capture_output=True,timeout=10)
                         self.assertNotEqual(second.returncode,0,'a live listener must remain exclusive')
