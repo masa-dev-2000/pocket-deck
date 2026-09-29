@@ -12,10 +12,14 @@ test('mac Chrome preparation repairs missing files and preserves configuration a
   const runtime=path.join(dir,'runtime'),userDir=path.join(dir,"user's data");fs.mkdirSync(runtime);
   const source=path.join(runtime,'PocketDeckChromeHost');fs.writeFileSync(source,'launcher');
   fs.writeFileSync(path.join(runtime,'PocketDeckServer'),'#!/bin/sh\nprintf "%s\\n" "$@"\n');
+  fs.writeFileSync(path.join(runtime,'lib-original'),'native library');fs.symlinkSync('lib-original',path.join(runtime,'lib-alias'));
   const manifest=path.join(userDir,'chrome-native-host.json'),targets=[path.join(dir,'Chrome'),path.join(dir,'Chromium')];
   const setup=new ChromeSetup({userDir,platform:'darwin',launcher:source,extensionSource:path.join(__dirname,'..','chrome-extension')},{registration:macRegistration(manifest,targets)});
   fs.mkdirSync(setup.dataDir,{recursive:true});fs.writeFileSync(path.join(setup.dataDir,'config.json'),'existing');
   await setup.prepare();assert((await setup.status()).prepared);
+  const copied=path.join(userDir,'chrome-host-runtimes',fs.readdirSync(path.join(userDir,'chrome-host-runtimes'))[0]);
+  assert.equal(fs.readlinkSync(path.join(copied,'lib-alias')),'lib-original');
+  assert.equal(fs.readFileSync(path.join(copied,'lib-alias'),'utf8'),'native library');
   const token=fs.readFileSync(path.join(setup.dataDir,'chrome-bridge.token'));
   fs.unlinkSync(path.join(targets[0],'local.pocket_deck.json'));assert(!(await setup.status()).prepared);
   await setup.prepare();assert((await setup.status()).prepared);

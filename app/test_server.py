@@ -203,7 +203,7 @@ class Tests(unittest.TestCase):
                 self.assertEqual(server.App(app.path,app.keyboard).config['layouts'][0]['columns'],5)
                 config['buttons'][0]['keys']='bogus'
                 with self.assertRaises((HTTPError,ValueError)):post('/api/config',server.migrate(config))
-                self.assertEqual(app.config['layouts'][0]['buttons'][0]['keys'],'Ctrl+Z')
+                self.assertEqual(app.config['layouts'][0]['buttons'][0]['keys'],'Win+Z' if server.sys.platform=='darwin' else 'Ctrl+Z')
                 with self.assertRaises(HTTPError):post('/api/action',{'action':'tap','id':'missing','owner':'missing'})
             finally:
                 http.shutdown();http.server_close()

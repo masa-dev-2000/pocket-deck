@@ -27,7 +27,7 @@ class ChromeSetup{
    const legacy=JSON.parse(fs.readFileSync(old,'utf8'));if(legacy.name!=='local.pocket_deck'||path.basename(legacy.path)!=='chrome_launcher.exe')throw Error('旧ホストの内容を確認できません。');
   }
   fs.mkdirSync(this.dataDir,{recursive:true});
-  if(this.platform==='linux'||this.platform==='darwin')this.launcher=prepareLauncher({userDir:this.userDir,source:this.sourceLauncher,dataDir:this.dataDir});
+  if(this.platform==='linux'||this.platform==='darwin')this.launcher=prepareLauncher({userDir:this.userDir,source:this.sourceLauncher,dataDir:this.dataDir,preserveRelativeSymlinks:this.platform==='darwin'});
   if(old&&old!==this.manifest&&!fs.existsSync(path.join(this.userDir,'chrome-native-host.previous.json')))fs.copyFileSync(old,path.join(this.userDir,'chrome-native-host.previous.json'));
   fs.mkdirSync(this.folder,{recursive:true});
   for(const name of ['manifest.json','background.js','popup.html','popup.js'])fs.copyFileSync(path.join(this.extensionSource,name),path.join(this.folder,name));
