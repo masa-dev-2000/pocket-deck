@@ -35,9 +35,9 @@ def validate_steps(steps, parse_keys):
         elif kind in ('press', 'release'):
             key = step.get('key')
             if not isinstance(key, str) or '+' in key: raise ValueError('キーを1つ選択してください')
-            parse_keys(key)
-            if kind == 'press': held.add(key.upper())
-            else: held.discard(key.upper())
+            logical=parse_keys(key)[0]
+            if kind == 'press': held.add(logical)
+            else: held.discard(logical)
         elif kind == 'text':
             if step.get('pasteMode','standard') not in ('standard','terminal'):raise ValueError('文字列の貼り付け先が不正です')
             if held: raise ValueError('文字列の前に保持キーを離してください')

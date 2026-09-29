@@ -182,8 +182,8 @@ class Tests(unittest.TestCase):
                 expected=set(server.KEYS)
                 if server.sys.platform=='darwin':expected-= {'F21','F22','F23','F24','VOLUMEUP','VOLUMEDOWN','MUTE','PLAYPAUSE'}
                 self.assertEqual({k['key'] for k in catalog},expected)
-                    for k in catalog:
-                        server.parse_keys(k['label'])
+                for k in catalog:
+                    server.parse_keys(k['label'])
                 for path, script in [('/', 'operator.js'), ('/editor', 'editor.js'), ('/connect', 'connect.js')]:
                     with urlopen(base+path) as r:
                         html = r.read().decode('utf-8')
@@ -196,7 +196,8 @@ class Tests(unittest.TestCase):
                     self.assertIn(b'<svg', r.read())
                 with post('/api/action',{'action':'tap','id':'0','owner':'test'}) as r:
                     self.assertEqual(r.status,200)
-                self.assertEqual(events,[('CTRL',False),('Z',False),('Z',True),('CTRL',True)])
+                modifier='SUPER' if server.sys.platform=='darwin' else 'CTRL'
+                self.assertEqual(events,[(modifier,False),('Z',False),('Z',True),(modifier,True)])
                 config=server.defaults();config['columns']=5
                 with post('/api/config',server.migrate(config)):pass
                 self.assertEqual(server.App(app.path,app.keyboard).config['layouts'][0]['columns'],5)

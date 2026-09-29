@@ -42,6 +42,8 @@ def key_catalog():
 
 def parse_keys(value):
     names = [x.strip().upper() for x in value.split('+')]
+    aliases={'CMD':'WIN','COMMAND':'WIN','OPTION':'ALT'}
+    names=[aliases.get(name,name) for name in names]
     if not names or len(names) > 8 or any(n not in KEYS for n in names):
         raise ValueError('キー指定を確認してください（例: Ctrl+Shift+Z）')
     return list(dict.fromkeys(KEYS[n] for n in names))

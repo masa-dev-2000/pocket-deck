@@ -87,6 +87,10 @@ class MacLifecycle(unittest.TestCase):
             self.assertEqual(defaults['buttons'][2]['keys'],'Win+C')
             self.assertEqual(defaults['buttons'][1]['keys'],'Win+Shift+Z')
             self.assertEqual(next(k for k in server.key_catalog() if k['key']=='WIN')['label'],'Cmd')
+            self.assertEqual(server.parse_keys('Cmd+Option+Z'),['SUPER','ALT','Z'])
+            import features
+            features.validate_steps([{'kind':'press','key':'Cmd'},{'kind':'release','key':'Win'},
+                                     {'kind':'text','text':'released'}],server.parse_keys)
             self.assertEqual(server.migrate(original)['layouts'][0]['buttons'][2]['keys'],original['buttons'][2]['keys'])
 
 
