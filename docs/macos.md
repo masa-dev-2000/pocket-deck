@@ -4,9 +4,11 @@
 
 このブランチの版は`1.2.0-beta.1`です。Windows／Ubuntuの公開済み1.1.0を変更するものではなく、macOS向けnpm導入もまだ公開していません。
 
+2026-09-29の[試験ビルド](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860)で両CPUのDMG／ZIP生成と同梱backendの起動・保存・再起動、ad-hoc署名検証が成功しました。[Apple Silicon版](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860/artifacts/11008634653)／[Intel版](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860/artifacts/11008924370)をGitHubへログインして取得できます。保存期間は14日です。
+
 ## 導入
 
-GitHub ActionsのmacOS試験ビルドから、自分のCPUに合うartifactを取得します。展開した中の`Pocket-Deck-1.2.0-beta.1-arm64.dmg`または`Pocket-Deck-1.2.0-beta.1-x64.dmg`を開き、Pocket Deck.appをApplicationsへコピーします。ZIPは同じアプリの別形式です。MacにPython／Node.jsを追加導入する必要はありません。
+GitHub ActionsのmacOS試験ビルドから、自分のCPUに合うartifactを取得します。展開した中の`app/desktop-dist/Pocket-Deck-1.2.0-beta.1-arm64.dmg`または`app/desktop-dist/Pocket-Deck-1.2.0-beta.1-x64.dmg`を開き、Pocket Deck.appをApplicationsへコピーします。ZIPは同じアプリの別形式です。MacにPython／Node.jsを追加導入する必要はありません。
 
 試験版にはad-hoc署名を使用します。Developer IDによる発行元の証明やAppleの公証はなく、Gatekeeperの通常配布チェックを通過する製品版とは区別します。OSが起動を拒否した場合、警告を自動解除したりquarantineを削除する処理はありません。一般配布前に正式な署名・公証が必要です。
 

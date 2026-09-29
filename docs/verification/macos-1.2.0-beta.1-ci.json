@@ -1,0 +1,331 @@
+{
+  "version": "1.2.0-beta.1",
+  "verifiedAt": "2026-09-29T02:24:38.971362+00:00",
+  "run": {
+    "conclusion": "success",
+    "databaseId": 36511000860,
+    "headSha": "365d8aa7671bfad9c0b2a35427908586b35599bb",
+    "jobs": [
+      {
+        "completedAt": "2026-09-29T02:10:19Z",
+        "conclusion": "success",
+        "databaseId": 109222854059,
+        "name": "macos (macos-15-intel, x64)",
+        "startedAt": "2026-09-29T02:06:04Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T02:06:09Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T02:06:05Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:19Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T02:06:09Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:25Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T02:06:19Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:36Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T02:06:25Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:57Z",
+            "conclusion": "success",
+            "name": "Verify native architecture and install dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T02:06:36Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:37Z",
+            "conclusion": "success",
+            "name": "Shared, desktop and native Quartz ABI checks (no input posted)",
+            "number": 6,
+            "startedAt": "2026-09-29T02:06:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:08:11Z",
+            "conclusion": "success",
+            "name": "Build Python-independent macOS backend",
+            "number": 7,
+            "startedAt": "2026-09-29T02:07:37Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:09:57Z",
+            "conclusion": "success",
+            "name": "Build ad-hoc signed trial DMG and ZIP",
+            "number": 8,
+            "startedAt": "2026-09-29T02:08:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:10:13Z",
+            "conclusion": "success",
+            "name": "Upload trial packages (no GitHub Release or npm publication)",
+            "number": 9,
+            "startedAt": "2026-09-29T02:09:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:10:14Z",
+            "conclusion": "success",
+            "name": "Upload diagnostic logs",
+            "number": 10,
+            "startedAt": "2026-09-29T02:10:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:10:16Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 18,
+            "startedAt": "2026-09-29T02:10:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:10:16Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 19,
+            "startedAt": "2026-09-29T02:10:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:10:17Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 20,
+            "startedAt": "2026-09-29T02:10:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:10:17Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 21,
+            "startedAt": "2026-09-29T02:10:17Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860/job/109222854059"
+      },
+      {
+        "completedAt": "2026-09-29T02:08:02Z",
+        "conclusion": "success",
+        "databaseId": 109222854269,
+        "name": "macos (macos-15, arm64)",
+        "startedAt": "2026-09-29T02:06:05Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T02:06:06Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T02:06:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:07Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T02:06:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:08Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T02:06:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:08Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T02:06:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:13Z",
+            "conclusion": "success",
+            "name": "Verify native architecture and install dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T02:06:08Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:06:52Z",
+            "conclusion": "success",
+            "name": "Shared, desktop and native Quartz ABI checks (no input posted)",
+            "number": 6,
+            "startedAt": "2026-09-29T02:06:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:02Z",
+            "conclusion": "success",
+            "name": "Build Python-independent macOS backend",
+            "number": 7,
+            "startedAt": "2026-09-29T02:06:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:48Z",
+            "conclusion": "success",
+            "name": "Build ad-hoc signed trial DMG and ZIP",
+            "number": 8,
+            "startedAt": "2026-09-29T02:07:02Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:57Z",
+            "conclusion": "success",
+            "name": "Upload trial packages (no GitHub Release or npm publication)",
+            "number": 9,
+            "startedAt": "2026-09-29T02:07:48Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:58Z",
+            "conclusion": "success",
+            "name": "Upload diagnostic logs",
+            "number": 10,
+            "startedAt": "2026-09-29T02:07:57Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:59Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 18,
+            "startedAt": "2026-09-29T02:07:58Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:59Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 19,
+            "startedAt": "2026-09-29T02:07:59Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:07:59Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 20,
+            "startedAt": "2026-09-29T02:07:59Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T02:08:00Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 21,
+            "startedAt": "2026-09-29T02:08:00Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860/job/109222854269"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860"
+  },
+  "packages": [
+    {
+      "arch": "arm64",
+      "artifactId": 11008634653,
+      "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860/artifacts/11008634653",
+      "artifactDigestFromGitHub": "sha256:50ce08256245588e99f139c57614a43e8113545cae69a3f2ebae092f028a0716",
+      "expiresAt": "2026-10-13T02:07:49Z",
+      "files": [
+        {
+          "name": "Pocket-Deck-1.2.0-beta.1-arm64.dmg",
+          "bytes": 143066478,
+          "sha256InCIBuildManifest": "407be99c5a114186d82774bc168edbb615e93644e3d161aa824a3f7b9b5ec9ee"
+        },
+        {
+          "name": "Pocket-Deck-1.2.0-beta.1-arm64.zip",
+          "bytes": 144052829,
+          "sha256InCIBuildManifest": "859016dd49930446768814895e5a33bdb6cff534a4e43054eef292d03cabfed2"
+        }
+      ],
+      "signature": "Executable=/Users/runner/work/pocket-deck/pocket-deck/app/desktop-dist/mac-arm64/Pocket Deck.app/Contents/MacOS/Pocket Deck\nIdentifier=local.pocket-deck.desktop\nFormat=app bundle with Mach-O thin (arm64)\nCodeDirectory v=20400 size=626 flags=0x2(adhoc) hashes=9+7 location=embedded\nSignature=adhoc\nInfo.plist entries=32\nTeamIdentifier=not set\nSealed Resources version=2 rules=13 files=259\nInternal requirements count=0 size=12\n",
+      "developerIDSigned": false,
+      "notarized": false
+    },
+    {
+      "arch": "x64",
+      "artifactId": 11008924370,
+      "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860/artifacts/11008924370",
+      "artifactDigestFromGitHub": "sha256:01c726c465e7542decbd506338719ce4651a87111c698ce3922cb86086008f27",
+      "expiresAt": "2026-10-13T02:09:57Z",
+      "files": [
+        {
+          "name": "Pocket-Deck-1.2.0-beta.1-x64.dmg",
+          "bytes": 150401793,
+          "sha256InCIBuildManifest": "865959a0257bac5cc8219b13faf2db0c45a0319e5b129d5e111e04e415cf7a10"
+        },
+        {
+          "name": "Pocket-Deck-1.2.0-beta.1-x64.zip",
+          "bytes": 151452557,
+          "sha256InCIBuildManifest": "0f51077085c7bb2db6a07622022dbc874f08ccb551d1b53f7b8755e1053f9ab5"
+        }
+      ],
+      "signature": "Executable=/Users/runner/work/pocket-deck/pocket-deck/app/desktop-dist/mac/Pocket Deck.app/Contents/MacOS/Pocket Deck\nIdentifier=local.pocket-deck.desktop\nFormat=app bundle with Mach-O thin (x86_64)\nCodeDirectory v=20400 size=466 flags=0x2(adhoc) hashes=4+7 location=embedded\nSignature=adhoc\nInfo.plist entries=32\nTeamIdentifier=not set\nSealed Resources version=2 rules=13 files=262\nInternal requirements count=0 size=12\n",
+      "developerIDSigned": false,
+      "notarized": false
+    }
+  ],
+  "checks": {
+    "sharedPythonPerMac": {
+      "run": 40,
+      "skipped": 1,
+      "result": "success"
+    },
+    "desktopNodePerMac": {
+      "run": 32,
+      "passed": 30,
+      "skipped": 2
+    },
+    "nativeQuartz": "Actual framework event creation and inspection; CGEventPost was intercepted. No OS input was sent.",
+    "packagedBackend": "Python-free startup, exclusive listener, saved configuration, rapid restart; before and after app packaging.",
+    "signature": "codesign --verify --deep --strict succeeded for both ad-hoc signed apps.",
+    "metadataRetrieval": "Artifact ZIP central directory, SHA256SUMS.txt and signature.txt read with authenticated HTTP range requests. Full binary transfer to this Windows PC was cancelled because of slow download; local full-binary SHA-256 was not computed."
+  },
+  "notVerified": [
+    "interactive accessibility permission",
+    "actual input receipt",
+    "desktop GUI and renderer sandbox process state",
+    "real Chrome profile focus",
+    "Gatekeeper opening a downloaded trial",
+    "Developer ID signing and notarization",
+    "signed automatic update"
+  ],
+  "publication": "Actions trial artifacts only. Existing GitHub v1.1.0 and npm 1.1.0 unchanged."
+}
