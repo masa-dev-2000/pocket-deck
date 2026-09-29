@@ -4,7 +4,7 @@
 
 **Windows／Ubuntu x64向けのローカルネットワーク用MVPです。スマホ接続はHTTP・認証なしなので、信頼できる家庭内などのネットワークで使用してください。外部公開・ポート転送には対応していません。**
 
-**1.1.0は公開準備中です。公開済み版はまだWindows用です。** このブランチではUbuntuのdeb導入、Wayland入力、実npm導入を検証しています。[Ubuntuの導入案内](docs/ubuntu.md)と[実装・検証記録](docs/linux-support.md)を参照してください。X11／Waylandの選択はアプリが検出します。
+Ubuntu対応は1.1.0以降です。[Ubuntuの導入案内](docs/ubuntu.md)と[実装・検証記録](docs/linux-support.md)を参照してください。X11／Waylandの選択はアプリが検出します。
 
 ## ダウンロードと初回設定
 

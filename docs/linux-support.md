@@ -106,6 +106,7 @@
 - 検証用VMの認証設定は試験後に元の状態へ復元済み。普段のWindows Pocket Deckとデータは変更していない。
 - 最新の自動テスト：desktopはWindows27成功・Linux専用2除外／Linux29成功。npmはWindows21成功・Linux専用1除外／Linux22成功。共有チェックは両OS成功、private D-Busのportal試験9成功。両OSの最終同梱依存確認とnpm publish dry-runも成功。GitHub Actionsでの実行は未着手。
 - 公開待ちの最終照合では、保存中の全Release添付ファイルをSHA256SUMSと再照合し、npm tgzの9ファイルを現在のソースとバイト単位で比較した。両OSのnpm manifestのサイズ・SHA-256も実インストーラーと一致。`docs/verification/release-1.1.0-local-audit.json`。まだ公開していない。
+- 公開承認後、ソース`0c716818588213bf6cf314682214edb24ef3277c`をmainへ反映。Windows追加CI [36504647376](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504647376)とUbuntu追加CI [36504650150](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504650150)が成功。Windowsインストーラー、22.04のdeb／AppImage生成、同梱依存確認まで成功。24.04でも共有・入力・同梱backendチェックが成功。公開するのは先に実OS検証したローカル生成物であり、CIで再生成した別ハッシュのファイルへ差し替えない。
 
 ## Chromeの実検証で確認した制限
 

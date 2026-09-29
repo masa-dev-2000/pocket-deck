@@ -1,4 +1,4 @@
-# Pocket Deck 1.1.0 リリースノート案
+# Pocket Deck 1.1.0 リリースノート
 
 Ubuntu x64で、スマホの配置・キーボード・パッド・ホイールからPCを操作できるようになります。Windows版と同じ配置編集・自動保存・文字列・連続操作を使い、X11／Waylandの入力方式は自動検出します。
 
@@ -27,4 +27,4 @@ Ubuntu 22.04／24.04の隔離環境でX11・Wayland入力を検証しました�
 
 MITライセンス。開発者の配置・画像・Chromeトークンは配布物に含みません。
 
-この文書は公開前の案です。GitHub Actionsと公開配布URLの確認は、公開承認後の手順です。
+Windows・Ubuntu 22.04／24.04のGitHub Actionsと、Windowsインストーラー／Ubuntu deb・AppImageのCI生成を確認しています。公開配布URLとnpmの確認結果はLinux対応記録へ追記します。

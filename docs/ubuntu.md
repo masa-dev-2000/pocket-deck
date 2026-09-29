@@ -1,6 +1,6 @@
 # Ubuntuで使う
 
-Linux版は現在公開前です。このページは配布版に向けた導入案内です。公開済みnpmパッケージとReleasesはまだWindows版です。検証範囲と残作業は[Linux対応記録](linux-support.md)を参照してください。
+Ubuntu x64は1.1.0以降に対応します。[Releases](https://github.com/masa-dev-2000/pocket-deck/releases)からdebを取得できます。検証範囲と制限は[Linux対応記録](linux-support.md)を参照してください。
 
 ## PCアプリの導入
 
