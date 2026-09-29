@@ -11,7 +11,7 @@
 | L3 | X11とWaylandでキー、保持、反復、クリック、ドラッグ、二本指/ホイール、切断と終了時の解除 | X11と両Ubuntuのnative Waylandでキー・保持ドラッグ・反復・終了解除・ホイールを確認。24.04の通常失効と明示再許可も確認。brokerの異常終了ではOSに保持が残る制限を記録し、解除未確認を表示する |
 | L4 | 日本語/改行/絵文字の入力、連続操作とキャンセル、OS依存キーの対応、重複再送の防止 | 両UbuntuでUnicode初回受信・連続操作・キャンセルを確認。24.04の実debで端末貼り付け、1500ms待機付き連続操作の完全一致、3回の再送抑止を確認。待ち時間は受信アプリの負荷に合わせて調整する |
 | L5 | Linux Native Messagingホスト、アプリ内登録と修復、Chromeプロファイル切り替えと結果確認 | 両Ubuntuで実Chromeの2プロファイル接続と相互切り替え、22.04で修復後の再接続も確認。native Wayland Chromeは別ウィンドウへのフォーカス拒否を検出して案内する |
-| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | ローカルの生成物・検証・配布文書は準備済み。両OS1.1.0のハッシュ・更新情報・npm tgzを照合しdry-run成功。24.04の実npm 1.1.0更新とアプリ内deb更新・認証取消・再試行・配置保持を確認。公開承認、Actionsと公開URLの確認が残る |
+| L6 | AppImageとdeb、Python不要のバックエンド同梱、npmのOS別導入、確認付き更新とデータ保持、複数Ubuntuでのデスクトップ検証、配布文書 | ローカル検証と両OSのCI成功。実npm導入・更新、アプリ内更新・認証取消・再試行・配置保持を確認。承認後にGitHub v1.1.0を正式公開し、全9ファイルを公開URLから再取得してハッシュ一致を確認。npm公開用の本人認証と、公開後のregistry／npx確認が残る |
 
 初回配布はWindows/Ubuntu x64。ARM64は別の追加段階。Ubuntuの複数LTSでX11/Waylandを検証し、環境ごとの確認結果を残す。未検証の組み合わせや制限を対応済みと表示しない。
 
@@ -107,6 +107,7 @@
 - 最新の自動テスト：desktopはWindows27成功・Linux専用2除外／Linux29成功。npmはWindows21成功・Linux専用1除外／Linux22成功。共有チェックは両OS成功、private D-Busのportal試験9成功。両OSの最終同梱依存確認とnpm publish dry-runも成功。GitHub Actionsでの実行は未着手。
 - 公開待ちの最終照合では、保存中の全Release添付ファイルをSHA256SUMSと再照合し、npm tgzの9ファイルを現在のソースとバイト単位で比較した。両OSのnpm manifestのサイズ・SHA-256も実インストーラーと一致。`docs/verification/release-1.1.0-local-audit.json`。まだ公開していない。
 - 公開承認後、ソース`0c716818588213bf6cf314682214edb24ef3277c`をmainへ反映。Windows追加CI [36504647376](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504647376)とUbuntu追加CI [36504650150](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504650150)が成功。Windowsインストーラー、22.04のdeb／AppImage生成、同梱依存確認まで成功。24.04でも共有・入力・同梱backendチェックが成功。公開するのは先に実OS検証したローカル生成物であり、CIで再生成した別ハッシュのファイルへ差し替えない。
+- 配布案内を整えたタグ対象`75108b5f633b4fac5657b5c63451c06b5c6a3d0a`でもWindows／UbuntuのCIが成功。`release-1.1.0-ci.json`に実行とstep結果を記録。GitHubの[v1.1.0](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.1.0)を正式公開し、latestが同版であることを確認。全9添付ファイルを認証なしの公開URLから取得し、サイズとSHA-256が一致。`release-1.1.0-public-downloads.json`。既存Windowsアプリとデータは変更していない。
 
 ## Chromeの実検証で確認した制限
 

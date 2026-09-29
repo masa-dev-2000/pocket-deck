@@ -1,0 +1,844 @@
+[
+  {
+    "conclusion": "success",
+    "databaseId": 36504647376,
+    "headSha": "0c716818588213bf6cf314682214edb24ef3277c",
+    "jobs": [
+      {
+        "completedAt": "2026-09-29T00:48:21Z",
+        "conclusion": "success",
+        "databaseId": 109203211052,
+        "name": "windows",
+        "startedAt": "2026-09-29T00:45:38Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T00:45:40Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T00:45:39Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:45Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T00:45:40Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:45Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T00:45:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:52Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T00:45:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:11Z",
+            "conclusion": "success",
+            "name": "Install Python dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T00:45:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:29Z",
+            "conclusion": "success",
+            "name": "Install desktop dependencies",
+            "number": 6,
+            "startedAt": "2026-09-29T00:46:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:33Z",
+            "conclusion": "success",
+            "name": "Desktop checks",
+            "number": 7,
+            "startedAt": "2026-09-29T00:46:29Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:35Z",
+            "conclusion": "success",
+            "name": "npm launcher checks",
+            "number": 8,
+            "startedAt": "2026-09-29T00:46:33Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:44Z",
+            "conclusion": "success",
+            "name": "Source checks",
+            "number": 9,
+            "startedAt": "2026-09-29T00:46:35Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:58Z",
+            "conclusion": "success",
+            "name": "Build backend",
+            "number": 10,
+            "startedAt": "2026-09-29T00:46:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:47:02Z",
+            "conclusion": "success",
+            "name": "Packaged checks",
+            "number": 11,
+            "startedAt": "2026-09-29T00:46:58Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:10Z",
+            "conclusion": "success",
+            "name": "Build installer",
+            "number": 12,
+            "startedAt": "2026-09-29T00:47:02Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:10Z",
+            "conclusion": "success",
+            "name": "Verify packaged desktop dependency graph without opening UI",
+            "number": 13,
+            "startedAt": "2026-09-29T00:48:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:11Z",
+            "conclusion": "success",
+            "name": "Checksum",
+            "number": 14,
+            "startedAt": "2026-09-29T00:48:10Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:16Z",
+            "conclusion": "success",
+            "name": "Upload package",
+            "number": 15,
+            "startedAt": "2026-09-29T00:48:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:16Z",
+            "conclusion": "skipped",
+            "name": "Upload failure logs",
+            "number": 16,
+            "startedAt": "2026-09-29T00:48:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:17Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 30,
+            "startedAt": "2026-09-29T00:48:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:17Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 31,
+            "startedAt": "2026-09-29T00:48:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:19Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 32,
+            "startedAt": "2026-09-29T00:48:17Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:19Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 33,
+            "startedAt": "2026-09-29T00:48:19Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504647376/job/109203211052"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504647376",
+    "workflowName": "Windows checks and package"
+  },
+  {
+    "conclusion": "success",
+    "databaseId": 36504650150,
+    "headSha": "0c716818588213bf6cf314682214edb24ef3277c",
+    "jobs": [
+      {
+        "completedAt": "2026-09-29T00:48:15Z",
+        "conclusion": "success",
+        "databaseId": 109203219406,
+        "name": "ubuntu (ubuntu-22.04)",
+        "startedAt": "2026-09-29T00:45:41Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T00:45:43Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T00:45:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:44Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T00:45:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:44Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T00:45:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:45Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T00:45:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:07Z",
+            "conclusion": "success",
+            "name": "Install build and isolated test dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T00:45:45Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:12Z",
+            "conclusion": "success",
+            "name": "Shared and OS integration checks",
+            "number": 6,
+            "startedAt": "2026-09-29T00:46:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:24Z",
+            "conclusion": "success",
+            "name": "Build Python-independent backend",
+            "number": 7,
+            "startedAt": "2026-09-29T00:46:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:01Z",
+            "conclusion": "success",
+            "name": "Build AppImage and deb",
+            "number": 8,
+            "startedAt": "2026-09-29T00:46:24Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:11Z",
+            "conclusion": "success",
+            "name": "Upload packages without publishing",
+            "number": 9,
+            "startedAt": "2026-09-29T00:48:01Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:12Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 16,
+            "startedAt": "2026-09-29T00:48:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:12Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 17,
+            "startedAt": "2026-09-29T00:48:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:12Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 18,
+            "startedAt": "2026-09-29T00:48:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:48:12Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "startedAt": "2026-09-29T00:48:12Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504650150/job/109203219406"
+      },
+      {
+        "completedAt": "2026-09-29T00:46:22Z",
+        "conclusion": "success",
+        "databaseId": 109203219517,
+        "name": "ubuntu (ubuntu-24.04)",
+        "startedAt": "2026-09-29T00:45:40Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T00:45:42Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T00:45:41Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:43Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T00:45:42Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:43Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T00:45:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:45:44Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T00:45:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:03Z",
+            "conclusion": "success",
+            "name": "Install build and isolated test dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T00:45:44Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:07Z",
+            "conclusion": "success",
+            "name": "Shared and OS integration checks",
+            "number": 6,
+            "startedAt": "2026-09-29T00:46:03Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:18Z",
+            "conclusion": "success",
+            "name": "Build Python-independent backend",
+            "number": 7,
+            "startedAt": "2026-09-29T00:46:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:18Z",
+            "conclusion": "skipped",
+            "name": "Build AppImage and deb",
+            "number": 8,
+            "startedAt": "2026-09-29T00:46:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:18Z",
+            "conclusion": "skipped",
+            "name": "Upload packages without publishing",
+            "number": 9,
+            "startedAt": "2026-09-29T00:46:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 16,
+            "startedAt": "2026-09-29T00:46:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:18Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 17,
+            "startedAt": "2026-09-29T00:46:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:19Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 18,
+            "startedAt": "2026-09-29T00:46:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:46:19Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "startedAt": "2026-09-29T00:46:19Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504650150/job/109203219517"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36504650150",
+    "workflowName": "Ubuntu checks and packages"
+  },
+  {
+    "conclusion": "success",
+    "databaseId": 36505005269,
+    "headSha": "75108b5f633b4fac5657b5c63451c06b5c6a3d0a",
+    "jobs": [
+      {
+        "completedAt": "2026-09-29T00:51:17Z",
+        "conclusion": "success",
+        "databaseId": 109204344293,
+        "name": "windows",
+        "startedAt": "2026-09-29T00:50:11Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T00:50:13Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T00:50:11Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:22Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T00:50:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:22Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T00:50:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:35Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T00:50:22Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:55Z",
+            "conclusion": "success",
+            "name": "Install Python dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T00:50:35Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:04Z",
+            "conclusion": "success",
+            "name": "Install desktop dependencies",
+            "number": 6,
+            "startedAt": "2026-09-29T00:50:55Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:06Z",
+            "conclusion": "success",
+            "name": "Desktop checks",
+            "number": 7,
+            "startedAt": "2026-09-29T00:51:04Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:07Z",
+            "conclusion": "success",
+            "name": "npm launcher checks",
+            "number": 8,
+            "startedAt": "2026-09-29T00:51:06Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "success",
+            "name": "Source checks",
+            "number": 9,
+            "startedAt": "2026-09-29T00:51:07Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Build backend",
+            "number": 10,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Packaged checks",
+            "number": 11,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Build installer",
+            "number": 12,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Verify packaged desktop dependency graph without opening UI",
+            "number": 13,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Checksum",
+            "number": 14,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Upload package",
+            "number": 15,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "skipped",
+            "name": "Upload failure logs",
+            "number": 16,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 30,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:13Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 31,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:15Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 32,
+            "startedAt": "2026-09-29T00:51:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:51:15Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 33,
+            "startedAt": "2026-09-29T00:51:15Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36505005269/job/109204344293"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36505005269",
+    "workflowName": "Windows checks and package"
+  },
+  {
+    "conclusion": "success",
+    "databaseId": 36505005259,
+    "headSha": "75108b5f633b4fac5657b5c63451c06b5c6a3d0a",
+    "jobs": [
+      {
+        "completedAt": "2026-09-29T00:50:55Z",
+        "conclusion": "success",
+        "databaseId": 109204344286,
+        "name": "ubuntu (ubuntu-24.04)",
+        "startedAt": "2026-09-29T00:50:11Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T00:50:13Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T00:50:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:14Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T00:50:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:14Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T00:50:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:16Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T00:50:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:35Z",
+            "conclusion": "success",
+            "name": "Install build and isolated test dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T00:50:16Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:39Z",
+            "conclusion": "success",
+            "name": "Shared and OS integration checks",
+            "number": 6,
+            "startedAt": "2026-09-29T00:50:35Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Build Python-independent backend",
+            "number": 7,
+            "startedAt": "2026-09-29T00:50:39Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "skipped",
+            "name": "Build AppImage and deb",
+            "number": 8,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "skipped",
+            "name": "Upload packages without publishing",
+            "number": 9,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 16,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 17,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 18,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36505005259/job/109204344286"
+      },
+      {
+        "completedAt": "2026-09-29T00:50:54Z",
+        "conclusion": "success",
+        "databaseId": 109204344494,
+        "name": "ubuntu (ubuntu-22.04)",
+        "startedAt": "2026-09-29T00:50:11Z",
+        "status": "completed",
+        "steps": [
+          {
+            "completedAt": "2026-09-29T00:50:13Z",
+            "conclusion": "success",
+            "name": "Set up job",
+            "number": 1,
+            "startedAt": "2026-09-29T00:50:12Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:14Z",
+            "conclusion": "success",
+            "name": "Run actions/checkout@v4",
+            "number": 2,
+            "startedAt": "2026-09-29T00:50:13Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:14Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-python@v5",
+            "number": 3,
+            "startedAt": "2026-09-29T00:50:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:18Z",
+            "conclusion": "success",
+            "name": "Run actions/setup-node@v4",
+            "number": 4,
+            "startedAt": "2026-09-29T00:50:14Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:39Z",
+            "conclusion": "success",
+            "name": "Install build and isolated test dependencies",
+            "number": 5,
+            "startedAt": "2026-09-29T00:50:18Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:43Z",
+            "conclusion": "success",
+            "name": "Shared and OS integration checks",
+            "number": 6,
+            "startedAt": "2026-09-29T00:50:39Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Build Python-independent backend",
+            "number": 7,
+            "startedAt": "2026-09-29T00:50:43Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "skipped",
+            "name": "Build AppImage and deb",
+            "number": 8,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "skipped",
+            "name": "Upload packages without publishing",
+            "number": 9,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-node@v4",
+            "number": 16,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/setup-python@v5",
+            "number": 17,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Post Run actions/checkout@v4",
+            "number": 18,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          },
+          {
+            "completedAt": "2026-09-29T00:50:52Z",
+            "conclusion": "success",
+            "name": "Complete job",
+            "number": 19,
+            "startedAt": "2026-09-29T00:50:52Z",
+            "status": "completed"
+          }
+        ],
+        "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36505005259/job/109204344494"
+      }
+    ],
+    "status": "completed",
+    "url": "https://github.com/masa-dev-2000/pocket-deck/actions/runs/36505005259",
+    "workflowName": "Ubuntu checks and packages"
+  }
+]

@@ -1,0 +1,60 @@
+{
+  "version": "1.1.0",
+  "authenticatedDownload": false,
+  "assets": [
+    {
+      "name": "Pocket-Deck-Setup-1.1.0.exe",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/Pocket-Deck-Setup-1.1.0.exe",
+      "bytes": 136205417,
+      "sha256": "386e6ef3fbce8306d690f575c0a3c900041fbad7d03b8640abbf33effef33843"
+    },
+    {
+      "name": "latest.yml",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/latest.yml",
+      "bytes": 351,
+      "sha256": "d4a3a75366d4bc076ebf7d11bfd3307a53cea53e7915071830d928d5fc265751"
+    },
+    {
+      "name": "Pocket-Deck-Setup-1.1.0.exe.blockmap",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/Pocket-Deck-Setup-1.1.0.exe.blockmap",
+      "bytes": 143260,
+      "sha256": "67bf994000dcc81dd01d34fff75564d8ff6b943d3073942850a54a187681662c"
+    },
+    {
+      "name": "Pocket-Deck-1.1.0-x86_64.AppImage",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/Pocket-Deck-1.1.0-x86_64.AppImage",
+      "bytes": 142083992,
+      "sha256": "81b6bfdedf21227e63d85dd09c8ccd6cdfb162fade8ee885ff7e77626df69761"
+    },
+    {
+      "name": "Pocket-Deck-1.1.0-amd64.deb",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/Pocket-Deck-1.1.0-amd64.deb",
+      "bytes": 113239932,
+      "sha256": "c5036a73cb65ef582fc25df9b203984fb5c920afef7d7b0ad5fd9cbc70e0426d"
+    },
+    {
+      "name": "latest-linux.yml",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/latest-linux.yml",
+      "bytes": 546,
+      "sha256": "fe265105fe5683444ceb0561e6e02213ad57b86d80aa604ef8b410b560d4bb62"
+    },
+    {
+      "name": "LICENSE",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/LICENSE",
+      "bytes": 1091,
+      "sha256": "a158b359e2dbf1b0840ae61a2b36a51e5bdcdc59bf5542cd26576b29eae99ffd"
+    },
+    {
+      "name": "THIRD_PARTY_NOTICES.md",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/THIRD_PARTY_NOTICES.md",
+      "bytes": 1797,
+      "sha256": "1f28d051a9adcf96ca836c1ad3a6edf1af015b99272bbf87760f6b5c68c4fd36"
+    },
+    {
+      "name": "SHA256SUMS.txt",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.1.0/SHA256SUMS.txt",
+      "bytes": 722,
+      "sha256": "e2cc6b0f96ef50aac1d568a55372b590eeabf353c0c8ecbf0965216565be6bd5"
+    }
+  ]
+}
