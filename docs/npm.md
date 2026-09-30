@@ -10,7 +10,7 @@ npm更新時も新しい版が入ればPCアプリを導入します。同じ版
 
 1.1.0以降はUbuntu x64にも対応します。通常ユーザーの`npm install -g --prefix "$HOME/.local" --foreground-scripts @masadev/pocket-deck`から検証済みdebを取得し、OSの管理者認証後に導入・起動します。npm全体をsudoで実行しません。`release.json`の`linux`にdebの版・URL・SHA-256・bytesを固定し、Windowsの配布情報を維持します。Ubuntu本体の削除は`sudo apt remove pocket-deck-desktop`です。
 
-公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.0-beta.2は`npm publish --tag beta --access public`で試験公開し、既存の`latest`を変更しません。
+公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.0は`npm publish --access public`で`latest`として公開します。
 
 ## 1. ログインを確認する
 
@@ -79,7 +79,7 @@ npx @masadev/pocket-deck@1.1.0 download
 
 ## macOS試験版の配布
 
-1.2.0-beta.2の`release.json.macos.arm64`と`.x64`には、それぞれGitHub ReleaseのZIPの`version`・`filename`・`url`・`sha256`・`bytes`を固定します。IntelとApple Siliconで別のZIPを選びます。
+1.2.0の`release.json.macos.arm64`と`.x64`には、それぞれGitHub ReleaseのZIPの`version`・`filename`・`url`・`sha256`・`bytes`を固定します。IntelとApple Siliconで別のZIPを選びます。
 
 配布情報の確認には、リポジトリ直下で次を実行します。このコマンドはファイルのSHA-256／サイズを計算するだけで、署名や中身の正当性、公開URLの存在を証明しません。
 
