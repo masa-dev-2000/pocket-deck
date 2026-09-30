@@ -6,7 +6,7 @@ async function request(route,body){
  const response=await fetch(BASE+route,{signal:AbortSignal.timeout(1800),...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
  if(!response.ok)throw new Error(`通信エラー (${response.status})`);return response.json();
 }
-function isConfig(c){return c?.version===4&&Array.isArray(c.layouts)&&c.layouts.every(l=>Array.isArray(l.buttons));}
+function isConfig(c){return c?.version===5&&Array.isArray(c.layouts)&&c.layouts.every(l=>Array.isArray(l.buttons));}
 class Backend{
  constructor(settings,{fetchConfig=()=>request('/api/config'),launch=spawn,wait=ms=>new Promise(r=>setTimeout(r,ms)),clipboardWrite=async()=>{throw Error('Clipboard unavailable');}}={}){Object.assign(this,{settings,fetchConfig,launch,wait,clipboardWrite});this.child=null;this.pending=null;this.error='';this.stopping=false;}
  async ensure(){

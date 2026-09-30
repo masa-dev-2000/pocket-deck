@@ -14,7 +14,7 @@ const trusted=url=>url===home||url==='about:blank'||[BASE+'/',BASE+'/editor',BAS
 function show(){if(win){win.show();win.restore();win.focus();}}
 async function status(){
  const version=app.getVersion();
- try{const config=await request('/api/config');if(config.version!==4||!Array.isArray(config.layouts))throw new Error('接続先を確認してください');const connection=await request('/api/connect');const input=await request('/api/input-status').catch(()=>({state:'unknown',reason:'入力機能の状態を取得できません。'}));ready=true;lastError='';return {ready:true,version,url:connection.url,input,layouts:config.layouts.length,buttons:config.layouts.reduce((n,l)=>n+l.buttons.length,0),owned:!!backend?.child};}
+ try{const config=await request('/api/config');if(config.version!==5||!Array.isArray(config.layouts))throw new Error('接続先を確認してください');const connection=await request('/api/connect');const input=await request('/api/input-status').catch(()=>({state:'unknown',reason:'入力機能の状態を取得できません。'}));ready=true;lastError='';return {ready:true,version,url:connection.url,input,layouts:config.layouts.length,buttons:config.layouts.reduce((n,l)=>n+l.buttons.length,0),owned:!!backend?.child};}
  catch(e){ready=false;return {ready:false,version,error:lastError||'PCとの接続が切れています。「再接続」を押してください。'};}
 }
 async function start(){try{await backend.ensure();lastError='';}catch(e){lastError=e.message;}return status();}

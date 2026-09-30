@@ -32,6 +32,6 @@ assert len(backend)==1,backend
 assert renderers,'no sandboxed renderer found'
 with urlopen('http://127.0.0.1:8765/api/config',timeout=10) as response:
     config=json.load(response)
-assert config['version']==4 and config['layouts'][0]['buttons']
+assert config['version']==5 and config['layouts'][0]['buttons']
 print(json.dumps({'privateBundledBackend':backend,'sandboxedRenderers':renderers,
                   'configurationVersion':config['version'],'packageType':kind}))

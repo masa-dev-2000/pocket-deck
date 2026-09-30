@@ -4,13 +4,13 @@
 
 `npm/` に導入用の小さなNode.jsコマンドを置きます。約136MBのElectronアプリ本体はGitHub Releasesで配布します。1.0.4以降は`npm install -g @masadev/pocket-deck`で、GitHubからexeを取得・SHA-256検証し、現在のユーザー用にサイレント導入して起動します。
 
-グローバル導入のpostinstallがPCアプリを導入・起動します。ローカル導入やnpxのパッケージ取得だけでは自動導入しません。引数なしはヘルプ、`download`は取得と検証だけ、`install`は通常のインストーラーを開きます。npmコマンドを使う人にはWindows x64・Node.js 22.12以上が必要ですが、直接インストーラーを利用する人には追加のNode.jsやPythonは不要です。
+グローバル導入のpostinstallがPCアプリを導入・起動します。ローカル導入やnpxのパッケージ取得だけでは自動導入しません。引数なしはヘルプ、`download`は取得と検証だけ、`install`はPCアプリの導入を行います。npmコマンドを使う人には対応OS・CPUとNode.js 22.12以上が必要ですが、直接インストーラーを利用する人には追加のNode.jsやPythonは不要です。
 
 npm更新時も新しい版が入ればPCアプリを導入します。同じ版・新版の既存アプリは再導入せず起動します。起動中のアプリや全ユーザー用の導入は置き換えません。導入スクリプトを禁止するnpm設定では実行許可が必要です。`npm uninstall`だけではPCアプリは消えず、Windowsから削除します。
 
 1.1.0以降はUbuntu x64にも対応します。通常ユーザーの`npm install -g --prefix "$HOME/.local" --foreground-scripts @masadev/pocket-deck`から検証済みdebを取得し、OSの管理者認証後に導入・起動します。npm全体をsudoで実行しません。`release.json`の`linux`にdebの版・URL・SHA-256・bytesを固定し、Windowsの配布情報を維持します。Ubuntu本体の削除は`sudo apt remove pocket-deck-desktop`です。
 
-公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.0-beta.1は`npm publish --tag beta --access public`で試験公開し、既存の`latest`を変更しません。
+公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.0-beta.2は`npm publish --tag beta --access public`で試験公開し、既存の`latest`を変更しません。
 
 ## 1. ログインを確認する
 
@@ -77,17 +77,17 @@ npx @masadev/pocket-deck@1.1.0 download
 初回は手動公開です。GitHub Actionsからのnpm自動公開やTrusted Publishingの設定は行いません。必要になった段階で別途設定できます。
 
 
-## Mac対応の公開準備（まだ実行しない）
+## macOS試験版の配布
 
-Mac向けの作業版はnpm `1.2.0-beta.1`。既存Win／Ubuntu 1.1.0配布情報を維持し、Macだけ別バージョンのCPU別ZIPを追加できる形式にした。`release.json.macos.arm64` と `.x64` はそれぞれ `version`・`filename`・`url`・`sha256`・`bytes` を持つ。現在はActions artifactのみで公開URLがないため、これらの値はまだ登録していない。架空のチェックサムや期限付きActions URLを配布metadataとして使用しない。
+1.2.0-beta.2の`release.json.macos.arm64`と`.x64`には、それぞれGitHub ReleaseのZIPの`version`・`filename`・`url`・`sha256`・`bytes`を固定します。IntelとApple Siliconで別のZIPを選びます。
 
-実ZIPが確定したら、リポジトリ直下で次を実行して候補JSONを確認する。このコマンドはファイルのSHA-256／サイズを計算するだけで、署名や中身の正当性、公開URLの存在を証明しない。ソースや公開状態を変更しない。
+配布情報の確認には、リポジトリ直下で次を実行します。このコマンドはファイルのSHA-256／サイズを計算するだけで、署名や中身の正当性、公開URLの存在を証明しません。
 
 ```powershell
 node npm/scripts/prepare-macos-manifest.cjs arm64 <Apple-Silicon版ZIPの絶対パス>
 node npm/scripts/prepare-macos-manifest.cjs x64 <Intel版ZIPの絶対パス>
 ```
 
-公開前に両CPU Mac runnerでnpm単体試験と実ZIPの隔離展開試験を実行する。追加したCIステップは版／CPU／codesign／Electron framework symlink／quarantineの保持、同じ版の再導入回避、ユーザーデータ保持を確認し、実アプリは起動しない。Windows上の単体試験だけではMacのditto・codesign・初回起動・OS許可を検証したことにならない。
+両CPUのMac runnerではnpm単体試験と実ZIPの隔離展開試験を実行します。CIは版／CPU／codesign／Electron framework symlink／quarantineの保持、同じ版の再導入回避、ユーザーデータ保持を確認しますが、実アプリは起動しません。実機での初回起動・OS許可・キー入力は未確認です。
 
-その後、必要な承認を得てGitHub ReleaseにZIPを公開し、認証不要の実ダウンロードとハッシュ一致を確認してから両CPU情報をrelease.jsonへ登録する。npmは既存1.1.0を再公開せず、試験版は `npm publish --tag beta --access public` を使用する。正式な署名・公証がない場合、その制約を明記して実Mac上のGatekeeper導線を確認する。公開・CI起動・mergeは今回のローカル実装では行っていない。
+GitHub ReleaseのZIPを認証なしで取得し、`release.json`のハッシュ・サイズと一致することを確認してからnpmを公開します。正式なDeveloper ID署名・公証はないため、初回起動のGatekeeper表示や入力許可は利用者が確認します。macOS試験版の自動更新は無効です。

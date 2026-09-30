@@ -14,7 +14,7 @@ with tempfile.TemporaryDirectory() as directory:
             try:config=json.loads(get('/api/config'));break
             except OSError:time.sleep(.1)
         else:raise RuntimeError('Server did not start')
-        assert config['version']==4
+        assert config['version']==5
         assert b'lineTools' in get('/editor')
         assert b'value="wheel"' in get('/editor')
         assert b'class WheelController' in get('/pad.js')

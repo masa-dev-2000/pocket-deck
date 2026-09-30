@@ -11,9 +11,11 @@ test('global lifecycle installs, local/npx lifecycle does not',async()=>{
   let calls=0,selected;const options={platform:'win32',arch:'x64',log(){},installImpl:async options=>{calls++;selected=options;}};
   await postinstall({...options,env:{}});assert.equal(calls,0);
   await postinstall({...options,env:{npm_config_global:'true'}});assert.equal(calls,1);
-  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'darwin'}),/macOS配布/);
+  await postinstall({...options,env:{npm_config_global:'true'},platform:'darwin'});
+  assert.equal(calls,2);assert.equal(selected.arch,'x64');
+  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'darwin',releaseManifest:{}}),/macOS配布/);
   await postinstall({...options,env:{npm_config_global:'true'},platform:'linux'});
-  assert.equal(calls,2);assert.equal(selected.format,'deb');assert.equal(selected.version,require('../release.json').linux.version);
+  assert.equal(calls,3);assert.equal(selected.format,'deb');assert.equal(selected.version,require('../release.json').linux.version);
 });
 test('fresh install verifies before running and checks installed version before opening',async()=>{
   const f=fixture([{}, {}, installed]);await install(f.options);assert.deepEqual(f.events,['verified','installed','opened']);

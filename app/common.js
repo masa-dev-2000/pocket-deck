@@ -27,7 +27,7 @@ function message(text) {
 }
 function keyElement(button) {
   const el = document.createElement('button');el.className='key';
-  const types={touchpad:'タッチパッド',wheel:'マウスホイール',navigate:'画面切り替え',macro:'連続操作',profile:'Chromeプロフィール',text:'文字列'};
+  const types={touchpad:'タッチパッド',wheel:'マウスホイール',click:'左クリック',group:'まとめ',navigate:'画面切り替え',macro:'連続操作',profile:'Chromeプロフィール',text:'文字列'};
   const description=types[button.type]||button.keys||'';
   el.setAttribute('aria-label',button.label+' '+description);el.title=button.label+' / '+description;el.style.background=button.color;
   const title=document.createElement('strong');title.textContent=button.label;

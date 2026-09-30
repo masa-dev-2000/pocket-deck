@@ -9,16 +9,17 @@ function stop(pointer){
  const task=(async()=>{try{await a.pending;await action({action:'up',owner:a.owner});}catch(e){message(e.message+' 通信断では約2秒で自動解除します');}})();
  releasing.add(task);task.finally(()=>releasing.delete(task));return task;
 }
-async function stopAll(){const sequenceRelease=cancelSequence();const mouseRelease=Promise.all([...padControllers].map(p=>p.cancel()));for(const p of [...active.keys()])stop(p);await Promise.all([...releasing,mouseRelease,sequenceRelease]);}
+async function stopAll(){closeGroup();const sequenceRelease=cancelSequence();const mouseRelease=Promise.all([...padControllers].map(p=>p.cancel()));for(const p of [...active.keys()])stop(p);await Promise.all([...releasing,mouseRelease,sequenceRelease]);}
 function render(root){
- deckConfig=root;const config=root.layouts.find(l=>l.id===selectedDeck)||root.layouts[0];selectedDeck=config.id;writePreference('deck-selected-layout',selectedDeck);$('deckMode').title=config.name;
+ closeGroup();
+ deckConfig=root;const config=root.layouts.find(l=>l.id===selectedDeck)||root.layouts[0];selectedDeck=config.id;writePreference('deck-selected-layout',selectedDeck);renderTabs();
 
  for(const p of embeddedPads){p.cancel();padControllers.delete(p);}embeddedPads.clear();
- $('deck').replaceChildren();fitDeck(config);configRevision=root.revision;
+ $('deck').replaceChildren();$('deck').classList.toggle('keyboard-page',config.template==='keyboard');fitDeck(config);configRevision=root.revision;
  for(const b of config.buttons){
   const el=keyElement(b);el.dataset.buttonId=b.id;applyGridStyle(el,b,config.columns);
   el.oncontextmenu=e=>e.preventDefault();
-  if(b.type==='wheel'){el.classList.add('embedded-pad','wheel-region');embeddedPads.add(attachPad(el,()=>mode==='deck',true,true,b.invertY));}else if(b.type==='touchpad'){el.classList.add('embedded-pad');embeddedPads.add(attachPad(el,()=>mode==='deck',true));}else if(b.type==='navigate'){el.onclick=()=>{if(!navigating&&!switching){if(b.target==='layout')selectDeck(b.layoutId);else setMode(b.target);}};}else if(b.type==='macro'||b.type==='profile'){el.onclick=()=>executeButton(b);}else if(b.type==='text'){
+  if(b.type==='wheel'){el.classList.add('embedded-pad','wheel-region');embeddedPads.add(attachPad(el,()=>true,true,true,b.invertY));}else if(b.type==='touchpad'){el.classList.add('embedded-pad');embeddedPads.add(attachPad(el,()=>true,true));}else if(b.type==='navigate'){el.onclick=()=>{if(!navigating&&!switching)selectDeck(b.layoutId);};}else if(b.type==='group'){el.onclick=()=>openGroup(b,el);}else if(b.type==='click'){el.onclick=()=>action({action:'mouse_click',dx:0,dy:0,owner:owner()}).catch(e=>message(e.message));}else if(b.type==='macro'||b.type==='profile'){el.onclick=()=>executeButton(b);}else if(b.type==='text'){
    el.onclick=()=>{if(navigating||switching||executionBusy)return;el.classList.add('pressed');action({action:'text',id:b.id,owner:owner()}).catch(e=>message(e.message)).finally(()=>el.classList.remove('pressed'));};
   }else{
    bindKey(el,{action:'down',id:b.id},{action:'tap',id:b.id});
@@ -46,31 +47,43 @@ function bindKey(el,down,tap){
  el.onpointerup=el.onpointercancel=el.onlostpointercapture=e=>stop(e.pointerId);
  el.onclick=e=>{if(e.detail===0&&!navigating&&!switching&&!executionBusy)action({...tap,owner:owner()}).catch(e=>message(e.message));};
 }
-const keyboardRows=[
- ['ESC','F1','F2','F3','F4','F5','F6','F7','F8','F9','F10','F11','F12'],
- ['1','2','3','4','5','6','7','8','9','0','BACKSPACE'],
- ['TAB','Q','W','E','R','T','Y','U','I','O','P'],
- ['A','S','D','F','G','H','J','K','L','ENTER'],
- ['SHIFT','Z','X','C','V','B','N','M','DELETE','UP'],
- ['CTRL','ALT','WIN','SPACE','LEFT','DOWN','RIGHT']
-];
-const keyLabels={ESC:'Esc',TAB:'Tab',BACKSPACE:'⌫',ENTER:'Enter',SHIFT:'Shift',DELETE:'Del',CTRL:'Ctrl',ALT:'Alt',WIN:'Win',SPACE:'Space',LEFT:'←',RIGHT:'→',UP:'↑',DOWN:'↓'};
-for(const keys of keyboardRows){
- const row=document.createElement('div');row.className='keyboard-row';if(keys.includes('SHIFT')||keys.includes('SPACE'))row.classList.add('bottom-keys');
- for(const key of keys){const el=document.createElement('button');el.className='key keyboard-key';if(['CTRL','SHIFT','ALT','WIN'].includes(key))el.classList.add('modifier-key');else if(key.length>1)el.classList.add('function-key');el.textContent=keyLabels[key]||key;el.setAttribute('aria-label',key);if(key==='SPACE')el.style.flex='3';if(['ENTER','BACKSPACE','TAB'].includes(key))el.style.flex='1.5';if(key==='UP'){el.style.gridColumn='11';}if(key==='SPACE'){el.style.gridColumn='4 / 10';}if(['LEFT','DOWN','RIGHT'].includes(key))el.style.gridColumn=String(10+['LEFT','DOWN','RIGHT'].indexOf(key));bindKey(el,{action:'key_down',key},{action:'key_tap',key});row.append(el);}
- $('keyboardPanel').append(row);
+function renderTabs(){
+ const strip=$('pageTabs');strip.replaceChildren();
+ for(const page of deckConfig.layouts){
+  const tab=document.createElement('button');tab.className='page-tab';tab.type='button';tab.textContent=page.name;
+  tab.title=page.name;tab.setAttribute('aria-label',page.name);tab.setAttribute('aria-current',String(page.id===selectedDeck));
+  tab.onclick=()=>selectDeck(page.id);strip.append(tab);
+  if(page.id===selectedDeck)requestAnimationFrame(()=>{const x=tab.getBoundingClientRect().left-strip.getBoundingClientRect().left;strip.scrollTo({left:strip.scrollLeft+x-(strip.clientWidth-tab.clientWidth)/2,behavior:'smooth'});});
+ }
 }
-const keyboardBack=document.createElement('button');keyboardBack.className='keyboard-back';keyboardBack.textContent='配置へ戻る';keyboardBack.onclick=()=>setMode('deck');$('keyboardPanel').append(keyboardBack);
-// Label keys from the connected PC, never from the phone's operating system.
-api('keys').then(catalog=>{for(const key of ['WIN','ALT']){const label=catalog.find(item=>item.key===key)?.label;if(label)for(const button of $('keyboardPanel').querySelectorAll('button'))if(button.getAttribute('aria-label')===key){button.textContent=label;button.setAttribute('aria-label',label);}}}).catch(()=>{});
-async function setMode(next){
- if(switching||next===mode)return;switching=true;
- try{await stopAll();mode=next;for(const [id,value] of [['deck','deck'],['keyboardPanel','keyboard'],['padPanel','pad']])$(id).hidden=mode!==value;
- for(const [id,value] of [['deckMode','deck'],['keyboardMode','keyboard'],['padMode','pad']])$(id).setAttribute('aria-pressed',String(mode===value));
- $('deckMode').textContent=mode==='deck'?'配置':'← 配置';if(mode==='deck')resizeDeck();
- }finally{switching=false;}
+let groupPopup=null;
+function closeGroup(){
+ if(!groupPopup)return;
+ document.removeEventListener('pointerdown',groupPopup.outside,true);
+ document.removeEventListener('keydown',groupPopup.escape);
+ groupPopup.panel.remove();groupPopup=null;
 }
-$('deckMode').onclick=async()=>{if(mode!=='deck'){await setMode('deck');return;}if(!deckConfig)return;await stopAll();const id=await choiceDialog('配置を選択',deckConfig.layouts.map(l=>({value:l.id,label:l.name})));if(id)await selectDeck(id);};$('keyboardMode').onclick=()=>setMode('keyboard');$('padMode').onclick=()=>setMode('pad');
+function openGroup(group,anchor){
+ if(navigating||switching||executionBusy)return;
+ if(groupPopup?.id===group.id){closeGroup();return;}
+ closeGroup();
+ const panel=document.createElement('div');panel.className='group-popup';panel.setAttribute('role','menu');
+ const heading=document.createElement('strong');heading.textContent=group.label;panel.append(heading);
+ for(const item of group.items){
+  const choice=document.createElement('button');choice.type='button';choice.className='group-choice';choice.textContent=item.label;
+  choice.setAttribute('role','menuitem');choice.disabled=!inputAllowed(inputCapabilities,inputRequirements(item));
+  choice.onclick=()=>{closeGroup();if(item.type==='navigate')selectDeck(item.layoutId);else if(item.type==='macro'||item.type==='profile')executeButton(item);else action({action:item.type==='text'?'text':'tap',id:item.id,owner:owner()}).catch(e=>message(e.message));};
+  panel.append(choice);
+ }
+ document.body.append(panel);
+ const rect=anchor.getBoundingClientRect(),width=Math.min(300,innerWidth-16),height=panel.getBoundingClientRect().height;
+ panel.style.width=width+'px';panel.style.left=Math.max(8,Math.min(rect.left,innerWidth-width-8))+'px';
+ panel.style.top=(innerHeight-rect.bottom>=Math.min(height,innerHeight*.55)+8?rect.bottom+4:Math.max(8,rect.top-Math.min(height,innerHeight*.55)-4))+'px';
+ const outside=e=>{if(!panel.contains(e.target)&&!anchor.contains(e.target))closeGroup();};
+ const escape=e=>{if(e.key==='Escape'){e.preventDefault();closeGroup();}};
+ groupPopup={id:group.id,panel,outside,escape};
+ document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',escape);
+}
 function attachPad(pad,inMode,compact=false,wheel=false,invertY=false){
  const enabled=()=>inputAllowed(inputCapabilities,['pointer'])&&inMode()&&!switching&&!navigating&&!executionBusy&&!document.hidden;
  const controller=new (wheel?WheelController:PadController)({send:action,owner,enabled,invertY,sensitivity:()=>sensitivity,
@@ -89,11 +102,9 @@ function attachPad(pad,inMode,compact=false,wheel=false,invertY=false){
  pad.onclick=e=>{if(wheel)return;if(e.detail===0)controller.click();};
  padControllers.add(controller);controller.state();return controller;
 }
-const padController=attachPad($('touchpad'),()=>mode==='pad');
-$('padClick').onclick=()=>padController.click();
 setInterval(()=>{for(const p of padControllers)p.heartbeat();},500);
 
-async function selectDeck(id){if(!deckConfig?.layouts.some(l=>l.id===id))return;await stopAll();selectedDeck=id;await setMode('deck');render(deckConfig);}
+async function selectDeck(id){if(!deckConfig?.layouts.some(l=>l.id===id)||id===selectedDeck)return;closeGroup();await stopAll();selectedDeck=id;render(deckConfig);}
 async function executeButton(b){
  if(executionBusy||navigating||switching||active.size||[...padControllers].some(p=>p.points.size||p.dragOwner)){message('保持しているキーとパッドを離してから実行してください');return;}
  executionOwner=owner();executionBusy=true;updateExecution({state:'running',label:b.label,index:0,total:b.steps?.length||1});
