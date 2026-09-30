@@ -1,14 +1,14 @@
 # Pocket Deck
 
-スマホをWindows／Ubuntu PCのショートカットキーボード・タッチパッドにするアプリです。PCにElectronアプリをインストールし、同じWi-Fiのスマホからブラウザーで接続します。スマホへのアプリ導入は不要です。
+スマホをWindows／Ubuntu／macOSのショートカットキーボード・タッチパッドにするアプリです。PCにElectronアプリをインストールし、同じWi-Fiのスマホからブラウザーで接続します。スマホへのアプリ導入は不要です。
 
-**Windows／Ubuntu x64向けのローカルネットワーク用MVPです。スマホ接続はHTTP・認証なしなので、信頼できる家庭内などのネットワークで使用してください。外部公開・ポート転送には対応していません。**
+**Windows／Ubuntu x64とmacOS x64／arm64向けのローカルネットワーク用MVPです。macOSは試験版です。スマホ接続はHTTP・認証なしなので、信頼できる家庭内などのネットワークで使用してください。外部公開・ポート転送には対応していません。**
 
 Ubuntu対応は1.1.0以降です。[Ubuntuの導入案内](docs/ubuntu.md)と[実装・検証記録](docs/linux-support.md)を参照してください。X11／Waylandの選択はアプリが検出します。
 
-macOS 13以降のApple Silicon／Intel向け試験コードは開発中です。正式な署名・公証、実機での入力許可と操作確認はまだ完了していません。[Mac試験版の案内](docs/macos.md)を参照してください。Mac向けインストーラーはまだ公開していません。
+macOS 13以降のApple Silicon／Intel向けは試験版です。正式な署名・公証、実機での入力許可と操作確認はまだ完了していません。[Mac試験版の案内](docs/macos.md)を参照してください。
 
-**1.2.0-beta.1（試験公開）**では、スマホごとのカーソル・スクロール感度、入力許可がない操作の停止、Ubuntuの接続診断・限定LAN許可を追加しました。Windows／Ubuntu x64の配布物は[GitHubのプレリリース](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.2.0-beta.1)から取得できます。npmでこの版を使う場合は`@masadev/pocket-deck@beta`を指定してください。通常の`latest`は1.1.0です。
+**1.2.0-beta.2（試験公開）**では、上部タブによる複数配置、キー配列・パッドのページテンプレート、まとめボタン、連続操作の左クリックを追加しました。Windows／Ubuntu x64とmacOS x64／arm64の配布物は[GitHubのプレリリース](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.2.0-beta.2)から取得できます。npmでこの版を使う場合は`@masadev/pocket-deck@beta`を指定してください。通常の`latest`は1.1.0です。
 
 ## ダウンロードと初回設定
 

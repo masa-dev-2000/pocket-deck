@@ -12,6 +12,8 @@ Gitにはソース、テスト、文書、ライセンスを入れます。実�
 - `Pocket-Deck-<version>-amd64.deb`：Ubuntu x64の標準導入。
 - `Pocket-Deck-<version>-x86_64.AppImage`：追加の持ち運び形式。
 - `latest-linux.yml`：同じ版のdebとAppImageのサイズ・SHA-512を含むLinux更新情報。
+- `Pocket-Deck-<version>-arm64.dmg`／`.zip`：Apple Silicon向け試験版。
+- `Pocket-Deck-<version>-x64.dmg`／`.zip`：Intel Mac向け試験版。
 - `SHA256SUMS.txt`、`LICENSE`、`THIRD_PARTY_NOTICES.md`。
 
 ## 手順
@@ -30,3 +32,5 @@ WindowsとUbuntuの版番号をそろえ、両方の更新情報を同じ正式R
 Ubuntuのnpm導入は通常ユーザーで実行し、OSの導入認証を完了した場合だけアプリを起動します。deb更新も認証取消時に中止し、別の修復コマンドを自動実行しません。導入版の確認後に再起動します。実テストは[Ubuntuの記録](linux-support.md)に残し、公開サーバーからの取得試験とは区別します。
 
 チェックサムはコード署名とは別です。現在は未署名、スマホ接続は認証・HTTPSなしのMVPです。保持ドラッグにも既知の問題があります。別PCやスマホの全機能検証は自動チェックとは別に必要です。
+
+macOSの1.2.0-beta.2はad-hoc署名の試験版です。Developer ID署名・公証はなく、自動更新は無効です。Apple Silicon／IntelのZIPをnpm導入用に添付し、対応するDMGを直接導入用に添付します。両CPUのCIで署名と同梱バックエンドを検証しても、実機のGatekeeper初回起動・入力許可・入力先での受信は別途確認が必要です。

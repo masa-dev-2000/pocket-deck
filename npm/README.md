@@ -1,8 +1,8 @@
 # Pocket Deck
 
-スマホをWindows／Ubuntu PCのショートカットキーボード・タッチパッドにするアプリです。Windows／Ubuntu x64、Node.js 22.12以上が必要です。Ubuntu対応は1.1.0以降です。
+スマホをWindows／Ubuntu／macOSのショートカットキーボード・タッチパッドにするアプリです。Windows／Ubuntu x64、macOS x64／arm64、Node.js 22.12以上が対象です。Ubuntu対応は1.1.0以降、macOS対応は1.2.0-beta.2の試験版です。
 
-1.2.0-beta.1の機能を試す場合は`npm install -g @masadev/pocket-deck@beta`を使います。Ubuntuでは下記の通常コマンド末尾を`@masadev/pocket-deck@beta`に変更します。beta版はスマホごとの操作感、入力許可の案内、UbuntuのLAN接続診断を追加します。`latest`タグの通常版は1.1.0のままです。Mac向けの配布ファイルはまだなく、Macでの導入は明確なエラーで止まります。
+1.2.0-beta.2の機能を試す場合は`npm install -g @masadev/pocket-deck@beta`を使います。Ubuntuでは下記の通常コマンド末尾を`@masadev/pocket-deck@beta`に変更します。beta版には複数配置、まとめボタン、連続操作の左クリックが含まれます。`latest`タグの通常版は1.1.0のままです。
 
 ## 導入（1.0.4以降）
 
@@ -53,18 +53,18 @@ UbuntuのPCアプリは`sudo apt remove pocket-deck-desktop`で削除します�
 
 npmには小さな導入コマンドを公開し、約136MBのPCアプリは[GitHub Releases](https://github.com/masa-dev-2000/pocket-deck/releases)に置きます。exeを直接使う人には追加のNode.js/Pythonは不要です。チェックサムはコード署名とは別です。
 
-現在は未署名のローカルネットワーク用MVPです。スマホ接続はHTTP・認証なしで、信頼できるネットワーク専用です。ファイル移動・ウィンドウサイズ変更のダブルタップ保持ドラッグには既知の問題があります。Windows／Ubuntu以外とARM64は未対応です。
+現在はローカルネットワーク用MVPです。スマホ接続はHTTP・認証なしで、信頼できるネットワーク専用です。ファイル移動・ウィンドウサイズ変更のダブルタップ保持ドラッグには既知の問題があります。Windows／Ubuntuはx64、macOSはx64／arm64に対応します。macOS試験版はad-hoc署名で、Developer ID署名・公証はありません。
 
 Ubuntuの入力許可、端末向け貼り付け、Wayland上のChrome切り替えと保持中の許可サービス失効の制限は[Ubuntuガイド](https://github.com/masa-dev-2000/pocket-deck/blob/main/docs/ubuntu.md)を参照してください。
 
 詳細は[GitHubのREADME](https://github.com/masa-dev-2000/pocket-deck)を参照してください。MITライセンスです。
 
 
-## macOS導入の作業版（配布ファイルは未公開）
+## macOS試験版の導入
 
-Mac向けnpm導入コードは `1.2.0-beta.1` に含まれますが、MacのZIPはActionsの試験artifactのみです。GitHub Releaseへはまだ公開していません。`release.json` にMac配布情報はなく、Macでの導入は明確なエラーで止まります。
+`npm install -g --foreground-scripts @masadev/pocket-deck@beta`で、CPUに合うZIPをGitHub Releaseから取得します。固定SHA-256とサイズを照合してから `~/Applications/Pocket Deck.app` に導入します。アプリを完全終了してから実行してください。
 
-公開準備後は、Apple Siliconにはarm64、Intelにはx64のZIPを自動選択し、SHA-256とサイズを検証して `~/Applications/Pocket Deck.app` に導入します。アプリを終了してから更新し、起動中は置き換えません。Windows／Ubuntuの配布情報を共有でき、npmコマンドの版と各OSのアプリ版は別々に固定します。
+Apple Siliconにはarm64、Intelにはx64のZIPを自動選択します。起動中のアプリは置き換えません。Windows／Ubuntuの配布情報とともに各OSのアプリ版を固定しています。
 
 macOS 13以上・Node.js 22.12以上が必要です。Apple Siliconではarm64版Nodeを推奨します。Rosetta上のx64版NodeではIntel版を選びます。`npm install -g` ではOS確認が表示される場合があるため `--foreground-scripts` を推奨し、npm全体をsudoで実行しません。一般ユーザーが書き込めるnpm prefixを使用してください。
 
