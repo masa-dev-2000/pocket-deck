@@ -126,7 +126,7 @@ class Tests(unittest.TestCase):
         old=server.defaults();old['version']=2
         for b in old['buttons']:b.pop('width');b.pop('height')
         new=server.migrate(old)
-        self.assertEqual(new['version'],4)
+        self.assertEqual(new['version'],5)
         self.assertTrue(all(b['width']==b['height']==1 for b in new['layouts'][0]['buttons']))
         new['layouts'][0]['buttons'][0]['width']=2
         with self.assertRaises(ValueError):server.validate(new)

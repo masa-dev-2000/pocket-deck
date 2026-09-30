@@ -11,6 +11,7 @@ class PermissionTests(unittest.TestCase):
         with self.assertRaises(ValueError):input_policy.require(state,{'pointer'})
         button={'type':'macro','steps':[{'kind':'shortcut'},{'kind':'text'}]}
         self.assertEqual(input_policy.requirements(button),{'keyboard','text'})
+        self.assertEqual(input_policy.requirements({'type':'macro','steps':[{'kind':'click'}]}),{'pointer'})
         self.assertEqual(input_policy.requirements({'type':'profile'}),set())
     def test_server_rejects_input_before_emit_but_allows_cleanup(self):
         events=[]

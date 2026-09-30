@@ -65,22 +65,65 @@ class Features(unittest.TestCase):
             invalid=copy.deepcopy(app.config);invalid['layouts'][0]['buttons'][0]['steps'][0]['pasteMode']='shell'
             with self.assertRaisesRegex(ValueError,'貼り付け先'):app.save(invalid)
 
-    def test_v4_migration_and_layout_validation(self):
+    def test_v5_migration_and_layout_validation(self):
         with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'config.json';original=server.defaults();path.write_text(json.dumps(original),'utf-8')
             app=self.make_app(d)
             self.assertEqual(app.config['layouts'][0]['buttons'],original['buttons'])
-            self.assertEqual(len(list(Path(d).glob('*.pre-v4-*.bak'))),1)
+            self.assertEqual(len(list(Path(d).glob('*.pre-v5-*.bak'))),1)
             self.assertEqual(self.make_app(d).config,app.config)
             config=copy.deepcopy(app.config);config['layouts'].append(copy.deepcopy(config['layouts'][0]))
             with self.assertRaises(ValueError):app.save(config)
-            config['layouts'][1]['id']='second'
+            config['layouts'][-1]['id']='second'
             with self.assertRaises(ValueError):app.save(config) # duplicate button IDs
-            config['layouts'][1]['buttons']=[]
+            config['layouts'][-1]['buttons']=[]
             config['layouts'][0]['buttons'][0].update(type='navigate',target='layout',layoutId='second')
             saved=app.save(config);saved['layouts'].pop()
             with self.assertRaises(ValueError):app.save(saved)
-            with self.assertRaises(ValueError):app.save(original) # stale v3 client cannot overwrite v4
+            with self.assertRaises(ValueError):app.save(original) # stale v3 client cannot overwrite v5
+
+    def test_existing_pages_become_editable_templates_once(self):
+        with tempfile.TemporaryDirectory() as d:
+            path=Path(d)/'config.json'
+            old=server.migrate(server.defaults(),existing=False)
+            self.assertEqual(len(old['layouts']),1)
+            old['version']=4
+            old['layouts'][0]['buttons'][0].update(type='navigate',target='keyboard')
+            old['layouts'][0]['buttons'][1].update(type='navigate',target='pad')
+            for i in range(19):old['layouts'].append(dict(id=f'extra-{i}',name=f'追加{i}',columns=1,rows=1,buttons=[]))
+            path.write_text(json.dumps(old),'utf-8')
+            app=self.make_app(d)
+            self.assertEqual(len(app.config['layouts']),22)
+            self.assertEqual([l['name'] for l in app.config['layouts'][-2:]],['キー配列','パッド'])
+            self.assertEqual(app.config['layouts'][0]['buttons'][0]['layoutId'],app.config['layouts'][-2]['id'])
+            self.assertEqual(app.config['layouts'][0]['buttons'][1]['layoutId'],app.config['layouts'][-1]['id'])
+            self.assertEqual(len(self.make_app(d).config['layouts']),22)
+            self.assertEqual(len(list(Path(d).glob('*.pre-v5-*.bak'))),1)
+            self.assertEqual(server.migrate(server.defaults(),existing=False)['layouts'][0]['name'],'メイン')
+
+    def test_group_items_and_macro_click_dispatch(self):
+        with tempfile.TemporaryDirectory() as d:
+            events=[];app=self.make_app(d,events);config=copy.deepcopy(app.config);layout=config['layouts'][0]
+            first,second=layout['buttons'][:2]
+            items=[]
+            for source in (first,second):
+                item=copy.deepcopy(source)
+                for field in ('slot','width','height'):item.pop(field)
+                items.append(item)
+            items[1].update(type='text',text='候補の文字列')
+            layout['buttons']=layout['buttons'][2:]+[dict(id='group-one',label='まとめ',type='group',slot=0,width=1,height=1,color='#294b68',items=items)]
+            app.save(config)
+            app.action({'action':'tap','id':first['id'],'owner':'group-key'})
+            app.action({'action':'text','id':second['id'],'owner':'group-text'})
+            self.assertIn(('text','候補の文字列'),events)
+            self.assertTrue(any(e[0]=='key' for e in events))
+            invalid=copy.deepcopy(app.config);invalid['layouts'][0]['buttons'][-1]['items'][1]['id']=first['id']
+            with self.assertRaisesRegex(ValueError,'重複'):app.save(invalid)
+            macro=copy.deepcopy(app.config);macro['layouts'][0]['buttons'][0].update(type='macro',steps=[{'kind':'click'},{'kind':'wait','ms':1}])
+            app.save(macro);app.action({'action':'execute','id':macro['layouts'][0]['buttons'][0]['id'],'owner':'click-sequence'});self.wait_done(app)
+            self.assertIn(('mouse','mouse_click',0,0),events)
+            app.input_status=lambda:{'keyboard':True,'pointer':False,'text':True}
+            with self.assertRaises(ValueError):app.action({'action':'execute','id':macro['layouts'][0]['buttons'][0]['id'],'owner':'blocked-click'})
 
     def test_images(self):
         with tempfile.TemporaryDirectory() as d:

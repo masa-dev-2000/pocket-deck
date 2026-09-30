@@ -14,7 +14,8 @@ from urllib.parse import urlsplit
 
 
 def buttons(config):
-    return [b for layout in config['layouts'] for b in layout['buttons']]
+    return [item for layout in config['layouts'] for b in layout['buttons']
+            for item in ([b]+b.get('items',[]) if b.get('type')=='group' else [b])]
 
 
 def identifier(value):
@@ -46,6 +47,8 @@ def validate_steps(steps, parse_keys):
         elif kind == 'wait':
             if type(step.get('ms')) is not int or not 0 <= step['ms'] <= 10000:
                 raise ValueError('待ち時間は0〜10000ミリ秒です')
+        elif kind == 'click':
+            if held: raise ValueError('クリックの前に保持キーを離してください')
         elif kind == 'profile':
             if held: raise ValueError('画面切り替えの前に保持キーを離してください')
             if not identifier(step.get('profileId')): raise ValueError('プロフィールを選択してください')
@@ -54,6 +57,27 @@ def validate_steps(steps, parse_keys):
 
 
 def validate_button(b, parse_keys):
+    if b['type']=='group':
+        items=b.get('items')
+        if not isinstance(items,list) or not 1<=len(items)<=200:
+            raise ValueError('まとめボタンの候補は1〜200個です')
+        for item in items:
+            if not isinstance(item,dict) or item.get('type') not in ('shortcut','text','macro','profile','navigate'):
+                raise ValueError('まとめボタンに入れられない操作です')
+            if not identifier(item.get('id')) or not isinstance(item.get('label'),str) or not 1<=len(item['label'])<=60:
+                raise ValueError('候補の名前またはIDが不正です')
+            color=item.get('color')
+            if not isinstance(color,str) or not re.fullmatch(r'#[0-9a-fA-F]{6}',color):
+                raise ValueError('候補の色が不正です')
+            if item['type']=='shortcut':
+                if not isinstance(item.get('keys'),str):raise ValueError('キーを選択してください')
+                parse_keys(item['keys'])
+            elif item['type']=='text':
+                if not isinstance(item.get('text'),str) or not 1<=len(item['text'])<=1000:
+                    raise ValueError('文字列は1〜1000文字です')
+            elif item['type']=='navigate' and item.get('target')!='layout':
+                raise ValueError('移動先が不正です')
+            validate_button(item,parse_keys)
     if b['type']=='wheel' and type(b.get('invertY', False)) is not bool:
         raise ValueError('上下反転の設定が不正です')
     if b['type']=='text' and b.get('pasteMode','standard') not in ('standard','terminal'):
@@ -72,11 +96,11 @@ def validate_button(b, parse_keys):
 
 
 def validate_config(config, validate_layout, parse_keys):
-    if not isinstance(config, dict) or config.get('version') != 4:
+    if not isinstance(config, dict) or config.get('version') != 5:
         raise ValueError('画面を再読み込みしてください')
     layouts = config.get('layouts')
-    if not isinstance(layouts, list) or not 1 <= len(layouts) <= 20:
-        raise ValueError('配置は1〜20個です')
+    if not isinstance(layouts, list) or not 1 <= len(layouts) <= 22:
+        raise ValueError('配置は1〜22個です')
     ids, button_ids = set(), set()
     for layout in layouts:
         if not isinstance(layout, dict) or not identifier(layout.get('id')) or layout['id'] in ids:
@@ -85,7 +109,9 @@ def validate_config(config, validate_layout, parse_keys):
             raise ValueError('配置の名前は1〜60文字です')
         ids.add(layout['id'])
         validate_layout({**layout, 'version': 3, 'revision': config.get('revision')})
-        for b in layout['buttons']:
+        if sum(1+len(b.get('items',[])) for b in layout['buttons'])>200:
+            raise ValueError('ボタンと候補は合わせて200個までです')
+        for b in buttons({'layouts':[layout]}):
             if b['id'] in button_ids: raise ValueError('ボタンIDが重複しています')
             button_ids.add(b['id'])
     for b in buttons(config):
@@ -177,6 +203,7 @@ class Runtime:
                         self.app.keyboard.repeat_key = None
                     elif kind == 'release': self.app.keyboard.release(prefix+step['key'].upper())
                     elif kind == 'text': self.app.emit_text(step['text'],step.get('pasteMode','standard'))
+                    elif kind == 'click': self.app.mouse_emit('mouse_click',0,0)
                 if kind == 'wait':
                     if self.cancel_event.wait(step['ms']/1000): break
                 elif kind == 'profile': self.focus(step['profileId'], self.cancel_event)

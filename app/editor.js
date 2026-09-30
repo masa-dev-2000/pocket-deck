@@ -1,6 +1,6 @@
 let store,current=null,slot=0,timer,composing=false,moving=false,moveFrom=null,recoveryForm=null,gridTimer,allowUnload=false,undoLayout=null;
-let moveAxis='single',selectedButtons=new Set(),lineEdit=null;
-const recoveryKey='pocket-deck-v4-editor';
+let moveAxis='single',selectedButtons=new Set(),lineEdit=null,groupContext=null;
+const recoveryKey='pocket-deck-v5-editor';
 let selectedLayout=readPreference('deck-editor-layout','main');
 function currentLayout(config=store.value){return config.layouts.find(l=>l.id===selectedLayout)||config.layouts[0];}
 function replaceLayout(next){const index=store.value.layouts.findIndex(l=>l.id===currentLayout().id);store.value.layouts[index]=next;}
@@ -8,12 +8,12 @@ function replaceLayout(next){const index=store.value.layouts.findIndex(l=>l.id==
 function persist(){
  if(!store)return;
  if(!$('form').hidden)recoveryForm=readForm();
- try{localStorage.setItem(recoveryKey,JSON.stringify({config:store.value,form:recoveryForm,layoutId:selectedLayout}));}catch{message('端末への一時保存ができません。画面を閉じずに保存状態を確認してください。');}
+ try{localStorage.setItem(recoveryKey,JSON.stringify({config:store.value,form:recoveryForm,layoutId:selectedLayout,groupId:groupContext}));}catch{message('端末への一時保存ができません。画面を閉じずに保存状態を確認してください。');}
 }
 function state(text){
  if(text==='保存済み'&&!$('form').hidden&&store){
-  const form=readForm(),saved=currentLayout(store.saved).buttons.find(b=>b.id===current);
-  if(!sameButtonForm(form,saved))text='入力途中';
+  const form=readForm(),saved=groupContext?currentLayout(store.saved).buttons.find(b=>b.id===groupContext)?.items.find(b=>b.id===current):currentLayout(store.saved).buttons.find(b=>b.id===current);
+  if(!sameButtonForm(form,groupContext&&saved?{...saved,slot:form.slot,width:form.width,height:form.height}:saved))text='入力途中';
  }
  $('saveState').textContent=text;persist();
 }
@@ -38,7 +38,7 @@ function render(){
 }
 function selectedIds(){return [...selectedButtons];}
 function paintSelection(){const ids=new Set(selectedIds());$('deck').querySelectorAll('[data-button]').forEach(el=>el.classList.toggle('group-selected',ids.has(el.dataset.button)));$('moveHint').textContent=ids.size?`${ids.size}個選択 · 長押しして移動`:'ボタンをタップして複数選択';}
-$('moveTools').querySelectorAll('button').forEach(b=>b.onclick=()=>{moveAxis=b.dataset.axis;selectedButtons.clear();moveFrom=null;$('moveTools').querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintSelection();});
+$('moveTools').querySelectorAll('[data-axis]').forEach(b=>b.onclick=()=>{moveAxis=b.dataset.axis;selectedButtons.clear();moveFrom=null;$('moveTools').querySelectorAll('[data-axis]').forEach(x=>x.setAttribute('aria-pressed',String(x===b)));paintSelection();});
 function commitPreview(next){rememberLayout();replaceLayout(next);selectedButtons.clear();render();persist();store.flush();paintSelection();message('配置を変更しました · 元に戻せます');}
 function rememberLayout(){undoLayout=structuredClone(currentLayout());$('undoLayout').hidden=false;}
 function move(from,to){const next=movedLayout(currentLayout(),from,to);if(next){rememberLayout();replaceLayout(next);render();persist();store.flush();}else if(from!==to)message('キーが収まりません。行・列を増やすかサイズを小さくしてください');}
@@ -46,13 +46,14 @@ $('undoLayout').onclick=()=>{if(!undoLayout||undoLayout.id!==currentLayout().id)
 installReorder($('deck'),{move,armed:()=>moving,config:()=>store?currentLayout():null,ids:b=>lineEdit?[]:moving&&moveAxis!=='single'?selectedIds():[b.id],commit:commitPreview});
 function readForm(){return {id:current,slot,label:$('label').value,type:$('type').value,keys:$('keys').value,text:$('text').value,color:$('color').value,width:Number($('width').value),height:Number($('height').value),...($('type').value==='navigate'?{target:$('target').value, ...($('target').value==='layout'?{layoutId:$('layoutTarget').value}:{})}:{}),...readExtraForm()};}
 function showFields(){showExtraFields();$('targetField').hidden=$('type').value!=='navigate';$('textField').hidden=$('type').value!=='text';$('shortcutField').hidden=$('type').value!=='shortcut';}
-function openButton(b,index){
- if(!b&&currentLayout().buttons.length>=200){message('ボタンは200個までです');return;}
+function openButton(b,index,groupId=null){
+ groupContext=groupId;
+ if(!b&&!groupId&&currentLayout().buttons.length>=200){message('ボタンは200個までです');return;}
  current=b?.id||('b-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));slot=index;
- $('label').value=b?.label||'';$('type').value=b?.type||'shortcut';$('keys').value=b?.keys||'';$('text').value=b?.text||'';$('color').value=b?.color||'#294b68';
+ $('label').value=b?.label||'';$('type').value=b?.type||'shortcut';$('type').disabled=b?.type==='group';for(const option of $('type').options)option.disabled=!!groupId&&['touchpad','wheel','click','group'].includes(option.value);$('keys').value=b?.keys||'';$('text').value=b?.text||'';$('color').value=b?.color||'#294b68';
  for(const [id,max] of [['width',currentLayout().columns],['height',currentLayout().rows]]){$(id).replaceChildren();for(let i=1;i<=max;i++){const o=document.createElement('option');o.value=i;o.textContent=i;$(id).append(o);}$(id).value=b?.[id]||1;}$('target').value=b?.target||'keyboard';
  openExtras(b);
- $('delete').hidden=!currentLayout().buttons.some(x=>x.id===current);$('formError').textContent='';updateKeySummary();showFields();view('form');persist();
+ $('delete').hidden=groupId?!currentLayout().buttons.find(x=>x.id===groupId)?.items.some(x=>x.id===current):!currentLayout().buttons.some(x=>x.id===current);$('formError').textContent='';updateKeySummary();showFields();view('form');persist();
  if(b?.type==='macro')openMacroEditor();
 }
 function applyForm(){
@@ -62,6 +63,13 @@ function applyForm(){
  if(b.type==='text'&&Array.from(b.text).length>1000){$('formError').textContent='文字列は1,000文字までです';state('入力を確認');return false;}
  b.label=b.label.trim();if(b.type!=='text')delete b.text;if(b.type!=='shortcut')delete b.keys;
  if(!validateExtraForm(b))return false;
+ if(groupContext){
+  if(!['shortcut','text','macro','profile','navigate'].includes(b.type)){$('formError').textContent='この操作はまとめボタンに入れられません';return false;}
+  const group=currentLayout().buttons.find(x=>x.id===groupContext);if(!group){message('まとめボタンが見つかりません');return false;}
+  delete b.slot;delete b.width;delete b.height;
+  const index=group.items.findIndex(x=>x.id===current);if(index<0)group.items.push(b);else group.items[index]=b;
+  $('formError').textContent='';recoveryForm=null;persist();store.flush();return true;
+ }
  const old=currentLayout().buttons.find(x=>x.id===current),next=placeButton(currentLayout(),b);
  if(!next){$('formError').textContent='キーが収まりません。行・列を増やすかサイズを小さくしてください';state('入力を確認');return false;}
  if(JSON.stringify(old)!==JSON.stringify(b)){undoLayout=null;$('undoLayout').hidden=true;}
@@ -77,9 +85,14 @@ for(const id of ['label','text']){
 }
 for(const id of ['type','keys','color','width','height','target','invertY'])$(id).addEventListener('change',()=>{showFields();applyForm();});
 $('cancel').onclick=()=>{applyForm();view('layoutView');render();/* Keep incomplete input in local recovery. */};
-$('delete').onclick=async()=>{if(await showNotice('このボタンを削除しますか？',true)){clearTimeout(timer);recoveryForm=null;undoLayout=null;$('undoLayout').hidden=true;currentLayout().buttons=currentLayout().buttons.filter(b=>b.id!==current);view('layoutView');render();persist();store.flush();}};
+$('delete').onclick=async()=>{if(await showNotice('このボタンを削除しますか？',true)){clearTimeout(timer);recoveryForm=null;undoLayout=null;$('undoLayout').hidden=true;if(groupContext){const group=currentLayout().buttons.find(b=>b.id===groupContext);if(group.items.length===1){message('最後の候補は取り出すか、まとめボタンごと削除してください');return;}group.items=group.items.filter(b=>b.id!==current);}else currentLayout().buttons=currentLayout().buttons.filter(b=>b.id!==current);view('layoutView');render();persist();store.flush();}};
 $('add').onclick=()=>{const used=new Set(currentLayout().buttons.flatMap(b=>buttonCells(currentLayout(),b)||[]));let i=0;while(used.has(i))i++;if(i>=currentLayout().columns*currentLayout().rows){message('空き枠がありません。「行・列」で枠を増やしてください');return;}openButton(null,i);};
 $('move').onclick=()=>{moving=!moving;moveFrom=null;selectedButtons.clear();$('moveTools').hidden=!moving;$('moveHint').hidden=!moving;$('move').textContent=moving?'移動終了':'移動';render();paintSelection();message(moving?'個別または複数選択で移動できます':'長押しでも配置を移動できます');};
+$('makeGroup').onclick=()=>{
+ const next=groupedButtons(currentLayout(),selectedIds());if(!next){message('2個以上のショートカット・文字列・連続操作・プロフィール・画面切り替えを選択してください');return;}
+ rememberLayout();replaceLayout(next);const group=next.buttons.at(-1);
+ moving=false;selectedButtons.clear();$('move').textContent='移動';render();persist();store.flush();openButton(group,group.slot);
+};
 $('pageSettings').onclick=()=>{$('gridError').textContent='';view('pageView');};$('pageBack').onclick=()=>{clearTimeout(gridTimer);gridChange();if($('gridError').textContent)message($('gridError').textContent+' 行・列の変更は適用していません');view('layoutView');render();};
 function gridChange(){
  const columns=Number($('columns').value),rows=Number($('rows').value);
@@ -105,19 +118,27 @@ for(const link of document.querySelectorAll('a[data-navigation]'))link.addEventL
 window.addEventListener('beforeunload',e=>{persist();if(store?.dirty&&!allowUnload){e.preventDefault();e.returnValue='';}});
 api('config').then(async config=>{
  let recovery=null;
- try{recovery=JSON.parse(localStorage.getItem(recoveryKey)||localStorage.getItem('pocket-deck-v3-editor')||'null');if(recovery?.config?.version===3){const old=recovery.config;recovery.config={version:4,revision:old.revision,layouts:[{id:'main',name:'メイン',columns:old.columns,rows:old.rows,buttons:old.buttons}]};recovery.layoutId='main';}}catch{}
+ try{
+  recovery=JSON.parse(localStorage.getItem(recoveryKey)||localStorage.getItem('pocket-deck-v4-editor')||localStorage.getItem('pocket-deck-v3-editor')||'null');
+  if(recovery?.config?.version===3){const old=recovery.config;recovery.config={version:4,revision:old.revision,layouts:[{id:'main',name:'メイン',columns:old.columns,rows:old.rows,buttons:old.buttons}]};recovery.layoutId='main';}
+  if(recovery?.config?.version===4&&recovery.config.revision===config.revision){
+   const known=new Set(recovery.config.layouts.map(l=>l.id)),templates=config.layouts.filter(l=>!known.has(l.id));
+   const keyboard=templates.find(l=>l.name==='キー配列'),pad=templates.find(l=>l.name==='パッド');
+   if(keyboard&&pad){for(const l of recovery.config.layouts)for(const b of allButtons(l))if(b.type==='navigate'&&['keyboard','pad'].includes(b.target)){b.layoutId=b.target==='keyboard'?keyboard.id:pad.id;b.target='layout';}recovery.config={...recovery.config,version:5,layouts:[...recovery.config.layouts,...templates]};}
+  }
+ }catch{}
  store=new AutoSave(config,data=>api('config',data),state);view('layoutView');render();
  if(recovery?.config){
   const sameRevision=recovery.config.revision===config.revision;
   const differs=JSON.stringify(recovery.config)!==JSON.stringify(config);
   const form=recovery.form;
-  const savedButton=form&&config.layouts.flatMap(l=>l.buttons).find(b=>b.id===form.id);
+  const savedButton=form&&config.layouts.flatMap(allButtons).find(b=>b.id===form.id);
   const incomplete=form&&!sameButtonForm(form,savedButton);
   if(differs||incomplete){
    if(sameRevision){
     if(await showNotice('この端末に前回の入力が残っています。復元しますか？',true)){
      store.value=recovery.config;selectedLayout=recovery.layoutId||'main';
-     if(form){openButton(form,form.slot);recoveryForm=form;}else render();
+     if(form){openButton(form,form.slot,recovery.groupId||null);recoveryForm=form;}else render();
      if(store.dirty)await store.flush();
     }
    }else{

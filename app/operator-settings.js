@@ -12,7 +12,6 @@ function paintInputPermission(){
  $('inputNoticeText').textContent=!status?'PCの入力許可を確認しています…':status.reason||(status.state==='unsupported'?'このPCの入力方式には対応していません。配置編集は利用できます。':'PC側Pocket Deckで「入力を許可」を押してください。利用できない操作は無効になっています。');
  document.querySelectorAll('.keyboard-key').forEach(el=>el.disabled=!inputAllowed(status,['keyboard']));
  for(const b of deckConfig?.layouts.flatMap(l=>l.buttons)||[]){const el=document.querySelector('[data-button-id="'+b.id+'"]');if(el)el.disabled=!inputAllowed(status,inputRequirements(b));}
- $('padClick').disabled=!inputAllowed(status,['pointer']);
 }
 async function refreshInputPermission(){
  if(inputChecking||document.hidden)return;inputChecking=true;

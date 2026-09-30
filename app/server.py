@@ -8,6 +8,7 @@ from pathlib import Path
 import socket
 import sys
 import threading
+import uuid
 import features
 import input_policy
 from input_backend import get_backend, send_key, send_mouse, send_text
@@ -151,7 +152,35 @@ def defaults():
         dict(id=str(i),label=n,keys=k,type='shortcut',slot=i,width=1,height=1,color='#294b68')
         for i,(n,k) in enumerate(presets)]}
 
-def migrate(config):
+KEYBOARD_TEMPLATE_ROWS = [
+    [('ESC',1), *[(f'F{i}',1) for i in range(1,7)]],
+    [(f'F{i}',1) for i in range(7,13)],
+    [(str(i),1) for i in range(1,10)]+[('0',1),('BACKSPACE',2)],
+    [('TAB',2)]+[(key,1) for key in 'QWERTYUIOP'],
+    [(key,1) for key in 'ASDFGHJKL']+[('ENTER',3)],
+    [('SHIFT',2)]+[(key,1) for key in 'ZXCVBNM']+[('DELETE',2),('UP',1)],
+    [('CTRL',1),('ALT',1),('WIN',1),('SPACE',3),('LEFT',1),('DOWN',1),('RIGHT',1)],
+]
+
+def page_template(kind):
+    if kind=='pad':
+        return dict(id='page-'+uuid.uuid4().hex,name='パッド',columns=4,rows=4,buttons=[
+            dict(id='b-'+uuid.uuid4().hex,label='タッチパッド',type='touchpad',slot=0,width=4,height=3,color='#294b68'),
+            dict(id='b-'+uuid.uuid4().hex,label='左クリック',type='click',slot=12,width=4,height=1,color='#294b68')])
+    if kind!='keyboard':raise ValueError('テンプレートが不正です')
+    labels={'ESC':'Esc','TAB':'Tab','BACKSPACE':'⌫','ENTER':'Enter','SHIFT':'Shift','DELETE':'Del',
+            'CTRL':'Ctrl','ALT':'Alt','WIN':'Cmd' if sys.platform=='darwin' else 'Win',
+            'SPACE':'Space','LEFT':'←','RIGHT':'→','UP':'↑','DOWN':'↓'}
+    buttons=[]
+    for row,keys in enumerate(KEYBOARD_TEMPLATE_ROWS):
+        col=0
+        for key,width in keys:
+            buttons.append(dict(id='b-'+uuid.uuid4().hex,label=labels.get(key,key),type='shortcut',
+                                keys=key,slot=row*12+col,width=width,height=1,color='#294b68'))
+            col+=width
+    return dict(id='page-'+uuid.uuid4().hex,name='キー配列',template='keyboard',columns=12,rows=7,buttons=buttons)
+
+def migrate(config,existing=True):
     config = copy.deepcopy(config)
     if config.get('version',1) == 1:
         config.update(version=2,revision=0,rows=max(1,(len(config['buttons'])+config['columns']-1)//config['columns']))
@@ -163,6 +192,20 @@ def migrate(config):
         for b in config['buttons']:b.update(width=1,height=1)
     if config.get('version')==3:
         config={'version':4,'revision':config['revision'],'layouts':[dict(id='main',name='メイン',columns=config['columns'],rows=config['rows'],buttons=config['buttons'])]}
+    if config.get('version')==4:
+        if existing:
+            used={layout['id'] for layout in config['layouts']}
+            templates={}
+            for kind in ('keyboard','pad'):
+                page=page_template(kind)
+                while page['id'] in used:page['id']='page-'+uuid.uuid4().hex
+                used.add(page['id']);templates[kind]=page
+            for layout in config['layouts']:
+                for button in layout['buttons']:
+                    if button.get('type')=='navigate' and button.get('target') in templates:
+                        button['layoutId']=templates[button['target']]['id'];button['target']='layout'
+            config['layouts'].extend(templates.values())
+        config['version']=5
     return validate(config)
 
 def validate(config):
@@ -201,7 +244,7 @@ def validate_layout(config):
                 raise ValueError('文字列は1〜1000文字です')
         elif b['type']=='navigate':
             if b.get('target') not in ('keyboard','pad','layout'):raise ValueError('移動先が不正です')
-        elif b['type'] in ('touchpad','wheel','macro','profile'):pass
+        elif b['type'] in ('touchpad','wheel','macro','profile','click','group'):pass
         else:raise ValueError('入力種類が不正です')
         features.validate_button(b,parse_keys)
         if len(b['color'])!=7 or b['color'][0]!='#' or any(c not in '0123456789abcdefABCDEF' for c in b['color'][1:]):
@@ -235,11 +278,11 @@ class App:
         if path.exists():
             old=json.loads(path.read_text('utf-8'))
             self.config=migrate(old)
-            if old.get('version')!=4:
-                backup=path.with_name(path.name+'.pre-v4-'+str(time.time_ns())+'.bak')
+            if old.get('version')!=5:
+                backup=path.with_name(path.name+'.pre-v5-'+str(time.time_ns())+'.bak')
                 shutil.copy2(path,backup)
                 self.write(self.config)
-        else:self.config=migrate(defaults())
+        else:self.config=migrate(defaults(),existing=False)
         self.features=features.Runtime(self)
 
     def write(self,config):
@@ -318,7 +361,7 @@ class App:
                 self.features.start(b,owner)
                 self.operations[owner]={'id':b['id'],'time':now}
                 return
-            if not b or b['type'] in ('navigate','touchpad','wheel') or kind not in ('tap','down','text'):raise ValueError('登録されていない操作です')
+            if not b or b['type'] in ('navigate','touchpad','wheel','click','group') or kind not in ('tap','down','text'):raise ValueError('登録されていない操作です')
             self.operations[owner]={'id':b['id'],'time':now}
             if b['type']=='text':
                 if kind!='text':raise ValueError('画面を再読み込みしてください')
@@ -380,6 +423,8 @@ def handler(app):
             elif self.path == '/api/config':
                 with app.lock:
                     self.reply(200, app.config)
+            elif self.path == '/api/templates':
+                self.reply(200, {'keyboard':page_template('keyboard'),'pad':page_template('pad')})
             elif self.path == '/api/health':
                 self.reply(200, {'ok': True})
             elif self.path == '/api/input-status':
