@@ -48,7 +48,7 @@ jobs:
           gh run download "$LINUX_RUN" -n pocket-deck-ubuntu-x64 -D packages/linux
           gh run download "$MAC_RUN" -n pocket-deck-macos-arm64-trial -D packages/mac-arm64
           gh run download "$MAC_RUN" -n pocket-deck-macos-x64-trial -D packages/mac-x64
-          (cd packages/windows/app/desktop-dist && sha256sum -c SHA256SUMS.txt)
+          (cd packages/windows/app/desktop-dist && tr -d '\r' < SHA256SUMS.txt | sha256sum -c -)
           (cd packages/linux && sha256sum -c SHA256SUMS.txt)
           (cd packages/mac-arm64/app/desktop-dist && sha256sum -c SHA256SUMS.txt)
           (cd packages/mac-x64/app/desktop-dist && sha256sum -c SHA256SUMS.txt)
