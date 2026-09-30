@@ -1,0 +1,71 @@
+name: Upload verified release assets
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Draft prerelease tag
+        required: true
+        type: string
+      windows_run:
+        description: Successful Windows package run ID
+        required: true
+        type: string
+      linux_run:
+        description: Successful Ubuntu package run ID
+        required: true
+        type: string
+      mac_run:
+        description: Successful macOS trial run ID
+        required: true
+        type: string
+permissions:
+  actions: read
+  contents: write
+jobs:
+  upload:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+      RELEASE_TAG: ${{ inputs.tag }}
+      WINDOWS_RUN: ${{ inputs.windows_run }}
+      LINUX_RUN: ${{ inputs.linux_run }}
+      MAC_RUN: ${{ inputs.mac_run }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download and verify packages before attaching to a draft release
+        shell: bash
+        run: |
+          set -euo pipefail
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]
+          for run in "$WINDOWS_RUN" "$LINUX_RUN" "$MAC_RUN"; do
+            [[ "$run" =~ ^[0-9]+$ ]]
+            [[ "$(gh run view "$run" --json conclusion --jq .conclusion)" == success ]]
+          done
+          [[ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" == true ]]
+          mkdir -p packages/{windows,linux,mac-arm64,mac-x64} release-assets
+          gh run download "$WINDOWS_RUN" -n pocket-deck-windows-x64 -D packages/windows
+          gh run download "$LINUX_RUN" -n pocket-deck-ubuntu-x64 -D packages/linux
+          gh run download "$MAC_RUN" -n pocket-deck-macos-arm64-trial -D packages/mac-arm64
+          gh run download "$MAC_RUN" -n pocket-deck-macos-x64-trial -D packages/mac-x64
+          (cd packages/windows/app/desktop-dist && sha256sum -c SHA256SUMS.txt)
+          (cd packages/linux && sha256sum -c SHA256SUMS.txt)
+          (cd packages/mac-arm64/app/desktop-dist && sha256sum -c SHA256SUMS.txt)
+          (cd packages/mac-x64/app/desktop-dist && sha256sum -c SHA256SUMS.txt)
+          cp packages/windows/app/desktop-dist/{Pocket-Deck-Setup-*.exe,Pocket-Deck-Setup-*.exe.blockmap,latest.yml} release-assets/
+          cp packages/linux/{Pocket-Deck-*.deb,Pocket-Deck-*.AppImage,latest-linux.yml} release-assets/
+          cp packages/mac-arm64/app/desktop-dist/Pocket-Deck-*.{dmg,zip} release-assets/
+          cp packages/mac-x64/app/desktop-dist/Pocket-Deck-*.{dmg,zip} release-assets/
+          cp LICENSE THIRD_PARTY_NOTICES.md release-assets/
+          (cd release-assets && sha256sum * > SHA256SUMS.txt)
+          node - <<'NODE'
+          const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
+          const manifest=require('./npm/release.json');
+          const version=process.env.RELEASE_TAG.slice(1);
+          for(const entry of [manifest,manifest.linux,manifest.macos.arm64,manifest.macos.x64]){
+            if(entry.version!==version)throw Error(`Wrong version: ${entry.filename}`);
+            const file=path.join('release-assets',entry.filename),buffer=fs.readFileSync(file);
+            if(buffer.length!==entry.bytes||crypto.createHash('sha256').update(buffer).digest('hex')!==entry.sha256)throw Error(`Manifest mismatch: ${file}`);
+          }
+          NODE
+          gh release upload "$RELEASE_TAG" release-assets/* --clobber
