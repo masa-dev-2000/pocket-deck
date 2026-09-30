@@ -1,8 +1,8 @@
 # Pocket Deck
 
-スマホをWindows／Ubuntu／macOSのショートカットキーボード・タッチパッドにするアプリです。Windows／Ubuntu x64、macOS x64／arm64、Node.js 22.12以上が対象です。Ubuntu対応は1.1.0以降、macOS対応は1.2.0-beta.2の試験版です。
+スマホをWindows／Ubuntu／macOSのショートカットキーボード・タッチパッドにするアプリです。Windows／Ubuntu x64、macOS x64／arm64、Node.js 22.12以上が対象です。Ubuntu対応は1.1.0以降、macOS対応は1.2.0以降です。macOS版は正式な配布署名・公証と実機入力確認が未完了です。
 
-1.2.0-beta.2の機能を試す場合は`npm install -g @masadev/pocket-deck@beta`を使います。Ubuntuでは下記の通常コマンド末尾を`@masadev/pocket-deck@beta`に変更します。beta版には複数配置、まとめボタン、連続操作の左クリックが含まれます。`latest`タグの通常版は1.1.0のままです。
+通常の`npm install -g @masadev/pocket-deck`で1.2.0を導入します。複数配置、まとめボタン、連続操作の左クリックが含まれます。
 
 ## 導入（1.0.4以降）
 
@@ -62,7 +62,7 @@ Ubuntuの入力許可、端末向け貼り付け、Wayland上のChrome切り替�
 
 ## macOS試験版の導入
 
-`npm install -g --foreground-scripts @masadev/pocket-deck@beta`で、CPUに合うZIPをGitHub Releaseから取得します。固定SHA-256とサイズを照合してから `~/Applications/Pocket Deck.app` に導入します。アプリを完全終了してから実行してください。
+`npm install -g --foreground-scripts @masadev/pocket-deck`で、CPUに合うZIPをGitHub Releaseから取得します。固定SHA-256とサイズを照合してから `~/Applications/Pocket Deck.app` に導入します。アプリを完全終了してから実行してください。
 
 Apple Siliconにはarm64、Intelにはx64のZIPを自動選択します。起動中のアプリは置き換えません。Windows／Ubuntuの配布情報とともに各OSのアプリ版を固定しています。
 

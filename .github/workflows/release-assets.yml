@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: Draft prerelease tag
+        description: Draft release tag
         required: true
         type: string
       windows_run:
@@ -37,7 +37,7 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+-beta\.[0-9]+$ ]]
+          [[ "$RELEASE_TAG" =~ ^v[0-9]+\.[0-9]+\.[0-9]+(-beta\.[0-9]+)?$ ]]
           for run in "$WINDOWS_RUN" "$LINUX_RUN" "$MAC_RUN"; do
             [[ "$run" =~ ^[0-9]+$ ]]
             [[ "$(gh run view "$run" --json conclusion --jq .conclusion)" == success ]]

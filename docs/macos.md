@@ -2,15 +2,15 @@
 
 対象はmacOS 13以降、Apple Silicon（arm64）とIntel（x64）。Electron 44の最低要件に合わせています。[Electronの公式案内](https://www.electronjs.org/docs/latest/breaking-changes/#removed-macos-12-support)。Mac App Store版ではありません。
 
-macOS向けは`1.2.0-beta.2`の試験版です。npmの`beta`タグから導入できます。通常の`latest`タグはWindows／Ubuntu向け1.1.0のままです。
+macOS向けは`1.2.0`から通常の`latest`タグで導入できます。Developer ID署名・公証と実機入力確認は未完了で、自動更新は無効です。
 
-2026-09-30の[試験ビルド](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36670958001)で両CPUのDMG／ZIP生成と同梱backendの起動・保存・再起動、ad-hoc署名検証が成功しました。配布物は[1.2.0-beta.2のプレリリース](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.2.0-beta.2)から取得できます。
+1.2.0は両CPUのDMG／ZIP生成と同梱backendの起動・保存・再起動、ad-hoc署名検証をCIで確認してから公開します。配布物は[1.2.0の通常リリース](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.2.0)から取得できます。
 
 ## 導入
 
-GitHub Releaseから、Apple Siliconなら`Pocket-Deck-1.2.0-beta.2-arm64.dmg`、Intelなら`Pocket-Deck-1.2.0-beta.2-x64.dmg`を取得して開き、Pocket Deck.appをApplicationsへコピーします。ZIPは同じアプリの別形式です。直接導入ならPython／Node.jsの追加は不要です。npmから導入する場合はNode.js 22.12以上で`npm install -g --foreground-scripts @masadev/pocket-deck@beta`を実行します。
+GitHub Releaseから、Apple Siliconなら`Pocket-Deck-1.2.0-arm64.dmg`、Intelなら`Pocket-Deck-1.2.0-x64.dmg`を取得して開き、Pocket Deck.appをApplicationsへコピーします。ZIPは同じアプリの別形式です。直接導入ならPython／Node.jsの追加は不要です。npmから導入する場合はNode.js 22.12以上で`npm install -g --foreground-scripts @masadev/pocket-deck`を実行します。
 
-試験版にはad-hoc署名を使用します。Developer IDによる発行元の証明やAppleの公証はなく、Gatekeeperの通常配布チェックを通過する製品版とは区別します。OSが起動を拒否した場合、警告を自動解除したりquarantineを削除する処理はありません。一般配布前に正式な署名・公証が必要です。
+macOS版にはad-hoc署名を使用します。Developer IDによる発行元の証明やAppleの公証はなく、Gatekeeperの通常配布チェックを通過する製品版とは区別します。OSが起動を拒否した場合、警告を自動解除したりquarantineを削除する処理はありません。一般配布前に正式な署名・公証が必要です。
 
 ## スマホ接続と入力許可
 
