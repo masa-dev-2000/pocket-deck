@@ -43,6 +43,8 @@ jobs:
           env PATH=/nonexistent app/desktop/backend-build/PocketDeckServer/PocketDeckServer --help
           DECK_PACKAGED_TEST=1 python app/desktop/test_packaged_linux.py
       - name: Build ad-hoc signed trial DMG and ZIP
+        env:
+          CSC_FOR_PULL_REQUEST: 'true'
         run: |
           npm run package:mac --prefix app/desktop -- --${{ matrix.arch }}
           app_folder=app/desktop-dist/mac
