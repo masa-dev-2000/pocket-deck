@@ -57,15 +57,19 @@ jobs:
           cp packages/mac-arm64/app/desktop-dist/Pocket-Deck-*.{dmg,zip} release-assets/
           cp packages/mac-x64/app/desktop-dist/Pocket-Deck-*.{dmg,zip} release-assets/
           cp LICENSE THIRD_PARTY_NOTICES.md release-assets/
-          (cd release-assets && sha256sum * > SHA256SUMS.txt)
           node - <<'NODE'
           const fs=require('node:fs'),path=require('node:path'),crypto=require('node:crypto');
-          const manifest=require('./npm/release.json');
           const version=process.env.RELEASE_TAG.slice(1);
-          for(const entry of [manifest,manifest.linux,manifest.macos.arm64,manifest.macos.x64]){
-            if(entry.version!==version)throw Error(`Wrong version: ${entry.filename}`);
-            const file=path.join('release-assets',entry.filename),buffer=fs.readFileSync(file);
-            if(buffer.length!==entry.bytes||crypto.createHash('sha256').update(buffer).digest('hex')!==entry.sha256)throw Error(`Manifest mismatch: ${file}`);
-          }
+          const url=filename=>`https://github.com/masa-dev-2000/pocket-deck/releases/download/v${version}/${filename}`;
+          const entry=filename=>{
+            const buffer=fs.readFileSync(path.join('release-assets',filename));
+            return {version,filename,url:url(filename),sha256:crypto.createHash('sha256').update(buffer).digest('hex'),bytes:buffer.length};
+          };
+          const windows=entry(`Pocket-Deck-Setup-${version}.exe`);
+          const manifest={version,url:windows.url,sha256:windows.sha256,bytes:windows.bytes,filename:windows.filename,
+            linux:entry(`Pocket-Deck-${version}-amd64.deb`),macos:{arm64:entry(`Pocket-Deck-${version}-arm64.zip`),x64:entry(`Pocket-Deck-${version}-x64.zip`)}};
+          fs.writeFileSync('release-assets/release-manifest.json',JSON.stringify(manifest,null,2)+'\n');
+          console.log(JSON.stringify(manifest));
           NODE
+          (cd release-assets && sha256sum * > SHA256SUMS.txt)
           gh release upload "$RELEASE_TAG" release-assets/* --clobber
