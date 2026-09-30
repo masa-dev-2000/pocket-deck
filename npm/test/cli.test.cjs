@@ -60,7 +60,7 @@ test('invalid source URL is rejected before a network request', async () => {
 test('help and unsupported platforms never download or launch', async () => {
   const options = { platform: 'darwin', arch: 'x64', log() {}, downloadImpl() { assert.fail('should not download'); }, launchImpl() { assert.fail('should not launch'); } };
   await main([], options);
-  await assert.rejects(main(['install'], options), /Windows/);
+  await assert.rejects(main(['install'], options), /macOS配布/);
   await assert.rejects(main(['unknown'], options), /引数/);
 });
 

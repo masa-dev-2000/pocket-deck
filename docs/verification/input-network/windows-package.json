@@ -1,0 +1,25 @@
+{
+  "result": "PASS",
+  "platform": "win32",
+  "checks": [
+    "standalone startup",
+    "embedded assets match source",
+    "input/network status endpoints",
+    "QR generation"
+  ],
+  "input": {
+    "platform": "win32",
+    "backend": "sendinput",
+    "state": "ready",
+    "keyboard": true,
+    "pointer": true,
+    "text": true,
+    "reason": ""
+  },
+  "network": {
+    "supported": false,
+    "networks": [],
+    "reason": "Ubuntu\u306e\u63a5\u7d9a\u8a3a\u65ad\u3067\u3059\u3002",
+    "selected": null
+  }
+}

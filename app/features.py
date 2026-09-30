@@ -54,6 +54,8 @@ def validate_steps(steps, parse_keys):
 
 
 def validate_button(b, parse_keys):
+    if b['type']=='wheel' and type(b.get('invertY', False)) is not bool:
+        raise ValueError('上下反転の設定が不正です')
     if b['type']=='text' and b.get('pasteMode','standard') not in ('standard','terminal'):
         raise ValueError('文字列の貼り付け先が不正です')
     appearance = b.get('appearance', {})
@@ -155,10 +157,12 @@ class Runtime:
 
     def run(self):
         import server
+        import input_policy
         job = self.job
         try:
             for i, step in enumerate(job['steps']):
                 if self.cancel_event.is_set(): break
+                input_policy.require(self.app.input_status(),input_policy.requirements(job['button']))
                 with self.app.lock:
                     if self.cancel_event.is_set(): break
                     job['index'] = i + 1

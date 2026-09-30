@@ -1,0 +1,9 @@
+{
+  "executable": "C:\\Users\\masa\\dev\\99_toolbox\\pocket-deck-publish\\app\\desktop-dist\\win-unpacked\\resources\\backend\\PocketDeckServer.exe",
+  "checks": [
+    "packaged backend starts on isolated port/data",
+    "all changed UI assets served byte-for-byte from current source",
+    "wheel inversion persists through packaged backend"
+  ],
+  "result": "PASS"
+}

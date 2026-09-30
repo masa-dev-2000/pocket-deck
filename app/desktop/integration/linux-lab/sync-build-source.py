@@ -21,6 +21,7 @@ config=json.loads((source/'app/desktop/package.json').read_text())
 for name in [*config['build']['files'],'package-lock.json','build_backend.py','requirements-build.txt','test_packaged.py','test_packaged_chrome.py']:
     shutil.copy2(source/'app/desktop'/name,target/'app/desktop'/name)
 if sys.platform=='win32':shutil.copy2(source/'app/desktop/chrome_launcher.cs',desktop/'chrome_launcher.cs')
+shutil.copytree(source/'app/desktop/build',desktop/'build',dirs_exist_ok=True)
 installer=source/'app/desktop'/config['build']['nsis']['include']
 private_installer=desktop/config['build']['nsis']['include']
 private_installer.parent.mkdir(parents=True,exist_ok=True);shutil.copy2(installer,private_installer)

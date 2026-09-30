@@ -1,7 +1,7 @@
 // Pointer gestures and ordered mouse transport. No DOM dependency: tested with synthetic pointers.
 class PadController {
- constructor({send,owner,enabled,onState=()=>{},onError=()=>{},now=()=>performance.now()}){
-  Object.assign(this,{send,owner,enabled,onState,onError,now});this.points=new Map();this.phase='idle';this.lastTap=null;this.dragOwner=null;this.generation=0;this.tail=Promise.resolve();this.outstanding=0;this.pending=null;this.timer=null;this.remainder={};
+ constructor({send,owner,enabled,onState=()=>{},onError=()=>{},now=()=>performance.now(),sensitivity=()=>({cursor:1,scroll:1})}){
+  Object.assign(this,{send,owner,enabled,onState,onError,now,sensitivity});this.points=new Map();this.phase='idle';this.lastTap=null;this.dragOwner=null;this.generation=0;this.tail=Promise.resolve();this.outstanding=0;this.pending=null;this.timer=null;this.remainder={};
  }
  queue(data,force=false){this.outstanding++;const generation=this.generation;const task=this.tail.then(()=>{if(force||generation===this.generation)return this.send(data);});this.tail=task.catch(e=>{this.onError(e);this.cancel();}).finally(()=>{this.outstanding--;});return this.tail;}
  drain(force=false){
@@ -12,7 +12,7 @@ class PadController {
   while(dx||dy){const x=Math.max(-2048,Math.min(2048,dx)),y=Math.max(-2048,Math.min(2048,dy));this.queue({action:p.kind,owner:this.owner(),dx:x,dy:y});dx-=x;dy-=y;}
   return this.tail;
  }
- motion(kind,x,y){if(this.pending?.kind!==kind)this.drain(true);if(!this.pending)this.pending={kind,x:0,y:0};this.pending.x+=x;this.pending.y+=y;if(!this.timer)this.timer=setTimeout(()=>this.drain(),16);}
+ motion(kind,x,y){const gain=this.sensitivity()[kind==='mouse_move'?'cursor':'scroll']??1;x*=gain;y*=gain;if(this.pending?.kind!==kind)this.drain(true);if(!this.pending)this.pending={kind,x:0,y:0};this.pending.x+=x;this.pending.y+=y;if(!this.timer)this.timer=setTimeout(()=>this.drain(),16);}
  state(){this.onState(this.phase);}
  down(id,x,y){
   if(!this.enabled())return;
@@ -53,7 +53,7 @@ if(typeof module!=='undefined')module.exports=PadController;
 class WheelController extends PadController {
  constructor(options){
   super(options);this.schedule=options.schedule||((callback,delay)=>setTimeout(callback,delay));this.unschedule=options.unschedule||(timer=>clearTimeout(timer));
-  this.holdTimer=null;this.wheelTimer=null;this.origin=null;
+  this.holdTimer=null;this.wheelTimer=null;this.origin=null;this.verticalDirection=options.invertY===true?-1:1;
  }
  stopTimers(){this.unschedule(this.holdTimer);this.unschedule(this.wheelTimer);this.holdTimer=null;this.wheelTimer=null;}
  state(){this.onState(this.phase,{origin:this.origin,point:this.points.values().next().value});}
@@ -76,7 +76,7 @@ class WheelController extends PadController {
   const now=this.now(),elapsed=Math.max(0,Math.min(32,now-this.tickAt));this.tickAt=now;
   const p=this.points.values().next().value;
   if(!this.outstanding){
-   this.motion('mouse_scroll',-this.speed(p.x-this.origin.x)*elapsed/1000,this.speed(p.y-this.origin.y)*elapsed/1000);
+   this.motion('mouse_scroll',-this.speed(p.x-this.origin.x)*elapsed/1000,this.verticalDirection*this.speed(p.y-this.origin.y)*elapsed/1000);
    this.drain(true);
   }else this.remainder={};
   this.wheelTimer=this.schedule(()=>{this.wheelTimer=null;this.tick();},16);
@@ -91,7 +91,7 @@ class WheelController extends PadController {
   const p=this.points.get(id);if(!p)return;const dx=x-p.x,dy=y-p.y;p.x=x;p.y=y;
   if(this.phase==='continuous'){this.state();return;}
   if(this.phase==='scroll'){
-   this.motion('mouse_scroll',-dx*1.5,dy*1.5);
+   this.motion('mouse_scroll',-dx*1.5,this.verticalDirection*dy*1.5);
    if(Math.hypot(x-this.pauseAnchor.x,y-this.pauseAnchor.y)>4){this.pauseAnchor={x,y};this.pauseAt=this.now();this.armHold();}
    else if(this.holdTimer===null)this.armHold();
    this.state();

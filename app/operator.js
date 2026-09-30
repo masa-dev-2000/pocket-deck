@@ -2,7 +2,7 @@ const active=new Map(),releasing=new Set(),padControllers=new Set(),embeddedPads
 let sequence=0,navigating=false,configRevision=-1,polling=false,mode='deck',switching=false;
 const client=Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
 const owner=()=>client+'-'+(++sequence);
-const action=data=>api('action',data,{keepalive:true});
+const action=data=>inputActionAllowed(data)?api('action',data,{keepalive:true}):Promise.reject(Error(inputCapabilities?.reason||'PC側Pocket Deckで入力を許可してください。'));
 let deckConfig=null,selectedDeck=readPreference('deck-selected-layout','main'),executionOwner=null,executionPending=null,executionBusy=false,sequencePolling=false,lastSequenceId='';
 function stop(pointer){
  const a=active.get(pointer);if(!a)return Promise.resolve();active.delete(pointer);a.el.classList.remove('pressed');
@@ -16,16 +16,16 @@ function render(root){
  for(const p of embeddedPads){p.cancel();padControllers.delete(p);}embeddedPads.clear();
  $('deck').replaceChildren();fitDeck(config);configRevision=root.revision;
  for(const b of config.buttons){
-  const el=keyElement(b);applyGridStyle(el,b,config.columns);
+  const el=keyElement(b);el.dataset.buttonId=b.id;applyGridStyle(el,b,config.columns);
   el.oncontextmenu=e=>e.preventDefault();
-  if(b.type==='wheel'){el.classList.add('embedded-pad','wheel-region');embeddedPads.add(attachPad(el,()=>mode==='deck',true,true));}else if(b.type==='touchpad'){el.classList.add('embedded-pad');embeddedPads.add(attachPad(el,()=>mode==='deck',true));}else if(b.type==='navigate'){el.onclick=()=>{if(!navigating&&!switching){if(b.target==='layout')selectDeck(b.layoutId);else setMode(b.target);}};}else if(b.type==='macro'||b.type==='profile'){el.onclick=()=>executeButton(b);}else if(b.type==='text'){
+  if(b.type==='wheel'){el.classList.add('embedded-pad','wheel-region');embeddedPads.add(attachPad(el,()=>mode==='deck',true,true,b.invertY));}else if(b.type==='touchpad'){el.classList.add('embedded-pad');embeddedPads.add(attachPad(el,()=>mode==='deck',true));}else if(b.type==='navigate'){el.onclick=()=>{if(!navigating&&!switching){if(b.target==='layout')selectDeck(b.layoutId);else setMode(b.target);}};}else if(b.type==='macro'||b.type==='profile'){el.onclick=()=>executeButton(b);}else if(b.type==='text'){
    el.onclick=()=>{if(navigating||switching||executionBusy)return;el.classList.add('pressed');action({action:'text',id:b.id,owner:owner()}).catch(e=>message(e.message)).finally(()=>el.classList.remove('pressed'));};
   }else{
    bindKey(el,{action:'down',id:b.id},{action:'tap',id:b.id});
   }
   $('deck').append(el);
  }
- if(!config.buttons.length)message('メニューの「配置を編集」から追加できます');
+ paintInputPermission();if(!config.buttons.length)message('メニューの「配置を編集」から追加できます');
 }
 for(const link of document.querySelectorAll('a[data-navigation]'))link.addEventListener('click',async e=>{if(e.ctrlKey||e.metaKey||e.shiftKey||e.altKey)return;e.preventDefault();navigating=true;await stopAll();location.assign(link.href);});
 $('release').onclick=async()=>{await stopAll();try{await action({action:'release_all'});message('全キーを解除しました');}catch(e){message(e.message);}};
@@ -71,9 +71,9 @@ async function setMode(next){
  }finally{switching=false;}
 }
 $('deckMode').onclick=async()=>{if(mode!=='deck'){await setMode('deck');return;}if(!deckConfig)return;await stopAll();const id=await choiceDialog('配置を選択',deckConfig.layouts.map(l=>({value:l.id,label:l.name})));if(id)await selectDeck(id);};$('keyboardMode').onclick=()=>setMode('keyboard');$('padMode').onclick=()=>setMode('pad');
-function attachPad(pad,inMode,compact=false,wheel=false){
- const enabled=()=>inMode()&&!switching&&!navigating&&!executionBusy&&!document.hidden;
- const controller=new (wheel?WheelController:PadController)({send:action,owner,enabled,
+function attachPad(pad,inMode,compact=false,wheel=false,invertY=false){
+ const enabled=()=>inputAllowed(inputCapabilities,['pointer'])&&inMode()&&!switching&&!navigating&&!executionBusy&&!document.hidden;
+ const controller=new (wheel?WheelController:PadController)({send:action,owner,enabled,invertY,sensitivity:()=>sensitivity,
   onError:e=>message(e.message),onState:state=>{
    pad.classList.toggle('tracking',state==='move'||state==='scroll');pad.classList.toggle('dragging',state==='drag');
    pad.querySelector('span').textContent=wheel?'↕ ↔ 1本指でスクロール':state==='drag'?'ドラッグ中 · 離すと解除':state==='scroll'?'2本指でスクロール':compact?'タップでクリック · 2本指スクロール':'1本指で移動 · タップでクリック\n2本指でスクロール\nタップ→2回目を押したままドラッグ';
@@ -118,4 +118,5 @@ async function pollSequence(){
 }
 const sequenceBar=document.createElement('div');sequenceBar.id='sequenceBar';sequenceBar.className='sequence-bar';sequenceBar.hidden=true;
 const sequenceText=document.createElement('span');sequenceText.id='sequenceText';const sequenceStop=document.createElement('button');sequenceStop.textContent='停止';sequenceStop.onclick=cancelSequence;sequenceBar.append(sequenceText,sequenceStop);document.querySelector('.shell').append(sequenceBar);
+setupOperatorSettings();
 setInterval(()=>{if(executionOwner&&!document.hidden)action({action:'heartbeat',owner:executionOwner}).catch(()=>{});pollSequence();},500);

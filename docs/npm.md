@@ -10,7 +10,7 @@ npm更新時も新しい版が入ればPCアプリを導入します。同じ版
 
 1.1.0以降はUbuntu x64にも対応します。通常ユーザーの`npm install -g --prefix "$HOME/.local" --foreground-scripts @masadev/pocket-deck`から検証済みdebを取得し、OSの管理者認証後に導入・起動します。npm全体をsudoで実行しません。`release.json`の`linux`にdebの版・URL・SHA-256・bytesを固定し、Windowsの配布情報を維持します。Ubuntu本体の削除は`sudo apt remove pocket-deck-desktop`です。
 
-公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。
+公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.0-beta.1は`npm publish --tag beta --access public`で試験公開し、既存の`latest`を変更しません。
 
 ## 1. ログインを確認する
 
@@ -75,3 +75,19 @@ npx @masadev/pocket-deck@1.1.0 download
 レジストリ上の版・配布URL、npxの実行、実インストーラーの取得とSHA-256を確認します。`download`はアプリの更新・再インストールを行いません。新規導入・更新・初回起動は隔離したWindows環境で別途検証します。PCアプリの更新にはGitHub Releaseのexe・blockmap・latest.ymlが必要です。既存利用者のデータとアプリを検証のために変更しません。
 
 初回は手動公開です。GitHub Actionsからのnpm自動公開やTrusted Publishingの設定は行いません。必要になった段階で別途設定できます。
+
+
+## Mac対応の公開準備（まだ実行しない）
+
+Mac向けの作業版はnpm `1.2.0-beta.1`。既存Win／Ubuntu 1.1.0配布情報を維持し、Macだけ別バージョンのCPU別ZIPを追加できる形式にした。`release.json.macos.arm64` と `.x64` はそれぞれ `version`・`filename`・`url`・`sha256`・`bytes` を持つ。現在はActions artifactのみで公開URLがないため、これらの値はまだ登録していない。架空のチェックサムや期限付きActions URLを配布metadataとして使用しない。
+
+実ZIPが確定したら、リポジトリ直下で次を実行して候補JSONを確認する。このコマンドはファイルのSHA-256／サイズを計算するだけで、署名や中身の正当性、公開URLの存在を証明しない。ソースや公開状態を変更しない。
+
+```powershell
+node npm/scripts/prepare-macos-manifest.cjs arm64 <Apple-Silicon版ZIPの絶対パス>
+node npm/scripts/prepare-macos-manifest.cjs x64 <Intel版ZIPの絶対パス>
+```
+
+公開前に両CPU Mac runnerでnpm単体試験と実ZIPの隔離展開試験を実行する。追加したCIステップは版／CPU／codesign／Electron framework symlink／quarantineの保持、同じ版の再導入回避、ユーザーデータ保持を確認し、実アプリは起動しない。Windows上の単体試験だけではMacのditto・codesign・初回起動・OS許可を検証したことにならない。
+
+その後、必要な承認を得てGitHub ReleaseにZIPを公開し、認証不要の実ダウンロードとハッシュ一致を確認してから両CPU情報をrelease.jsonへ登録する。npmは既存1.1.0を再公開せず、試験版は `npm publish --tag beta --access public` を使用する。正式な署名・公証がない場合、その制約を明記して実Mac上のGatekeeper導線を確認する。公開・CI起動・mergeは今回のローカル実装では行っていない。

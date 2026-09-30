@@ -1,9 +1,10 @@
 const assert=require('node:assert/strict'),fs=require('node:fs'),vm=require('node:vm');
 const elements=new Map(),calls=[],events={};
-function el(){return {hidden:false,style:{},children:[],classList:{add(){},remove(){},toggle(){}},querySelector(){return {textContent:""}},append(c){this.children.push(c)},replaceChildren(){this.children=[]},setAttribute(){},setPointerCapture(){},click(){this.onclick?.({detail:0})}};}
+function el(){return {hidden:false,style:{},dataset:{},children:[],classList:{add(){},remove(){},toggle(){}},querySelector(){return {textContent:""}},append(c){this.children.push(c)},replaceChildren(){this.children=[]},setAttribute(){},setPointerCapture(){},click(){this.onclick?.({detail:0})}};}
 function $(id){if(!elements.has(id))elements.set(id,el());return elements.get(id);}
 const sandbox={console,Map,Set,Date,Math,Promise,readPreference:(key,fallback)=>fallback,writePreference(){},choiceDialog:async()=>null,setTimeout,clearTimeout,setInterval(){},performance:{now:()=>100},document:{querySelector:()=>el(),hidden:false,createElement:el,querySelectorAll:()=>[],addEventListener(){}},window:{addEventListener:(n,f)=>events[n]=f},location:{reload(){}},$,fitDeck(){},resizeDeck(){},applyGridStyle(){},keyElement:el,message(){},api:async(path,data)=>{if(data){calls.push(data);return {ok:true}}return {version:4,revision:0,layouts:[{id:'main',rows:1,columns:1,buttons:[]}]}}};
-vm.createContext(sandbox);vm.runInContext(fs.readFileSync('pad.js','utf8')+'\n'+fs.readFileSync('operator.js','utf8'),sandbox);
+sandbox.inputCapabilities={keyboard:true,pointer:true,text:true};sandbox.sensitivity={cursor:1,scroll:1};sandbox.inputActionAllowed=()=>true;sandbox.paintInputPermission=()=>{};sandbox.setupOperatorSettings=()=>{};
+vm.createContext(sandbox);vm.runInContext(fs.readFileSync('input-policy.js','utf8')+'\n'+fs.readFileSync('pad.js','utf8')+'\n'+fs.readFileSync('operator.js','utf8'),sandbox);
 const run=code=>vm.runInContext(code,sandbox);
 const pointer={pointerId:1,button:0,clientX:10,clientY:10,preventDefault(){}};
 (async()=>{

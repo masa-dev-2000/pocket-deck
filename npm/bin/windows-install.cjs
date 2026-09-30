@@ -18,11 +18,12 @@ async function inspect() {
 }
 function compare(a, b) {
   const parse = value => {
-    if (!/^\d+\.\d+\.\d+$/.test(value)) throw new Error('アプリのバージョンを確認できません。');
-    return value.split('.').map(Number);
+    const match = /^(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?$/.exec(value);
+    if (!match) throw new Error('アプリのバージョンを確認できません。');
+    return [...match.slice(1, 4).map(Number), match[4] === undefined ? Infinity : Number(match[4])];
   };
   const left = parse(a), right = parse(b);
-  for (let i = 0; i < 3; i++) if (left[i] !== right[i]) return left[i] > right[i] ? 1 : -1;
+  for (let i = 0; i < 4; i++) if (left[i] !== right[i]) return left[i] > right[i] ? 1 : -1;
   return 0;
 }
 function runInstaller(file) {

@@ -2,6 +2,8 @@
 
 スマホをWindows／Ubuntu PCのショートカットキーボード・タッチパッドにするアプリです。Windows／Ubuntu x64、Node.js 22.12以上が必要です。Ubuntu対応は1.1.0以降です。
 
+1.2.0-beta.1の機能を試す場合は`npm install -g @masadev/pocket-deck@beta`を使います。Ubuntuでは下記の通常コマンド末尾を`@masadev/pocket-deck@beta`に変更します。beta版はスマホごとの操作感、入力許可の案内、UbuntuのLAN接続診断を追加します。`latest`タグの通常版は1.1.0のままです。Mac向けの配布ファイルはまだなく、Macでの導入は明確なエラーで止まります。
+
 ## 導入（1.0.4以降）
 
 ```powershell
@@ -56,3 +58,16 @@ npmには小さな導入コマンドを公開し、約136MBのPCアプリは[Git
 Ubuntuの入力許可、端末向け貼り付け、Wayland上のChrome切り替えと保持中の許可サービス失効の制限は[Ubuntuガイド](https://github.com/masa-dev-2000/pocket-deck/blob/main/docs/ubuntu.md)を参照してください。
 
 詳細は[GitHubのREADME](https://github.com/masa-dev-2000/pocket-deck)を参照してください。MITライセンスです。
+
+
+## macOS導入の作業版（配布ファイルは未公開）
+
+Mac向けnpm導入コードは `1.2.0-beta.1` に含まれますが、MacのZIPはActionsの試験artifactのみです。GitHub Releaseへはまだ公開していません。`release.json` にMac配布情報はなく、Macでの導入は明確なエラーで止まります。
+
+公開準備後は、Apple Siliconにはarm64、Intelにはx64のZIPを自動選択し、SHA-256とサイズを検証して `~/Applications/Pocket Deck.app` に導入します。アプリを終了してから更新し、起動中は置き換えません。Windows／Ubuntuの配布情報を共有でき、npmコマンドの版と各OSのアプリ版は別々に固定します。
+
+macOS 13以上・Node.js 22.12以上が必要です。Apple Siliconではarm64版Nodeを推奨します。Rosetta上のx64版NodeではIntel版を選びます。`npm install -g` ではOS確認が表示される場合があるため `--foreground-scripts` を推奨し、npm全体をsudoで実行しません。一般ユーザーが書き込めるnpm prefixを使用してください。
+
+この導入コードはGatekeeper隔離属性を保持し、署名の検証を行います。ad-hoc試験版を正式なDeveloper ID署名・公証済みとして扱いません。初回起動のOS確認やアクセシビリティ入力許可は本人が設定します。npm導入だけで無条件に利用可能になる保証はありません。`npm uninstall`ではMacアプリを消しません。アプリを終了してFinderから `~/Applications/Pocket Deck.app` を削除してください。設定データはそのまま保持します。
+
+導入が強制終了して `.pocket-deck-install.lock` が残った場合は、導入処理が動作していないことを確認し、`~/Applications/.pocket-deck-install.lock` の空フォルダーだけを削除します。復旧エラーが出たときは表示された `previous.app` を保持し、削除しないでください。

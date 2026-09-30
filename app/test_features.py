@@ -21,10 +21,25 @@ import chrome_host
 import install_chrome
 
 
+def test_app(*args,**kwargs):
+    kwargs.setdefault('input_status',lambda:{'keyboard':True,'pointer':True,'text':True,'state':'ready'})
+    return server.App(*args,**kwargs)
+
 class Features(unittest.TestCase):
+    def test_wheel_inversion_persists_and_rejects_non_boolean(self):
+        with tempfile.TemporaryDirectory() as d:
+            app=self.make_app(d)
+            config=copy.deepcopy(app.config)
+            button=config['layouts'][0]['buttons'][0]
+            button.update(type='wheel',invertY=True)
+            app.save(config)
+            self.assertIs(self.make_app(d).config['layouts'][0]['buttons'][0]['invertY'],True)
+            button['invertY']='true'
+            with self.assertRaisesRegex(ValueError,'上下反転'):app.save(config)
+
     def make_app(self, directory, events=None):
         events = [] if events is None else events
-        return server.App(Path(directory)/'config.json',server.Keyboard(lambda k,u:events.append(('key',k,u))),lambda t:events.append(('text',t)),lambda *args:events.append(('mouse',*args)))
+        return test_app(Path(directory)/'config.json',server.Keyboard(lambda k,u:events.append(('key',k,u))),lambda t:events.append(('text',t)),lambda *args:events.append(('mouse',*args)))
 
     def macro(self, app, steps):
         config=copy.deepcopy(app.config)

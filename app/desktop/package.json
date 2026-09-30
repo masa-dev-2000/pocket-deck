@@ -8,7 +8,7 @@
   "main": "main.cjs",
   "scripts": {
     "start": "electron .",
-    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-linux-deb-update.cjs test-runtime-paths.cjs test-sandbox-policy.cjs test-mac-chrome.cjs",
+    "test": "node --test test-backend.cjs test-chrome-setup.cjs test-linux-chrome.cjs test-updates.cjs test-linux-deb-update.cjs test-runtime-paths.cjs test-sandbox-policy.cjs test-mac-chrome.cjs test-preview.cjs test-linux-firewall.cjs",
     "package": "electron-builder --win nsis --x64 --publish never",
     "package:linux": "electron-builder --linux AppImage deb --x64 --publish never",
     "package:mac": "electron-builder --mac dmg zip --publish never"
@@ -33,13 +33,16 @@
       "sandbox-policy.cjs",
       "preload.cjs",
       "renderer.js",
+      "preview.js",
       "index.html",
       "desktop.css",
       "icon.png",
       "package.json",
       "updates.cjs",
       "runtime-paths.cjs",
-      "mac-chrome.cjs"
+      "mac-chrome.cjs",
+      "network.js",
+      "linux-firewall.cjs"
     ],
     "extraResources": [
       {
@@ -73,7 +76,13 @@
       "maintainer": "masa-dev-2000 <masa-dev-2000@users.noreply.github.com>",
       "category": "Utility",
       "icon": "icon.png",
-      "artifactName": "Pocket-Deck-${version}-${arch}.${ext}"
+      "artifactName": "Pocket-Deck-${version}-${arch}.${ext}",
+      "extraFiles": [
+        {
+          "from": "build/local.pocket-deck.firewall.policy",
+          "to": "firewall-policy/local.pocket-deck.firewall.policy"
+        }
+      ]
     },
     "nsis": {
       "oneClick": false,
@@ -102,6 +111,21 @@
       "identity": "-",
       "hardenedRuntime": false,
       "notarize": false
+    },
+    "deb": {
+      "depends": [
+        "libgtk-3-0",
+        "libnotify4",
+        "libnss3",
+        "libxss1",
+        "libxtst6",
+        "xdg-utils",
+        "libatspi2.0-0",
+        "libuuid1",
+        "libsecret-1-0"
+      ],
+      "afterInstall": "build/firewall-install.sh",
+      "afterRemove": "build/firewall-remove.sh"
     }
   },
   "license": "MIT",

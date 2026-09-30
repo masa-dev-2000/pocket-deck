@@ -22,3 +22,10 @@
 [CI 36511000860](https://github.com/masa-dev-2000/pocket-deck/actions/runs/36511000860)はソース`365d8aa7671bfad9c0b2a35427908586b35599bb`を対象に、macOS 15のApple Silicon／Intel両runnerで成功。共有Python40件（Windows専用1件除外）、desktop Node32件（30成功・Linux専用2件除外）、共有JavaScript、同梱backendの起動・保持、DMG／ZIP生成と署名検証まで成功した。
 
 配布artifactのcentral directory・SHA256SUMS・署名情報を実HTTPで取得した。署名は`Signature=adhoc`、TeamIdentifierなしで、Developer IDや公証ではない。大容量のローカル再取得は遅いため中止しており、手元でバイナリ全体のSHA-256を再計算した証拠とは区別する。記録は[macos-1.2.0-beta.1-ci.json](verification/macos-1.2.0-beta.1-ci.json)。GitHub Release／npmへは公開せず、Actionsの14日保存の試験版として提供する。
+
+
+## Mac npm導入の追加実装（ローカル・未公開）
+
+`npm/bin/macos-install.cjs` にCPU別ZIPのユーザー用導入を追加した。署名／版／CPUを検証して `~/Applications/Pocket Deck.app` を置換し、起動中の更新を拒否する。置換前の失敗では旧版を保持し、復旧不能時はバックアップの場所を通知して保持する。Node経由の取得でもGatekeeperの初回判定が省略されないよう隔離属性を付け、TCC権限を自動付与しない。
+
+npm作業版は1.2.0-beta.1。公開済みWin／Ubuntu 1.1.0のmetadataは変更していない。Macの公開ZIP URLと確定ハッシュがないため、Mac metadataは未登録で、導入コマンドは未配布のエラーで停止する。詳細は[npm公開準備](npm.md)。Windowsでの単体試験は確認済みだが、追加Mac CIはまだ実行していない。実Macの初回起動・権限・更新確認は未確認で、全体完了とは扱わない。

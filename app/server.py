@@ -9,6 +9,7 @@ import socket
 import sys
 import threading
 import features
+import input_policy
 from input_backend import get_backend, send_key, send_mouse, send_text
 from input_backend.keys import KEYS, MODIFIERS
 import time
@@ -213,8 +214,14 @@ class App:
     def emit_text(self,text,paste_mode='standard'):
         if paste_mode=='standard':return self.text_emit(text)
         return self.text_emit(text,paste_mode=paste_mode)
-    def __init__(self,path,keyboard,text_emit=send_text,mouse_emit=send_mouse):
+    def __init__(self,path,keyboard,text_emit=send_text,mouse_emit=send_mouse,input_status=None):
+        self.input_status=input_status or (lambda:get_backend().status())
         self.path,self.keyboard,self.text_emit=path,keyboard,text_emit
+        self.connection_network=None
+        network_path=path.parent/'connection-network.json'
+        if network_path.exists():
+            try:self.connection_network=json.loads(network_path.read_text('utf-8'))
+            except (OSError,ValueError):pass
         self.mouse_emit=mouse_emit
         self.mouse=Mouse(mouse_emit)
         self.lock=threading.RLock()
@@ -222,7 +229,7 @@ class App:
         # A running process serves one immutable UI build. Editing source files
         # cannot expose an unfinished frontend to connected phones.
         public_files=['index.html','editor.html','connect.html','style.css','common.js',
-                      'layout.js','pad.js','operator.js','editor.js','autosave.js',
+                      'input-policy.js','operator-settings.js','layout.js','pad.js','operator.js','editor.js','autosave.js',
                       'reorder.js','key-picker.js','draft.js','connect.js','extras.js','editor-extras.js']
         self.web_assets={name:(ROOT/name).read_bytes() for name in public_files}
         if path.exists():
@@ -279,6 +286,8 @@ class App:
                 with self.keyboard.lock:
                     if owner in self.keyboard.held:self.keyboard.held[owner][1]=time.monotonic()
                 return
+            if kind.startswith('mouse_'):input_policy.require(self.input_status(),{'pointer'})
+            elif kind in ('key_down','key_tap'):input_policy.require(self.input_status(),{'keyboard'})
             if self.features.running:
                 raise ValueError('連続操作の実行中です。停止してから操作してください')
             now=time.monotonic()
@@ -303,6 +312,7 @@ class App:
                 self.mouse_emit(kind,dx if kind!='mouse_click' else 0,dy if kind!='mouse_click' else 0)
                 return
             b=next((b for b in features.buttons(self.config) if b['id']==data.get('id')),None)
+            if b:input_policy.require(self.input_status(),input_policy.requirements(b))
             if b and b['type'] in ('macro','profile'):
                 if kind!='execute':raise ValueError('画面を再読み込みしてください')
                 self.features.start(b,owner)
@@ -324,6 +334,10 @@ def handler(app):
     class Handler(BaseHTTPRequestHandler):
         def connect_url(self):
             address = self.connection.getsockname()[0]
+            if app.connection_network:
+                import firewall
+                try:address=firewall.selected(**app.connection_network,current=firewall.networks())['address']
+                except (OSError,ValueError):pass
             if address.startswith('127.') or address == '0.0.0.0':
                 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as probe:
                     try:
@@ -352,6 +366,8 @@ def handler(app):
                       '/style.css': ('style.css', 'text/css'), '/common.js': ('common.js', 'text/javascript'),
                       '/operator.js': ('operator.js', 'text/javascript'), '/editor.js': ('editor.js', 'text/javascript'),
                       '/draft.js': ('draft.js', 'text/javascript'), '/connect.js': ('connect.js', 'text/javascript')}
+            routes['/input-policy.js'] = ('input-policy.js', 'text/javascript')
+            routes['/operator-settings.js'] = ('operator-settings.js', 'text/javascript')
             routes['/layout.js'] = ('layout.js', 'text/javascript')
             routes['/pad.js'] = ('pad.js', 'text/javascript')
             routes['/autosave.js'] = ('autosave.js', 'text/javascript')
@@ -367,9 +383,13 @@ def handler(app):
             elif self.path == '/api/health':
                 self.reply(200, {'ok': True})
             elif self.path == '/api/input-status':
-                self.reply(200, get_backend().status())
+                self.reply(200, app.input_status())
             elif self.path == '/api/keys':
                 self.reply(200, key_catalog())
+            elif self.path == '/api/network-status':
+                if self.client_address[0]!='127.0.0.1':self.reply(403,{'error':'接続診断はPCアプリから行ってください。'});return
+                import firewall
+                result=firewall.diagnostic();result['selected']=app.connection_network;self.reply(200,result)
             elif self.path == '/api/connect':
                 self.reply(200, {'url': self.connect_url()})
             elif self.path == '/connect.svg':
@@ -397,6 +417,13 @@ def handler(app):
                     enable=getattr(get_backend(),'enable',None)
                     if enable is None:raise ValueError('この環境では入力の許可操作を利用できません。')
                     self.reply(200,enable());return
+                elif self.path == '/api/connect-network':
+                    if self.client_address[0]!='127.0.0.1':self.reply(403,{'error':'接続先の選択はPCアプリから行ってください。'});return
+                    import firewall
+                    value=firewall.selected(data.get('interface'),data.get('address'),data.get('network'),firewall.networks())
+                    app.connection_network={k:value[k] for k in ('interface','address','network')}
+                    target=app.path.parent/'connection-network.json';temporary=target.with_suffix('.tmp');temporary.write_text(json.dumps(app.connection_network),'utf-8');temporary.replace(target)
+                    self.reply(200,{'url':self.connect_url()});return
                 elif self.path == '/api/action':
                     app.action(data)
                 elif self.path == '/api/config':
@@ -422,6 +449,9 @@ def main():
     parser.add_argument('--data-dir', type=Path, default=ROOT)
     parser.add_argument('--managed-stdio', action='store_true')
     parser.add_argument('--chrome-host', action='store_true')
+    if '--firewall-helper' in sys.argv:
+        import firewall
+        firewall.main(sys.argv[sys.argv.index('--firewall-helper')+1:]);return
     args = parser.parse_args()
     if args.chrome_host:
         import chrome_host
@@ -459,11 +489,20 @@ def main():
             server.shutdown()
         threading.Thread(target=parent_watch, daemon=True).start()
     def watchdog():
+        next_permission_check=0
         while True:
             time.sleep(.01)
             try:
                 with app.lock:
                     app.features.tick()
+                    if time.monotonic()>=next_permission_check:
+                        next_permission_check=time.monotonic()+.5
+                        state=app.input_status()
+                        if app.features.running:
+                            try:input_policy.require(state,input_policy.requirements(app.features.job['button']))
+                            except ValueError:app.features.cancel()
+                        if not state.get('keyboard'):keyboard.release_all()
+                        if not state.get('pointer'):app.mouse.release_all()
                     keyboard.expire()
                     keyboard.repeat()
                     app.mouse.expire()

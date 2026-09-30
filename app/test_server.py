@@ -11,16 +11,20 @@ from http.server import ThreadingHTTPServer
 import server
 from input_backend import windows as windows_input
 
+def test_app(*args,**kwargs):
+    kwargs.setdefault('input_status',lambda:{'keyboard':True,'pointer':True,'text':True,'state':'ready'})
+    return server.App(*args,**kwargs)
+
 class Tests(unittest.TestCase):
     def test_wheel_configuration_roundtrip(self):
         with tempfile.TemporaryDirectory() as d:
             path=Path(d)/'config.json'
-            app=server.App(path,server.Keyboard(lambda *args:None))
+            app=test_app(path,server.Keyboard(lambda *args:None))
             config=json.loads(json.dumps(app.config))
             button=config['layouts'][0]['buttons'][0]
             button.update(type='wheel',width=1,height=1,label='Wheel')
             saved=app.save(config)
-            self.assertEqual(server.App(path,app.keyboard).config,saved)
+            self.assertEqual(test_app(path,app.keyboard).config,saved)
             with self.assertRaises(ValueError):
                 app.action({'action':'down','id':button['id'],'owner':'wheel'})
 
@@ -40,7 +44,7 @@ class Tests(unittest.TestCase):
             old={'columns':3,'buttons':[{'id':'a','label':'A','keys':'A','mode':'tap','color':'#123456'}]}
             path.write_text(json.dumps(old),'utf-8')
             events=[]
-            app=server.App(path,server.Keyboard(lambda k,u:events.append((k,u))))
+            app=test_app(path,server.Keyboard(lambda k,u:events.append((k,u))))
             self.assertEqual(app.config['layouts'][0]['rows'],1)
             self.assertEqual(app.config['layouts'][0]['buttons'][0]['slot'],0)
             self.assertEqual(len(list(Path(d).glob('*.bak'))),1)
@@ -53,13 +57,13 @@ class Tests(unittest.TestCase):
             self.assertFalse(app.keyboard.held)
             invalid=json.loads(json.dumps(app.config));invalid['layouts'][0]['buttons'][0]['slot']=99
             with self.assertRaises(ValueError):app.save(invalid)
-            self.assertEqual(server.App(path,app.keyboard).config,app.config)
+            self.assertEqual(test_app(path,app.keyboard).config,app.config)
 
     def test_repeat_text_dedup_and_release(self):
         with tempfile.TemporaryDirectory() as d:
             events=[];texts=[]
             keyboard=server.Keyboard(lambda k,u:events.append((k,u)))
-            app=server.App(Path(d)/'config.json',keyboard,texts.append)
+            app=test_app(Path(d)/'config.json',keyboard,texts.append)
             c=server.defaults();c['buttons'][0]={'id':'text','label':'定型文','type':'text','text':'日本語\n😀','slot':0,'width':1,'height':1,'color':'#123456'}
             app.save(server.migrate(c))
             data={'action':'text','id':'text','owner':'once'}
@@ -88,7 +92,7 @@ class Tests(unittest.TestCase):
     def test_keyboard_panel_and_mouse_actions(self):
         with tempfile.TemporaryDirectory() as d:
             keys=[];mouse=[]
-            app=server.App(Path(d)/'config.json',server.Keyboard(lambda k,u:keys.append((k,u))),mouse_emit=lambda *args:mouse.append(args))
+            app=test_app(Path(d)/'config.json',server.Keyboard(lambda k,u:keys.append((k,u))),mouse_emit=lambda *args:mouse.append(args))
             app.action({'action':'key_down','key':'SHIFT','owner':'shift'})
             app.action({'action':'key_down','key':'A','owner':'letter'})
             app.action({'action':'up','owner':'letter'})
@@ -132,24 +136,24 @@ class Tests(unittest.TestCase):
         new['layouts'][0]['buttons'][0]['slot']=2
         with self.assertRaises(ValueError):server.validate(new)
         with tempfile.TemporaryDirectory() as d:
-            app=server.App(Path(d)/'config.json',server.Keyboard(lambda *_:None))
+            app=test_app(Path(d)/'config.json',server.Keyboard(lambda *_:None))
             new['layouts'][0]['buttons'][0]['slot']=0;app.save(new)
             with self.assertRaises(ValueError):app.action({'action':'tap','id':'0','owner':'navigation'})
 
     def test_embedded_touchpad(self):
         with tempfile.TemporaryDirectory() as d:
-            app=server.App(Path(d)/'config.json',server.Keyboard(lambda *_:None))
+            app=test_app(Path(d)/'config.json',server.Keyboard(lambda *_:None))
             config=server.defaults()
             config.update(columns=6,rows=6,buttons=[dict(id='pad',label='Pad',type='touchpad',slot=0,width=4,height=4,color='#234567')])
             app.save(server.migrate(config))
-            self.assertEqual(server.App(app.path,app.keyboard).config['layouts'][0]['buttons'][0]['type'],'touchpad')
+            self.assertEqual(test_app(app.path,app.keyboard).config['layouts'][0]['buttons'][0]['type'],'touchpad')
             for action in ('tap','down','text'):
                 with self.assertRaises(ValueError):app.action(dict(action=action,id='pad',owner=action))
 
     def test_mouse_hold_timeout_and_late_down(self):
         emitted=[]
         with tempfile.TemporaryDirectory() as d:
-            app=server.App(Path(d)/'config.json',server.Keyboard(lambda *_:None),mouse_emit=lambda *a:emitted.append(a))
+            app=test_app(Path(d)/'config.json',server.Keyboard(lambda *_:None),mouse_emit=lambda *a:emitted.append(a))
             app.action({'action':'mouse_up','owner':'early'})
             app.action({'action':'mouse_down','owner':'early'})
             self.assertEqual(emitted,[])
@@ -170,7 +174,7 @@ class Tests(unittest.TestCase):
     def test_http_persistence_and_actions(self):
         with tempfile.TemporaryDirectory() as d:
             events=[]
-            app=server.App(Path(d)/'config.json',server.Keyboard(lambda key,up:events.append((key,up))))
+            app=test_app(Path(d)/'config.json',server.Keyboard(lambda key,up:events.append((key,up))))
             http=ThreadingHTTPServer(('127.0.0.1',0),server.handler(app))
             threading.Thread(target=http.serve_forever,daemon=True).start()
             base=f'http://127.0.0.1:{http.server_port}'
@@ -200,7 +204,7 @@ class Tests(unittest.TestCase):
                 self.assertEqual(events,[(modifier,False),('Z',False),('Z',True),(modifier,True)])
                 config=server.defaults();config['columns']=5
                 with post('/api/config',server.migrate(config)):pass
-                self.assertEqual(server.App(app.path,app.keyboard).config['layouts'][0]['columns'],5)
+                self.assertEqual(test_app(app.path,app.keyboard).config['layouts'][0]['columns'],5)
                 config['buttons'][0]['keys']='bogus'
                 with self.assertRaises((HTTPError,ValueError)):post('/api/config',server.migrate(config))
                 self.assertEqual(app.config['layouts'][0]['buttons'][0]['keys'],'Win+Z' if server.sys.platform=='darwin' else 'Ctrl+Z')

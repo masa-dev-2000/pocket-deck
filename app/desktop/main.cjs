@@ -13,8 +13,9 @@ const home=pathToFileURL(path.join(__dirname,'index.html')).href;
 const trusted=url=>url===home||url==='about:blank'||[BASE+'/',BASE+'/editor',BASE+'/connect'].includes(url);
 function show(){if(win){win.show();win.restore();win.focus();}}
 async function status(){
- try{const config=await request('/api/config');if(config.version!==4||!Array.isArray(config.layouts))throw new Error('接続先を確認してください');const connection=await request('/api/connect');const input=await request('/api/input-status').catch(()=>({state:'unknown',reason:'入力機能の状態を取得できません。'}));ready=true;lastError='';return {ready:true,url:connection.url,input,layouts:config.layouts.length,buttons:config.layouts.reduce((n,l)=>n+l.buttons.length,0),owned:!!backend?.child};}
- catch(e){ready=false;return {ready:false,error:lastError||'PCとの接続が切れています。「再接続」を押してください。'};}
+ const version=app.getVersion();
+ try{const config=await request('/api/config');if(config.version!==4||!Array.isArray(config.layouts))throw new Error('接続先を確認してください');const connection=await request('/api/connect');const input=await request('/api/input-status').catch(()=>({state:'unknown',reason:'入力機能の状態を取得できません。'}));ready=true;lastError='';return {ready:true,version,url:connection.url,input,layouts:config.layouts.length,buttons:config.layouts.reduce((n,l)=>n+l.buttons.length,0),owned:!!backend?.child};}
+ catch(e){ready=false;return {ready:false,version,error:lastError||'PCとの接続が切れています。「再接続」を押してください。'};}
 }
 async function start(){try{await backend.ensure();lastError='';}catch(e){lastError=e.message;}return status();}
 async function quit(){if(quitting)return;quitting=true;clearTimeout(updateTimer);updates?.dispose();clearInterval(healthTimer);await backend?.stop();app.quit();}
@@ -54,6 +55,9 @@ if(!single)app.quit();else{
    log:message=>{try{fs.appendFileSync(path.join(app.getPath('userData'),'updates.log'),`${new Date().toISOString()} ${message}\n`);}catch{}}
   });
   ipcMain.handle('deck:update-check',event=>{checkSender(event);void updates.check(true);return true;});
+  ipcMain.handle('deck:network-status',event=>{checkSender(event);return request('/api/network-status');});
+  ipcMain.handle('deck:network-select',(event,network)=>{checkSender(event);return request('/api/connect-network',network);});
+  ipcMain.handle('deck:firewall',async(event,operation,network)=>{checkSender(event);if(process.platform!=='linux')throw Error('Ubuntuの接続診断です。');const status=await request('/api/network-status');if(!status.canConfigure)throw Error('deb版とUFW、OSの管理者認証を確認してください。');return require('./linux-firewall.cjs').configure(operation,network);});
   ipcMain.handle('deck:input-enable',async event=>{checkSender(event);const result=await request('/api/input-enable',{});if(process.platform==='darwin'&&result.state!=='ready')await shell.openExternal('x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility');return result;});
   ipcMain.handle('deck:status',event=>{checkSender(event);return status();});
   ipcMain.handle('deck:retry',event=>{checkSender(event);return start();});

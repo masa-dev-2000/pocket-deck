@@ -25,10 +25,10 @@ async function download({ cacheDir, fetchImpl = fetch, manifest = release, log =
   if (!/^[a-f0-9]{64}$/.test(manifest.sha256) || !Number.isSafeInteger(manifest.bytes) || manifest.bytes <= 0) {
     throw new Error('配布ファイル情報が不正です。');
   }
-  const cacheBase=process.platform==='linux'?(process.env.XDG_CACHE_HOME||path.join(os.homedir(),'.cache')):(process.env.LOCALAPPDATA||os.tmpdir());
+  const cacheBase=process.platform==='darwin'?path.join(os.homedir(),'Library','Caches'):process.platform==='linux'?(process.env.XDG_CACHE_HOME||path.join(os.homedir(),'.cache')):(process.env.LOCALAPPDATA||os.tmpdir());
   cacheDir ||= path.join(cacheBase, 'Pocket Deck', 'downloads');
   await fs.mkdir(cacheDir, { recursive: true });
-  const extension=manifest.filename?.endsWith('.AppImage')?'.AppImage':manifest.filename?.endsWith('.deb')?'.deb':'.exe';
+  const extension=manifest.filename?.endsWith('.zip')?'.zip':manifest.filename?.endsWith('.AppImage')?'.AppImage':manifest.filename?.endsWith('.deb')?'.deb':'.exe';
   const target = path.join(cacheDir, `Pocket-Deck-${manifest.version}-${manifest.sha256.slice(0, 12)}${extension}`);
   try {
     if ((await fs.stat(target)).size === manifest.bytes && await hash(target) === manifest.sha256) {
@@ -80,20 +80,22 @@ function launch(installer, launchImpl = spawn) {
 
 async function main(args = process.argv.slice(2), {
   platform = process.platform, arch = process.arch, downloadImpl = download, launchImpl = launch,
-  log = console.log, releaseManifest = release, linuxInstallImpl = require('./linux-install.cjs').install
+  log = console.log, releaseManifest = release, linuxInstallImpl = require('./linux-install.cjs').install, macInstallImpl = require('./macos-install.cjs').install
 } = {}) {
   const command = args[0];
   if (!command || command === '--help' || command === '-h') {
-    log(`Pocket Deck ${metadata.version}\n\n使い方:\n  npm install -g ${metadata.name}  PCアプリを自動導入して起動\n  npm update -g ${metadata.name}   PCアプリも更新（終了してから実行）\n  npx ${metadata.name} install     OSに応じてPCアプリを導入\n  npx ${metadata.name} download    取得・検証のみ\n  npx ${metadata.name} --version\n\nWindows / Ubuntu x64・Node.js 22.12以上、npmの導入スクリプト実行許可が必要です。\nLinux配布ファイルの有無はこのnpm版の配布情報で確認します。\n同じWi-Fiでスマホから操作するローカル用MVPです。詳細はnpm/GitHubのREADMEをご覧ください。`);
+    log(`Pocket Deck ${metadata.version}\n\n使い方:\n  npm install -g ${metadata.name}  PCアプリを自動導入して起動\n  npm update -g ${metadata.name}   PCアプリも更新（終了してから実行）\n  npx ${metadata.name} install     OSに応じてPCアプリを導入\n  npx ${metadata.name} download    取得・検証のみ\n  npx ${metadata.name} --version\n\nWindows / Ubuntu x64、macOS x64 / arm64・Node.js 22.12以上、npmの導入スクリプト実行許可が必要です。\nLinux配布ファイルの有無はこのnpm版の配布情報で確認します。\n同じWi-Fiでスマホから操作するローカル用MVPです。詳細はnpm/GitHubのREADMEをご覧ください。`);
     return;
   }
   if (command === '--version' && args.length === 1) { log(metadata.version); return; }
   if (!['install', 'download'].includes(command) || args.length !== 1) {
     throw new Error('引数が不正です。--helpで使い方を確認してください。');
   }
-  if (!['win32','linux'].includes(platform) || arch !== 'x64') throw new Error('Windows / Ubuntu x64用です。');
-  const manifest=platform==='linux'?releaseManifest.linux:releaseManifest;
-  if(!manifest)throw new Error('このnpm版にはLinux配布ファイルがまだありません。');
+  const manifest = selectManifest(platform, arch, releaseManifest);
+  if (platform === 'darwin' && command === 'install') {
+    await macInstallImpl({version:manifest.version, arch, downloadImpl:()=>downloadImpl({manifest}), log});
+    return;
+  }
   if(platform==='linux'&&command==='install'){
     await linuxInstallImpl({version:manifest.version,format:manifest.filename?.endsWith('.deb')?'deb':'AppImage',downloadImpl:()=>downloadImpl({manifest}),log});
     return;
@@ -109,4 +111,11 @@ async function main(args = process.argv.slice(2), {
 if (require.main === module) {
   main().catch(error => { console.error(`Pocket Deck: ${error.message}`); process.exitCode = 1; });
 }
-module.exports = { download, main, hash, launch };
+function selectManifest(platform, arch, source = release) {
+  if (!['win32','linux','darwin'].includes(platform) || (platform !== 'darwin' && arch !== 'x64') || (platform === 'darwin' && !['x64','arm64'].includes(arch))) throw Error('Windows / Ubuntu x64、macOS x64 / arm64用です。');
+  const manifest = platform === 'darwin' ? source.macos?.[arch] : platform === 'linux' ? source.linux : source;
+  if (!manifest) throw Error(platform === 'darwin' ? 'このnpm版にはmacOS配布ファイルがまだありません。試験版はGitHubのmacOS手順を確認してください。' : 'このnpm版にはLinux配布ファイルがまだありません。');
+  if (platform === 'darwin' && (!manifest.filename?.endsWith('.zip') || !manifest.version)) throw Error('macOS配布情報が不正です。');
+  return manifest;
+}
+module.exports = { download, main, hash, launch, selectManifest };

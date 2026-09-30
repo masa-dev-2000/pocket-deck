@@ -11,7 +11,7 @@ test('global lifecycle installs, local/npx lifecycle does not',async()=>{
   let calls=0,selected;const options={platform:'win32',arch:'x64',log(){},installImpl:async options=>{calls++;selected=options;}};
   await postinstall({...options,env:{}});assert.equal(calls,0);
   await postinstall({...options,env:{npm_config_global:'true'}});assert.equal(calls,1);
-  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'darwin'}),/Ubuntu/);
+  await assert.rejects(postinstall({...options,env:{npm_config_global:'true'},platform:'darwin'}),/macOS配布/);
   await postinstall({...options,env:{npm_config_global:'true'},platform:'linux'});
   assert.equal(calls,2);assert.equal(selected.format,'deb');assert.equal(selected.version,require('../release.json').linux.version);
 });
@@ -19,6 +19,10 @@ test('fresh install verifies before running and checks installed version before 
   const f=fixture([{}, {}, installed]);await install(f.options);assert.deepEqual(f.events,['verified','installed','opened']);
 });
 test('same and newer versions launch without downgrade or download',async()=>{
+  assert(compare('1.2.0-beta.1','1.1.0')>0);
+  assert(compare('1.2.0','1.2.0-beta.1')>0);
+  assert(compare('1.2.0-beta.10','1.2.0-beta.2')>0);
+  assert.equal(compare('1.2.0-beta.1','1.2.0-beta.1'),0);
   for(const version of ['1.0.4','1.0.10','2.0.0']){const f=fixture([{...installed,version}]);await install(f.options);assert.deepEqual(f.events,['opened']);}
   assert(compare('1.0.10','1.0.4')>0);assert.throws(()=>compare('bad','1.0.4'));
 });

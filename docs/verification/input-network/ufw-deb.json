@@ -1,0 +1,15 @@
+{
+  "result": "PASS",
+  "ubuntu": "22.04",
+  "packageStatus": "install ok installed",
+  "checks": [
+    "deb installed with dependencies",
+    "root-owned polkit policy installed",
+    "actual packaged privileged helper validates dependencies",
+    "UFW allow and duplicate prevention",
+    "UFW managed-only removal preserves user rule",
+    "broad-network rejection"
+  ],
+  "osAuthenticationDialog": "not tested",
+  "hostFirewallChanged": false
+}

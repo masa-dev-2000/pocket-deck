@@ -1,10 +1,13 @@
-let appearance={},macroSteps=[],profiles=[],extraGeneration=0,imagePending=false;
-function readExtraForm(){return {appearance:{...appearance,mode:$('appearanceMode').value},...($('type').value==='text'?{pasteMode:$('pasteMode').value}:{}),...($('type').value==='macro'?{steps:structuredClone(macroSteps)}:{}),...($('type').value==='profile'?{profileId:$('profileTarget').value}:{})};}
+let appearance={},macroSteps=[],profiles=[],extraGeneration=0,imagePending=false,selectedStep=-1;
+function readExtraForm(){return {appearance:{...appearance,mode:$('appearanceMode').value},...($('type').value==='wheel'?{invertY:$('invertY').value==='true'}:{}),...($('type').value==='text'?{pasteMode:$('pasteMode').value}:{}),...($('type').value==='macro'?{steps:structuredClone(macroSteps)}:{}),...($('type').value==='profile'?{profileId:$('profileTarget').value}:{})};}
 function showExtraFields(){
+ $('wheelField').hidden=$('type').value!=='wheel';
  $('macroField').hidden=$('type').value!=='macro';$('profileField').hidden=$('type').value!=='profile';
  $('layoutTargetField').hidden=$('type').value!=='navigate'||$('target').value!=='layout';
 }
 function openExtras(b){
+ selectedStep=-1;
+ $('invertY').value=String(b?.invertY===true);
  extraGeneration++;imagePending=false;appearance=structuredClone(b?.appearance||{mode:'label'});macroSteps=structuredClone(b?.steps||[]);
  $('pasteMode').value=b?.pasteMode||'standard';
  $('appearanceMode').value=appearance.mode||'label';$('imageFile').value='';$('imageState').textContent='PNG・JPEG・WebP / 5MBまで';
@@ -32,7 +35,7 @@ function validateExtraForm(b){
    if(s.kind==='press')held.add(s.key);if(s.kind==='release')held.delete(s.key);
    if((s.kind==='shortcut'&&!s.keys)||(['press','release'].includes(s.kind)&&!s.key))error='各手順のキーを選択してください';
    if(s.kind==='text'&&(!s.text||Array.from(s.text).length>1000))error='各文字列は1〜1000文字です';
-   if(s.kind==='wait'&&(!Number.isInteger(s.ms)||s.ms<0||s.ms>10000))error='待ち時間は0〜10000ミリ秒です';
+   if(s.kind==='wait'&&(!Number.isInteger(s.ms)||s.ms<0||s.ms>10000))error='待ち時間は0〜10秒です';
    if(s.kind==='profile'&&!s.profileId)error='プロフィールを選択してください';
    if(['text','profile'].includes(s.kind)&&held.size)error='文字列・画面切り替えの前に保持キーを離してください';
   }
@@ -64,33 +67,70 @@ $('duplicate').onclick=()=>{
 };
 
 const stepLabels={shortcut:'ショートカット',text:'文字列',wait:'待ち時間',press:'キーを押す',release:'キーを離す',profile:'Chromeへ移動'};
-function stepSummary(s){return stepLabels[s.kind]+'：'+(s.keys||s.key||s.text||(s.kind==='wait'?s.ms+' ms':profiles.find(p=>p.id===s.profileId)?.name||'プロフィールを選択'));}
-function saveSteps(){persist();applyForm();}
+function stepValue(s){if(s.kind==='wait')return Number.isFinite(s.ms)?(s.ms/1000)+'秒':'時間を入力';if(s.kind==='text')return s.text||'文字列を入力';if(s.kind==='profile')return profiles.find(p=>p.id===s.profileId)?.name||'プロフィールを選択';return s.keys||s.key||'キーを選択';}
+function stepSummary(s){return stepLabels[s.kind]+'：'+stepValue(s);}
+function saveSteps(){persist();applyForm();syncMacroState();}
+function syncMacroState(){
+ $('macroSaveState').textContent=$('saveState').textContent;
+ $('macroError').textContent=$('formError').textContent;
+ $('macroSummary').textContent=macroSteps.length?macroSteps.length+'手順 · '+macroSteps.map(stepSummary).join(' → '):'手順を追加してください';
+}
+new MutationObserver(syncMacroState).observe($('saveState'),{childList:true,subtree:true});
+new MutationObserver(syncMacroState).observe($('formError'),{childList:true,subtree:true});
+const macroWide=matchMedia('(min-width:760px)');
+macroWide.addEventListener('change',()=>{if($('macroEditor').open){document.activeElement?.blur();renderSteps();}});
+function openMacroEditor(){$('macroName').value=$('label').value;renderSteps();syncMacroState();$('macroEditor').showModal();}
+$('macroOpen').onclick=openMacroEditor;
+$('macroSettings').onclick=()=>{document.activeElement?.blur();saveSteps();$('macroEditor').close();};
+function closeMacroEditor(){document.activeElement?.blur();saveSteps();$('macroEditor').close();view('layoutView');render();}
+$('macroBack').onclick=closeMacroEditor;
+$('macroEditor').oncancel=e=>{e.preventDefault();closeMacroEditor();};
+for(const event of ['input','compositionstart','compositionend','blur'])$('macroName').addEventListener(event,()=>{
+ $('label').value=$('macroName').value;$('label').dispatchEvent(new Event(event));
+});
 function renderSteps(){
- const container=$('steps');container.replaceChildren();
+ const container=$('steps'),scroll=container.scrollTop;container.replaceChildren();$('stepDetail').replaceChildren();
+ if(selectedStep>=macroSteps.length)selectedStep=macroSteps.length-1;
+ $('stepAdd').disabled=macroSteps.length>=50;
+ if(!macroSteps.length)container.append(make('p','「＋ 手順」から操作を追加してください','macro-empty'));
  macroSteps.forEach((step,index)=>{
   const row=make('div','','step-row');row.dataset.index=index;
-  const head=make('div','','step-head'),handle=make('button','↕');handle.type='button';handle.className='step-handle';handle.setAttribute('aria-label',`手順${index+1}を移動`);head.append(handle,make('b',`${index+1}. ${stepLabels[step.kind]}`));
-  const edit=make('div','','step-content');
+  const active=index===selectedStep;row.classList.toggle('selected',active);
+  const head=make('div','','step-head'),handle=make('button','⠿');handle.type='button';handle.className='step-handle';handle.setAttribute('aria-label',`手順${index+1}を移動`);
+  const select=make('button','','step-select');select.type='button';select.setAttribute('aria-expanded',String(active));select.setAttribute('aria-label',`手順${index+1} ${stepSummary(step)}を編集`);
+  select.append(make('b',String(index+1),'step-number'),make('span',({shortcut:'⌨',text:'T',wait:'◷',press:'↓',release:'↑',profile:'◎'})[step.kind],'step-icon'),make('span',stepLabels[step.kind],'step-kind'),make('span',stepValue(step),'step-value'));
+  select.onclick=()=>{document.activeElement?.blur();selectedStep=active&&!macroWide.matches?-1:index;renderSteps();};
+  const more=make('button','⋯','step-more');more.type='button';more.setAttribute('aria-label',`手順${index+1}の操作`);
+  more.onclick=async()=>{
+   document.activeElement?.blur();const value=await choiceDialog(`手順 ${index+1}`, [{value:'up',label:'上へ移動'},{value:'down',label:'下へ移動'},{value:'copy',label:'複製'},{value:'delete',label:'削除'}]);
+   if(value==='up')moveStep(index,index-1);else if(value==='down')moveStep(index,index+1);
+   else if(value==='copy'){if(macroSteps.length>=50){message('手順は50個までです');return;}macroSteps.splice(index+1,0,structuredClone(step));selectedStep=index+1;renderSteps();saveSteps();}
+   else if(value==='delete'){macroSteps.splice(index,1);selectedStep=Math.min(index,macroSteps.length-1);renderSteps();saveSteps();}
+  };
+  head.append(handle,select,more);row.append(head);container.append(row);
+  if(active){
+  const edit=make('div','','step-content');edit.append(make('h3',`手順 ${index+1} — ${stepLabels[step.kind]}`));
   if(['shortcut','press','release'].includes(step.kind)){
    const field=step.kind==='shortcut'?'keys':'key',button=make('button',step[field]||'キーを選択 ▾');button.type='button';
    button.onclick=()=>openKeyPicker(step[field]||'',value=>{step[field]=value;renderSteps();saveSteps();},step.kind!=='shortcut');edit.append(button);
   }else if(step.kind==='text'||step.kind==='wait'){
    const input=make(step.kind==='text'?'textarea':'input');input.setAttribute('aria-label',`手順${index+1}の${stepLabels[step.kind]}`);
-   if(step.kind==='wait'){input.type='number';input.min=0;input.max=10000;input.step=100;input.value=step.ms;edit.append(input,make('small','ミリ秒（1000 = 1秒）'));}else{
+   if(step.kind==='wait'){
+    input.type='number';input.min=0;input.max=10;input.step=.001;input.value=Number.isFinite(step.ms)?step.ms/1000:'';
+    const field=make('div','','wait-input');field.append(input,make('span','秒'));edit.append(field);
+    const presets=make('div','','wait-presets');for(const seconds of [.1,.5,1]){const preset=make('button',seconds+'秒');preset.type='button';preset.classList.toggle('chosen',step.ms===seconds*1000);preset.onclick=()=>{step.ms=seconds*1000;renderSteps();saveSteps();};presets.append(preset);}edit.append(presets,make('small','次の操作まで待ちます。0〜10秒で設定できます。'));
+   }else{
     input.rows=2;input.value=step.text;input.maxLength=2000;edit.append(input);
     const paste=make('select');paste.setAttribute('aria-label',`手順${index+1}の貼り付け先`);
     for(const [value,label] of [['standard','通常の入力欄'],['terminal','Linuxの端末（Ctrl＋Shift＋V）']]){const option=make('option',label);option.value=value;paste.append(option);}
     paste.value=step.pasteMode||'standard';paste.onchange=()=>{step.pasteMode=paste.value;saveSteps();};edit.append(paste);
    }
    let composingStep=false;input.oncompositionstart=()=>{composingStep=true;clearTimeout(timer);};input.oncompositionend=()=>{composingStep=false;input.oninput();};
-   input.oninput=()=>{step[step.kind==='wait'?'ms':'text']=step.kind==='wait'?Number(input.value):input.value;persist();state('入力中');clearTimeout(timer);if(!composingStep)timer=setTimeout(saveSteps,600);};input.onblur=()=>{if(!composingStep)saveSteps();};
+   input.oninput=()=>{step[step.kind==='wait'?'ms':'text']=step.kind==='wait'?(input.value.trim()?Math.round(Number(input.value)*1000):NaN):input.value;select.querySelector('.step-value').textContent=stepValue(step);select.setAttribute('aria-label',`手順${index+1} ${stepSummary(step)}を編集`);if(step.kind==='wait')edit.querySelectorAll('.wait-presets button').forEach(b=>b.classList.toggle('chosen',Number(b.textContent.replace('秒',''))*1000===step.ms));persist();state('入力中');clearTimeout(timer);if(!composingStep)timer=setTimeout(saveSteps,600);};input.onblur=()=>{if(!composingStep)saveSteps();};
   }else{
    const button=make('button',profiles.find(p=>p.id===step.profileId)?.name||'プロフィールを選択');button.type='button';button.onclick=async()=>{await loadProfiles();const id=await choiceDialog('Chromeプロフィール',profiles.map(p=>({value:p.id,label:p.name+(p.online?'':'（未接続）')})));if(id){step.profileId=id;renderSteps();saveSteps();}};edit.append(button);
   }
-  const actions=make('div','','step-actions');
-  for(const [label,fn] of [['↑',()=>moveStep(index,index-1)],['↓',()=>moveStep(index,index+1)],['複製',()=>{if(macroSteps.length>=50)return;macroSteps.splice(index+1,0,structuredClone(step));renderSteps();saveSteps();}],['削除',()=>{macroSteps.splice(index,1);renderSteps();saveSteps();}]]){
-   const b=make('button',label);b.type='button';b.setAttribute('aria-label',`手順${index+1} ${label}`);b.onclick=fn;actions.append(b);
+  (macroWide.matches?$('stepDetail'):row).append(edit);
   }
   let pointer=null,destination=index;
   handle.onpointerdown=e=>{if(e.button!==0)return;e.preventDefault();pointer=e.pointerId;handle.setPointerCapture(pointer);row.classList.add('step-dragging');};
@@ -98,11 +138,12 @@ function renderSteps(){
    const bounds=container.getBoundingClientRect();if(e.clientY<bounds.top+30)container.scrollTop-=12;if(e.clientY>bounds.bottom-30)container.scrollTop+=12;};
   handle.onpointerup=e=>{if(e.pointerId!==pointer)return;pointer=null;moveStep(index,destination);};
   handle.onpointercancel=handle.onlostpointercapture=()=>{if(pointer!==null){pointer=null;renderSteps();}};
-  row.append(head,edit,actions);container.append(row);
  });
+ if(macroWide.matches&&selectedStep<0)$('stepDetail').append(make('p','一覧から手順を選んで編集します','macro-empty'));
+ container.scrollTop=scroll;syncMacroState();
 }
-function moveStep(from,to){if(to<0||to>=macroSteps.length||from===to){renderSteps();return;}macroSteps.splice(to,0,macroSteps.splice(from,1)[0]);renderSteps();saveSteps();}
-$('stepAdd').onclick=async()=>{if(macroSteps.length>=50){message('手順は50個までです');return;}const kind=await choiceDialog('追加する手順',Object.entries(stepLabels).map(([value,label])=>({value,label})));if(!kind)return;macroSteps.push(kind==='wait'?{kind,ms:500}:kind==='text'?{kind,text:''}:kind==='shortcut'?{kind,keys:''}:kind==='profile'?{kind,profileId:''}:{kind,key:''});renderSteps();saveSteps();};
+function moveStep(from,to){if(to<0||to>=macroSteps.length||from===to){renderSteps();return;}macroSteps.splice(to,0,macroSteps.splice(from,1)[0]);selectedStep=to;renderSteps();saveSteps();}
+$('stepAdd').onclick=async()=>{if(macroSteps.length>=50){message('手順は50個までです');return;}const kind=await choiceDialog('追加する手順',Object.entries(stepLabels).map(([value,label])=>({value,label})));if(!kind)return;macroSteps.push(kind==='wait'?{kind,ms:500}:kind==='text'?{kind,text:''}:kind==='shortcut'?{kind,keys:''}:kind==='profile'?{kind,profileId:''}:{kind,key:''});selectedStep=macroSteps.length-1;renderSteps();saveSteps();$('steps').lastElementChild?.scrollIntoView({block:'nearest'});};
 $('stepFrom').onclick=async()=>{if(macroSteps.length>=50)return;const choices=store.value.layouts.flatMap(l=>l.buttons.filter(b=>buttonSteps(b).length).map(b=>({value:b.id,label:l.name+' / '+b.label})));const id=await choiceDialog('ボタンの操作をコピー',choices);const b=store.value.layouts.flatMap(l=>l.buttons).find(b=>b.id===id);if(b){macroSteps.push(...buttonSteps(b));renderSteps();saveSteps();}};
 $('stepTemplate').onclick=async()=>{
  const value=await choiceDialog('テンプレートを末尾に追加',[{value:'launch',label:'アプリ名で起動'},{value:'previous',label:'2つ前のウィンドウ'}]);if(!value)return;

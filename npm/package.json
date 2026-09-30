@@ -1,7 +1,7 @@
 {
   "name": "@masadev/pocket-deck",
-  "version": "1.1.0",
-  "description": "Install Pocket Deck for Windows and Ubuntu: a phone shortcut keyboard and touchpad",
+  "version": "1.2.0-beta.1",
+  "description": "Install Pocket Deck for Windows, Ubuntu and macOS: a phone shortcut keyboard and touchpad",
   "license": "MIT",
   "author": "masa-dev-2000",
   "repository": {
@@ -27,10 +27,12 @@
   },
   "os": [
     "win32",
-    "linux"
+    "linux",
+    "darwin"
   ],
   "cpu": [
-    "x64"
+    "x64",
+    "arm64"
   ],
   "publishConfig": {
     "access": "public",

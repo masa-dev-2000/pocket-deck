@@ -1,17 +1,16 @@
 'use strict';
-const { download } = require('./pocket-deck.cjs');
+const { download, selectManifest } = require('./pocket-deck.cjs');
 const { install } = require('./windows-install.cjs');
 const { install:linuxInstall } = require('./linux-install.cjs');
 const release = require('../release.json');
-async function postinstall({ env = process.env, platform = process.platform, arch = process.arch, installImpl, log = console.log } = {}) {
+async function postinstall({ env = process.env, platform = process.platform, arch = process.arch, installImpl, releaseManifest = release, log = console.log } = {}) {
   if (env.npm_config_global !== 'true') {
     log('PCアプリの自動導入には npm install -g @masadev/pocket-deck を使用してください。');
     return;
   }
-  if (!['win32','linux'].includes(platform) || arch !== 'x64') throw new Error('Windows / Ubuntu x64用です。');
-  const manifest=platform==='linux'?release.linux:release;
-  if(!manifest)throw new Error('このnpm版にはLinux配布ファイルがまだありません。');
-  await (installImpl||(platform==='linux'?linuxInstall:install))({ version:manifest.version,...(platform==='linux'?{format:manifest.filename?.endsWith('.deb')?'deb':'AppImage'}:{}),downloadImpl:()=>download({manifest}),log });
+  const manifest=selectManifest(platform,arch,releaseManifest);
+  const selected=platform==='darwin'?require('./macos-install.cjs').install:platform==='linux'?linuxInstall:install;
+  await (installImpl||selected)({ version:manifest.version,...(platform==='darwin'?{arch}:platform==='linux'?{format:manifest.filename?.endsWith('.deb')?'deb':'AppImage'}:{}),downloadImpl:()=>download({manifest}),log });
 }
 if (require.main === module) postinstall().catch(error => { console.error(`Pocket Deck: ${error.message}`); process.exitCode = 1; });
 module.exports = { postinstall };

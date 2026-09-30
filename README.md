@@ -6,7 +6,9 @@
 
 Ubuntu対応は1.1.0以降です。[Ubuntuの導入案内](docs/ubuntu.md)と[実装・検証記録](docs/linux-support.md)を参照してください。X11／Waylandの選択はアプリが検出します。
 
-macOS 13以降のApple Silicon／Intel向け試験版は1.2.0-beta.1で開発中です。正式な署名・公証、実機での入力許可と操作確認はまだ完了していません。[Mac試験版の案内](docs/macos.md)を参照してください。公開済みnpm版1.1.0はWindows／Ubuntu用です。
+macOS 13以降のApple Silicon／Intel向け試験コードは開発中です。正式な署名・公証、実機での入力許可と操作確認はまだ完了していません。[Mac試験版の案内](docs/macos.md)を参照してください。Mac向けインストーラーはまだ公開していません。
+
+**1.2.0-beta.1（試験公開）**では、スマホごとのカーソル・スクロール感度、入力許可がない操作の停止、Ubuntuの接続診断・限定LAN許可を追加しました。Windows／Ubuntu x64の配布物は[GitHubのプレリリース](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.2.0-beta.1)から取得できます。npmでこの版を使う場合は`@masadev/pocket-deck@beta`を指定してください。通常の`latest`は1.1.0です。
 
 ## ダウンロードと初回設定
 
@@ -42,6 +44,9 @@ Ubuntuでは通常ユーザーで`npm install -g --prefix "$HOME/.local" --foreg
 | キー配列 | PC風のキー配列画面。下部から配置へ戻れる |
 | タッチパッド | 移動、左クリック、2本指スクロール、ダブルタップ保持。配置内にも設置可能 |
 | ホイール | スワイプでスクロール。指をずらしたまま保持すると連続スクロール |
+| 操作感（beta） | スマホのブラウザごとにカーソルとスクロールの速度を調整 |
+| 入力許可（beta） | PCで許可されていないキー・マウス操作を表示・停止 |
+| Ubuntu接続診断（beta） | LANを選び、UFWを使う場合は指定LANからの接続だけを許可・解除 |
 | 連続操作 | キー、文字列、待ち時間、Chromeプロフィール切り替えを順番に実行 |
 | Chrome連携 | 指定プロフィールのウィンドウへ移動。[設定手順](docs/chrome-profiles.md) |
 

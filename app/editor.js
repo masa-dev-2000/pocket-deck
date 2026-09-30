@@ -53,6 +53,7 @@ function openButton(b,index){
  for(const [id,max] of [['width',currentLayout().columns],['height',currentLayout().rows]]){$(id).replaceChildren();for(let i=1;i<=max;i++){const o=document.createElement('option');o.value=i;o.textContent=i;$(id).append(o);}$(id).value=b?.[id]||1;}$('target').value=b?.target||'keyboard';
  openExtras(b);
  $('delete').hidden=!currentLayout().buttons.some(x=>x.id===current);$('formError').textContent='';updateKeySummary();showFields();view('form');persist();
+ if(b?.type==='macro')openMacroEditor();
 }
 function applyForm(){
  clearTimeout(timer);if(composing||$('form').hidden||!store)return false;
@@ -74,7 +75,7 @@ for(const id of ['label','text']){
  $(id).addEventListener('input',()=>{state('入力中');clearTimeout(timer);if(!composing)timer=setTimeout(applyForm,600);});
  $(id).addEventListener('blur',()=>{if(!composing)applyForm();});
 }
-for(const id of ['type','keys','color','width','height','target'])$(id).addEventListener('change',()=>{showFields();applyForm();});
+for(const id of ['type','keys','color','width','height','target','invertY'])$(id).addEventListener('change',()=>{showFields();applyForm();});
 $('cancel').onclick=()=>{applyForm();view('layoutView');render();/* Keep incomplete input in local recovery. */};
 $('delete').onclick=async()=>{if(await showNotice('このボタンを削除しますか？',true)){clearTimeout(timer);recoveryForm=null;undoLayout=null;$('undoLayout').hidden=true;currentLayout().buttons=currentLayout().buttons.filter(b=>b.id!==current);view('layoutView');render();persist();store.flush();}};
 $('add').onclick=()=>{const used=new Set(currentLayout().buttons.flatMap(b=>buttonCells(currentLayout(),b)||[]));let i=0;while(used.has(i))i++;if(i>=currentLayout().columns*currentLayout().rows){message('空き枠がありません。「行・列」で枠を増やしてください');return;}openButton(null,i);};

@@ -1,0 +1,39 @@
+{
+  "result": "PASS",
+  "platform": "linux",
+  "checks": [
+    "standalone startup",
+    "embedded assets match source",
+    "input/network status endpoints",
+    "QR generation",
+    "selected LAN persists and changes QR URL"
+  ],
+  "input": {
+    "platform": "linux",
+    "session": "wayland",
+    "backend": "remote-desktop-portal",
+    "state": "unsupported",
+    "keyboard": false,
+    "pointer": false,
+    "text": false,
+    "clipboard": "unavailable",
+    "canEnable": true,
+    "reason": "\u30c7\u30b9\u30af\u30c8\u30c3\u30d7\u306e\u5165\u529b\u8a31\u53ef\u30b5\u30fc\u30d3\u30b9\u3092\u5229\u7528\u3067\u304d\u307e\u305b\u3093\u3002[Errno 111] Connection refused"
+  },
+  "network": {
+    "supported": true,
+    "networks": [
+      {
+        "interface": "eth0",
+        "address": "172.19.220.122",
+        "network": "172.19.208.0/20",
+        "url": "http://172.19.220.122:8765/"
+      }
+    ],
+    "ufwInstalled": true,
+    "ufwEnabled": false,
+    "rules": "unknown",
+    "canConfigure": false,
+    "selected": null
+  }
+}
