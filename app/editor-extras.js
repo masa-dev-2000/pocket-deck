@@ -28,7 +28,8 @@ function validateExtraForm(b){
  let error='';
  if(imagePending)error='画像を保存しています';
  else if(b.type==='profile'&&!b.profileId)error='Chromeプロフィールを選択してください';
- else if(b.type==='navigate'&&b.target==='layout'&&!b.layoutId)error='移動先の配置を選択してください';
+ else if(b.type==='navigate'&&b.target!=='layout')error='移動先を選択してください';
+ else if(b.type==='navigate'&&!b.layoutId)error='移動先の配置を選択してください';
  else if(b.type==='group'&&!b.items?.length)error='候補を1つ以上入れてください';
  else if(b.type==='macro'){
   if(!b.steps.length||b.steps.length>50)error='連続操作は1〜50手順です';

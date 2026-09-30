@@ -9,6 +9,8 @@ const second=copyLayout(layout);assert.notEqual(second.id,layout.id);assert.equa
 layout.buttons.push({id:'group',label:'まとめ',type:'group',slot:9,width:1,height:1,items:[{id:'child',label:'移動',type:'navigate',target:'layout',layoutId:'main'}]});
 const grouped=groupedButtons(layout,['nav','a']);assert.equal(grouped.buttons.at(-1).items.length,2);assert.deepEqual(grouped.buttons.at(-1).items.map(b=>b.id),['a','nav']);assert.equal(grouped.buttons.at(-1).slot,0);assert.equal(layout.buttons.length,3);assert.equal(groupedButtons(layout,['group','nav']),null);
 const copiedGroup=copyButton(layout,layout.buttons[2]);assert.notEqual(copiedGroup.items[0].id,'child');
+const capped={...layout,buttons:[{...layout.buttons[2],items:Array.from({length:199},(_,i)=>({id:`item-${i}`,label:'候補',type:'text',text:'a'}))}]};
+assert.equal(copyButton(capped,capped.buttons[0]),null);
 const copiedPage=copyLayout(layout);assert.notEqual(copiedPage.buttons[2].items[0].id,'child');assert.equal(copiedPage.buttons[2].items[0].layoutId,copiedPage.id);
 const source={type:'text',text:'hello'};const steps=buttonSteps(source);source.text='new';assert.equal(steps[0].text,'hello');assert.deepEqual(buttonSteps(layout.buttons[0]),[]);
 assert.deepEqual(buttonSteps({type:'text',text:'端末',pasteMode:'terminal'}),[{kind:'text',text:'端末',pasteMode:'terminal'}]);

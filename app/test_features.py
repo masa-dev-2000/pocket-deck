@@ -80,6 +80,9 @@ class Features(unittest.TestCase):
             config['layouts'][0]['buttons'][0].update(type='navigate',target='layout',layoutId='second')
             saved=app.save(config);saved['layouts'].pop()
             with self.assertRaises(ValueError):app.save(saved)
+            invalid=copy.deepcopy(app.config)
+            invalid['layouts'][0]['buttons'][0].update(type='navigate',target='keyboard')
+            with self.assertRaisesRegex(ValueError,'移動先'):app.save(invalid)
             with self.assertRaises(ValueError):app.save(original) # stale v3 client cannot overwrite v5
 
     def test_existing_pages_become_editable_templates_once(self):

@@ -168,8 +168,9 @@ def page_template(kind):
             dict(id='b-'+uuid.uuid4().hex,label='タッチパッド',type='touchpad',slot=0,width=4,height=3,color='#294b68'),
             dict(id='b-'+uuid.uuid4().hex,label='左クリック',type='click',slot=12,width=4,height=1,color='#294b68')])
     if kind!='keyboard':raise ValueError('テンプレートが不正です')
+    platform_labels={item['key']:item['label'] for item in key_catalog()}
     labels={'ESC':'Esc','TAB':'Tab','BACKSPACE':'⌫','ENTER':'Enter','SHIFT':'Shift','DELETE':'Del',
-            'CTRL':'Ctrl','ALT':'Alt','WIN':'Cmd' if sys.platform=='darwin' else 'Win',
+            'CTRL':'Ctrl','ALT':platform_labels['ALT'],'WIN':platform_labels['WIN'],
             'SPACE':'Space','LEFT':'←','RIGHT':'→','UP':'↑','DOWN':'↓'}
     buttons=[]
     for row,keys in enumerate(KEYBOARD_TEMPLATE_ROWS):
@@ -243,7 +244,7 @@ def validate_layout(config):
             if not isinstance(b.get('text'),str) or not 1<=len(b['text'])<=1000:
                 raise ValueError('文字列は1〜1000文字です')
         elif b['type']=='navigate':
-            if b.get('target') not in ('keyboard','pad','layout'):raise ValueError('移動先が不正です')
+            if b.get('target') != 'layout':raise ValueError('移動先が不正です')
         elif b['type'] in ('touchpad','wheel','macro','profile','click','group'):pass
         else:raise ValueError('入力種類が不正です')
         features.validate_button(b,parse_keys)

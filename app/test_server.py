@@ -131,7 +131,7 @@ class Tests(unittest.TestCase):
         new['layouts'][0]['buttons'][0]['width']=2
         with self.assertRaises(ValueError):server.validate(new)
         new['layouts'][0]['buttons']=new['layouts'][0]['buttons'][:1]
-        new['layouts'][0]['buttons'][0].update(type='navigate',target='keyboard')
+        new['layouts'][0]['buttons'][0].update(type='navigate',target='layout',layoutId=new['layouts'][-2]['id'])
         server.validate(new)
         new['layouts'][0]['buttons'][0]['slot']=2
         with self.assertRaises(ValueError):server.validate(new)

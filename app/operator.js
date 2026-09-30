@@ -79,7 +79,7 @@ function openGroup(group,anchor){
  const rect=anchor.getBoundingClientRect(),width=Math.min(300,innerWidth-16),height=panel.getBoundingClientRect().height;
  panel.style.width=width+'px';panel.style.left=Math.max(8,Math.min(rect.left,innerWidth-width-8))+'px';
  panel.style.top=(innerHeight-rect.bottom>=Math.min(height,innerHeight*.55)+8?rect.bottom+4:Math.max(8,rect.top-Math.min(height,innerHeight*.55)-4))+'px';
- const outside=e=>{if(!panel.contains(e.target)&&e.target!==anchor)closeGroup();};
+ const outside=e=>{if(!panel.contains(e.target)&&!anchor.contains(e.target))closeGroup();};
  const escape=e=>{if(e.key==='Escape'){e.preventDefault();closeGroup();}};
  groupPopup={id:group.id,panel,outside,escape};
  document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',escape);

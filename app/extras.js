@@ -1,7 +1,7 @@
 // Shared v4 model helpers. Button IDs remain globally unique across layouts.
 const newId=()=> 'b-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2);
 function copyButton(layout,button){
- if(layout.buttons.length>=200)return null;
+ if(allButtons(layout).length+1+(button.type==='group'?button.items.length:0)>200)return null;
  const copy=structuredClone(button);copy.id=newId();copy.label=(copy.label+' コピー').slice(0,60);if(copy.type==='group')for(const item of copy.items)item.id=newId();
  const used=new Set(layout.buttons.flatMap(b=>buttonCells(layout,b)||[]));
  for(let slot=0;slot<layout.rows*layout.columns;slot++){

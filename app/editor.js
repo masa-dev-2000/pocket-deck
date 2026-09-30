@@ -48,10 +48,10 @@ function readForm(){return {id:current,slot,label:$('label').value,type:$('type'
 function showFields(){showExtraFields();$('targetField').hidden=$('type').value!=='navigate';$('textField').hidden=$('type').value!=='text';$('shortcutField').hidden=$('type').value!=='shortcut';}
 function openButton(b,index,groupId=null){
  groupContext=groupId;
- if(!b&&!groupId&&currentLayout().buttons.length>=200){message('ボタンは200個までです');return;}
+ if(!b&&!groupId&&allButtons(currentLayout()).length>=200){message('ボタンと候補は合わせて200個までです');return;}
  current=b?.id||('b-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));slot=index;
- $('label').value=b?.label||'';$('type').value=b?.type||'shortcut';$('type').disabled=b?.type==='group';for(const option of $('type').options)option.disabled=!!groupId&&['touchpad','wheel','click','group'].includes(option.value);$('keys').value=b?.keys||'';$('text').value=b?.text||'';$('color').value=b?.color||'#294b68';
- for(const [id,max] of [['width',currentLayout().columns],['height',currentLayout().rows]]){$(id).replaceChildren();for(let i=1;i<=max;i++){const o=document.createElement('option');o.value=i;o.textContent=i;$(id).append(o);}$(id).value=b?.[id]||1;}$('target').value=b?.target||'keyboard';
+ $('label').value=b?.label||'';$('type').value=b?.type||'shortcut';$('type').disabled=b?.type==='group';for(const option of $('type').options)option.disabled=groupId?['touchpad','wheel','click','group'].includes(option.value):['click','group'].includes(option.value)&&b?.type!==option.value;$('keys').value=b?.keys||'';$('text').value=b?.text||'';$('color').value=b?.color||'#294b68';
+ for(const [id,max] of [['width',currentLayout().columns],['height',currentLayout().rows]]){$(id).replaceChildren();for(let i=1;i<=max;i++){const o=document.createElement('option');o.value=i;o.textContent=i;$(id).append(o);}$(id).value=b?.[id]||1;}$('target').value=b?.target||'layout';
  openExtras(b);
  $('delete').hidden=groupId?!currentLayout().buttons.find(x=>x.id===groupId)?.items.some(x=>x.id===current):!currentLayout().buttons.some(x=>x.id===current);$('formError').textContent='';updateKeySummary();showFields();view('form');persist();
  if(b?.type==='macro')openMacroEditor();
