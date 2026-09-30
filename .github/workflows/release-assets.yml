@@ -18,6 +18,11 @@ on:
         description: Successful macOS trial run ID
         required: true
         type: string
+      metadata_only:
+        description: Generate npm release manifest without creating or changing a release
+        required: false
+        type: boolean
+        default: false
 permissions:
   actions: read
   contents: write
@@ -31,6 +36,7 @@ jobs:
       WINDOWS_RUN: ${{ inputs.windows_run }}
       LINUX_RUN: ${{ inputs.linux_run }}
       MAC_RUN: ${{ inputs.mac_run }}
+      METADATA_ONLY: ${{ inputs.metadata_only }}
     steps:
       - uses: actions/checkout@v4
       - name: Download and verify packages before attaching to a draft release
@@ -42,7 +48,9 @@ jobs:
             [[ "$run" =~ ^[0-9]+$ ]]
             [[ "$(gh run view "$run" --json conclusion --jq .conclusion)" == success ]]
           done
-          [[ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" == true ]]
+          if [[ "$METADATA_ONLY" != true ]]; then
+            [[ "$(gh release view "$RELEASE_TAG" --json isDraft --jq .isDraft)" == true ]]
+          fi
           mkdir -p packages/{windows,linux,mac-arm64,mac-x64} release-assets
           gh run download "$WINDOWS_RUN" -n pocket-deck-windows-x64 -D packages/windows
           gh run download "$LINUX_RUN" -n pocket-deck-ubuntu-x64 -D packages/linux
@@ -72,4 +80,13 @@ jobs:
           console.log(JSON.stringify(manifest));
           NODE
           (cd release-assets && sha256sum * > SHA256SUMS.txt)
-          gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          if [[ "$METADATA_ONLY" != true ]]; then
+            gh release upload "$RELEASE_TAG" release-assets/* --clobber
+          fi
+      - name: Save verified npm release manifest
+        uses: actions/upload-artifact@v4
+        with:
+          name: pocket-deck-release-manifest
+          path: release-assets/release-manifest.json
+          if-no-files-found: error
+          retention-days: 14
