@@ -42,6 +42,7 @@ function sameButtonForm(form,saved){
  if(!saved)return false;
  const project=b=>({id:b.id,label:b.label.trim(),type:b.type,color:b.color,width:b.width,height:b.height,
   appearance:{mode:b.appearance?.mode||'label',icon:b.appearance?.icon||'',asset:b.appearance?.asset||''},invertY:b.type==='wheel'?(b.invertY===true):undefined,
+  sensitivity:['touchpad','wheel'].includes(b.type)?Object.fromEntries((b.type==='wheel'?['scroll']:['cursor','scroll']).filter(key=>b.sensitivity?.[key]!==undefined).map(key=>[key,b.sensitivity[key]])):undefined,
   keys:b.type==='shortcut'?b.keys:undefined,text:b.type==='text'?b.text:undefined,pasteMode:b.type==='text'?(b.pasteMode||'standard'):undefined,steps:b.type==='macro'?b.steps:undefined,
   profileId:b.type==='profile'?b.profileId:undefined,target:b.type==='navigate'?b.target:undefined,layoutId:b.type==='navigate'&&b.target==='layout'?b.layoutId:undefined,
   items:b.type==='group'?b.items:undefined});

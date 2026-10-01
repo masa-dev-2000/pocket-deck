@@ -1,7 +1,14 @@
 let appearance={},macroSteps=[],groupItems=[],profiles=[],extraGeneration=0,imagePending=false,selectedStep=-1;
-function readExtraForm(){return {appearance:{...appearance,mode:$('appearanceMode').value},...($('type').value==='wheel'?{invertY:$('invertY').value==='true'}:{}),...($('type').value==='text'?{pasteMode:$('pasteMode').value}:{}),...($('type').value==='macro'?{steps:structuredClone(macroSteps)}:{}),...($('type').value==='group'?{items:structuredClone(groupItems)}:{}),...($('type').value==='profile'?{profileId:$('profileTarget').value}:{})};}
+function buttonSensitivityForm(){
+ const keys=$('type').value==='touchpad'?['cursor','scroll']:$('type').value==='wheel'?['scroll']:[];
+ const values={};for(const key of keys)if($(key+'SensitivityMode').value==='custom')values[key]=Number($(key+'Sensitivity').value);
+ return Object.keys(values).length?{sensitivity:values}:{};
+}
+function readExtraForm(){return {appearance:{...appearance,mode:$('appearanceMode').value},...($('type').value==='wheel'?{invertY:$('invertY').value==='true'}:{}),...buttonSensitivityForm(),...($('type').value==='text'?{pasteMode:$('pasteMode').value}:{}),...($('type').value==='macro'?{steps:structuredClone(macroSteps)}:{}),...($('type').value==='group'?{items:structuredClone(groupItems)}:{}),...($('type').value==='profile'?{profileId:$('profileTarget').value}:{})};}
 function showExtraFields(){
  $('wheelField').hidden=$('type').value!=='wheel';
+ $('sensitivityField').hidden=!['touchpad','wheel'].includes($('type').value);
+ $('cursorSensitivityField').hidden=$('type').value!=='touchpad';
  $('macroField').hidden=$('type').value!=='macro';$('profileField').hidden=$('type').value!=='profile';
  $('groupField').hidden=$('type').value!=='group';
  $('layoutTargetField').hidden=$('type').value!=='navigate'||$('target').value!=='layout';
@@ -9,6 +16,11 @@ function showExtraFields(){
 function openExtras(b){
  selectedStep=-1;
  $('invertY').value=String(b?.invertY===true);
+ for(const key of ['cursor','scroll']){
+  const value=b?.sensitivity?.[key];$(key+'SensitivityMode').value=value===undefined?'inherit':'custom';
+  $(key+'Sensitivity').value=value??1;$(key+'Sensitivity').disabled=value===undefined;
+  $(key+'SensitivityValue').textContent=value===undefined?'共通':$(key+'Sensitivity').value+'倍';
+ }
  extraGeneration++;imagePending=false;appearance=structuredClone(b?.appearance||{mode:'label'});macroSteps=structuredClone(b?.steps||[]);groupItems=structuredClone(b?.items||[]);
  $('pasteMode').value=b?.pasteMode||'standard';
  $('appearanceMode').value=appearance.mode||'label';$('imageFile').value='';$('imageState').textContent='PNG・JPEG・WebP / 5MBまで';
@@ -48,6 +60,11 @@ function validateExtraForm(b){
 function previewAppearance(){const b={label:$('label').value||'プレビュー',color:$('color').value,type:$('type').value,appearance:{...appearance,mode:$('appearanceMode').value}};$('appearancePreview').replaceChildren(keyElement(b));}
 function extrasChanged(){previewAppearance();applyForm();}
 for(const id of ['appearanceMode','layoutTarget','profileTarget','pasteMode'])$(id).onchange=extrasChanged;
+for(const key of ['cursor','scroll']){
+ const mode=$(key+'SensitivityMode'),slider=$(key+'Sensitivity'),output=$(key+'SensitivityValue');
+ mode.onchange=()=>{slider.disabled=mode.value!=='custom';output.textContent=slider.disabled?'共通':slider.value+'倍';extrasChanged();};
+ slider.oninput=()=>{output.textContent=slider.value+'倍';};slider.onchange=extrasChanged;
+}
 $('color').addEventListener('change',previewAppearance);$('label').addEventListener('input',previewAppearance);
 $('clearVisual').onclick=()=>{extraGeneration++;imagePending=false;appearance={mode:'label'};$('appearanceMode').value='label';$('imageState').textContent='画像・アイコンを解除しました';extrasChanged();};
 const icons=[['📋','コピー クリップボード'],['📄','書類 新規'],['💾','保存'],['↶','元に戻す undo'],['↷','やり直す redo'],['🔍','検索'],['✂️','切り取り'],['📁','フォルダ'],['🏠','ホーム'],['⚙️','設定'],['▶️','再生'],['⏸️','停止 pause'],['🔊','音量'],['🔇','ミュート'],['🎤','マイク'],['🎵','音楽'],['🎬','動画'],['🖼️','画像'],['🎨','デザイン'],['🖱️','マウス パッド'],['⌨️','キーボード'],['🌐','ブラウザ'],['💼','仕事'],['👤','個人'],['✉️','メール'],['⭐','お気に入り'],['🚀','起動'],['🔁','連続操作'],['⬅️','左 戻る'],['➡️','右 進む'],['⬆️','上'],['⬇️','下']];

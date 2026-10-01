@@ -2,7 +2,7 @@
 
 スマホをWindows／Ubuntu／macOSのショートカットキーボード・タッチパッドにするアプリです。Windows／Ubuntu x64、macOS x64／arm64、Node.js 22.12以上が対象です。Ubuntu対応は1.1.0以降、macOS対応は1.2.0以降です。macOS版は正式な配布署名・公証と実機入力確認が未完了です。
 
-通常の`npm install -g @masadev/pocket-deck`で1.2.1を導入します。複数配置、まとめボタン、連続操作の左クリックとWindowsの記号・テンキー・主要な特殊キーが含まれます。
+通常の`npm install -g @masadev/pocket-deck`で1.2.2を導入します。ボタンごとのタッチパッド・スクロール感度、複数配置、まとめボタン、連続操作の左クリックとWindowsの記号・テンキー・主要な特殊キーが含まれます。
 
 ## 導入（1.0.4以降）
 

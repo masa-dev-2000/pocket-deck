@@ -19,7 +19,7 @@ function render(root){
  for(const b of config.buttons){
   const el=keyElement(b);el.dataset.buttonId=b.id;applyGridStyle(el,b,config.columns);
   el.oncontextmenu=e=>e.preventDefault();
-  if(b.type==='wheel'){el.classList.add('embedded-pad','wheel-region');embeddedPads.add(attachPad(el,()=>true,true,true,b.invertY));}else if(b.type==='touchpad'){el.classList.add('embedded-pad');embeddedPads.add(attachPad(el,()=>true,true));}else if(b.type==='navigate'){el.onclick=()=>{if(!navigating&&!switching)selectDeck(b.layoutId);};}else if(b.type==='group'){el.onclick=()=>openGroup(b,el);}else if(b.type==='click'){el.onclick=()=>action({action:'mouse_click',dx:0,dy:0,owner:owner()}).catch(e=>message(e.message));}else if(b.type==='macro'||b.type==='profile'){el.onclick=()=>executeButton(b);}else if(b.type==='text'){
+  if(b.type==='wheel'){el.classList.add('embedded-pad','wheel-region');embeddedPads.add(attachPad(el,()=>true,true,true,b.invertY,b.sensitivity));}else if(b.type==='touchpad'){el.classList.add('embedded-pad');embeddedPads.add(attachPad(el,()=>true,true,false,false,b.sensitivity));}else if(b.type==='navigate'){el.onclick=()=>{if(!navigating&&!switching)selectDeck(b.layoutId);};}else if(b.type==='group'){el.onclick=()=>openGroup(b,el);}else if(b.type==='click'){el.onclick=()=>action({action:'mouse_click',dx:0,dy:0,owner:owner()}).catch(e=>message(e.message));}else if(b.type==='macro'||b.type==='profile'){el.onclick=()=>executeButton(b);}else if(b.type==='text'){
    el.onclick=()=>{if(navigating||switching||executionBusy)return;el.classList.add('pressed');action({action:'text',id:b.id,owner:owner()}).catch(e=>message(e.message)).finally(()=>el.classList.remove('pressed'));};
   }else{
    bindKey(el,{action:'down',id:b.id},{action:'tap',id:b.id});
@@ -84,9 +84,9 @@ function openGroup(group,anchor){
  groupPopup={id:group.id,panel,outside,escape};
  document.addEventListener('pointerdown',outside,true);document.addEventListener('keydown',escape);
 }
-function attachPad(pad,inMode,compact=false,wheel=false,invertY=false){
+function attachPad(pad,inMode,compact=false,wheel=false,invertY=false,buttonSensitivity=null){
  const enabled=()=>inputAllowed(inputCapabilities,['pointer'])&&inMode()&&!switching&&!navigating&&!executionBusy&&!document.hidden;
- const controller=new (wheel?WheelController:PadController)({send:action,owner,enabled,invertY,sensitivity:()=>sensitivity,
+ const controller=new (wheel?WheelController:PadController)({send:action,owner,enabled,invertY,sensitivity:()=>effectiveSensitivity(sensitivity,buttonSensitivity),
   onError:e=>message(e.message),onState:state=>{
    pad.classList.toggle('tracking',state==='move'||state==='scroll');pad.classList.toggle('dragging',state==='drag');
    pad.querySelector('span').textContent=wheel?'↕ ↔ 1本指でスクロール':state==='drag'?'ドラッグ中 · 離すと解除':state==='scroll'?'2本指でスクロール':compact?'タップでクリック · 2本指スクロール':'1本指で移動 · タップでクリック\n2本指でスクロール\nタップ→2回目を押したままドラッグ';

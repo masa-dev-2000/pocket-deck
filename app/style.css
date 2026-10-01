@@ -18,6 +18,7 @@
 .overview{display:grid;grid-template-columns:minmax(0,1fr) 80px;align-content:start;grid-auto-rows:min-content}
 .overview .wide{grid-column:1/-1}.overview label{font-size:13px;margin-bottom:4px}
 .overview textarea{font:inherit;font-size:16px;width:100%;min-height:70px;max-height:140px;resize:none;background:#182638;color:white;border:1px solid #52677d;border-radius:8px;padding:8px;box-sizing:border-box}
+.button-sensitivity{display:grid;gap:4px;margin-top:8px}.button-sensitivity .sensitivity-range{display:flex;align-items:center;gap:8px}.button-sensitivity input[type=range]{flex:1;padding:0;accent-color:#5bb5a6}.button-sensitivity output{min-width:3.5em;text-align:right}.button-sensitivity input:disabled{opacity:.4}
 #formError,#gridError{font-size:12px;color:#f7c57d;white-space:normal}
 #density:empty{display:none}#density{font-size:11px}.empty{background:transparent;border:1px dashed #41546a;color:#7890a5}
 .drag-source{opacity:.4}.drop-target{outline:3px solid #8be4d4;outline-offset:-3px}

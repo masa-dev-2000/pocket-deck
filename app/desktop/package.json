@@ -2,7 +2,7 @@
   "name": "pocket-deck-desktop",
   "productName": "Pocket Deck",
   "desktopName": "pocket-deck-desktop.desktop",
-  "version": "1.2.1",
+  "version": "1.2.2",
   "private": true,
   "description": "Pocket Deck desktop companion for Windows, Ubuntu and macOS",
   "main": "main.cjs",

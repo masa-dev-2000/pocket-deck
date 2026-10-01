@@ -10,7 +10,7 @@ npm更新時も新しい版が入ればPCアプリを導入します。同じ版
 
 1.1.0以降はUbuntu x64にも対応します。通常ユーザーの`npm install -g --prefix "$HOME/.local" --foreground-scripts @masadev/pocket-deck`から検証済みdebを取得し、OSの管理者認証後に導入・起動します。npm全体をsudoで実行しません。`release.json`の`linux`にdebの版・URL・SHA-256・bytesを固定し、Windowsの配布情報を維持します。Ubuntu本体の削除は`sudo apt remove pocket-deck-desktop`です。
 
-公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.1は`npm publish --access public`で`latest`として公開します。
+公開するのは `bin/`、`release.json`、`package.json`、README、MITライセンスです。テスト、Git履歴、個人設定、トークン、PCアプリ本体はnpmへ送りません。`files`の許可リストで配布対象を固定します。1.2.2は`npm publish --access public`で`latest`として公開します。
 
 ## 1. ログインを確認する
 

@@ -1,9 +1,12 @@
 const assert=require('node:assert/strict');
-const {inputAllowed,inputRequirements,sensitivityValues}=require('./input-policy.js');
+const {inputAllowed,inputRequirements,sensitivityValues,effectiveSensitivity}=require('./input-policy.js');
 const Pad=require('./pad.js'),Wheel=Pad.WheelController;
 assert.equal(inputAllowed(null,['keyboard']),false);
 assert.deepEqual(inputRequirements({type:'macro',steps:[{kind:'text'},{kind:'shortcut'}]}),['text','keyboard']);
 assert.deepEqual(sensitivityValues({cursor:Infinity,scroll:.1}),{cursor:1,scroll:1});
+assert.deepEqual(effectiveSensitivity({cursor:1.5,scroll:1.25},{cursor:.25}),{cursor:.25,scroll:1.25});
+assert.deepEqual(effectiveSensitivity({cursor:1.5,scroll:1.25},{scroll:2}),{cursor:1.5,scroll:2});
+assert.deepEqual(effectiveSensitivity({cursor:1.5,scroll:1.25},{cursor:4,scroll:null}),{cursor:1.5,scroll:1.25});
 (async()=>{
  let events=[],id=0,time=0;
  const p=new Pad({send:async data=>events.push(data),owner:()=>String(++id),enabled:()=>true,now:()=>time,sensitivity:()=>({cursor:.25,scroll:2})});

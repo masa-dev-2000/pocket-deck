@@ -26,6 +26,25 @@ def test_app(*args,**kwargs):
     return server.App(*args,**kwargs)
 
 class Features(unittest.TestCase):
+    def test_button_sensitivity_persists_and_validates(self):
+        with tempfile.TemporaryDirectory() as d:
+            app=self.make_app(d)
+            config=copy.deepcopy(app.config)
+            button=config['layouts'][0]['buttons'][0]
+            button.update(type='touchpad',sensitivity={'cursor':.25,'scroll':2.5})
+            app.save(config)
+            self.assertEqual(self.make_app(d).config['layouts'][0]['buttons'][0]['sensitivity'],{'cursor':.25,'scroll':2.5})
+            for invalid in ({'cursor':4},{'scroll':True},{'scroll':float('nan')},{'unknown':1},1,[],{'cursor':'1'}):
+                button['sensitivity']=invalid
+                with self.assertRaisesRegex(ValueError,'操作感'):app.save(config)
+            button.update(type='shortcut',sensitivity={'cursor':1})
+            with self.assertRaisesRegex(ValueError,'操作感'):app.save(config)
+            button.update(type='wheel',sensitivity={'cursor':1})
+            with self.assertRaisesRegex(ValueError,'操作感'):app.save(config)
+            button['sensitivity']={'scroll':.75}
+            config['revision']=app.config['revision']
+            app.save(config)
+
     def test_wheel_inversion_persists_and_rejects_non_boolean(self):
         with tempfile.TemporaryDirectory() as d:
             app=self.make_app(d)

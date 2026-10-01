@@ -8,4 +8,5 @@ function inputRequirements(button) {
 }
 function inputAllowed(status,requirements){return !!status&&requirements.every(key=>status[key]===true);}
 function sensitivityValues(value){return Object.fromEntries(['cursor','scroll'].map(key=>[key,typeof value?.[key]==='number'&&Number.isFinite(value[key])&&value[key]>=.25&&value[key]<=3?value[key]:1]));}
-if(typeof module!=='undefined')module.exports={inputRequirements,inputAllowed,sensitivityValues};
+function effectiveSensitivity(device,button){const result=sensitivityValues(device);for(const key of ['cursor','scroll'])if(typeof button?.[key]==='number'&&Number.isFinite(button[key])&&button[key]>=.25&&button[key]<=3)result[key]=button[key];return result;}
+if(typeof module!=='undefined')module.exports={inputRequirements,inputAllowed,sensitivityValues,effectiveSensitivity};

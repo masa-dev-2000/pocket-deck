@@ -1,6 +1,6 @@
 const assert=require('node:assert/strict');
 global.buttonCells=require('./layout.js').buttonCells;
-const {copyButton,copyLayout,groupedButtons,buttonSteps}=require('./extras.js');
+const {copyButton,copyLayout,groupedButtons,buttonSteps,sameButtonForm}=require('./extras.js');
 const layout={id:'main',name:'Main',columns:4,rows:4,buttons:[{id:'a',label:'A',type:'macro',slot:0,width:2,height:2,appearance:{asset:'image',mode:'both'},steps:[{kind:'text',text:'hello'}]}]};
 const copy=copyButton(layout,layout.buttons[0]);assert.equal(copy.slot,2);assert.notEqual(copy.id,'a');copy.steps[0].text='changed';assert.equal(layout.buttons[0].steps[0].text,'hello');
 const full={...layout,columns:2,rows:2};assert.equal(copyButton(full,layout.buttons[0]),null);
@@ -14,4 +14,8 @@ assert.equal(copyButton(capped,capped.buttons[0]),null);
 const copiedPage=copyLayout(layout);assert.notEqual(copiedPage.buttons[2].items[0].id,'child');assert.equal(copiedPage.buttons[2].items[0].layoutId,copiedPage.id);
 const source={type:'text',text:'hello'};const steps=buttonSteps(source);source.text='new';assert.equal(steps[0].text,'hello');assert.deepEqual(buttonSteps(layout.buttons[0]),[]);
 assert.deepEqual(buttonSteps({type:'text',text:'端末',pasteMode:'terminal'}),[{kind:'text',text:'端末',pasteMode:'terminal'}]);
+const pad={id:'pad',label:'Pad',type:'touchpad',color:'#294b68',width:1,height:1,sensitivity:{cursor:.5}};
+assert(sameButtonForm({...pad,sensitivity:{cursor:.5}},pad));
+assert(!sameButtonForm({...pad,sensitivity:{cursor:1}},pad));
+const padCopy=copyButton(layout,{...pad,slot:14});assert.equal(padCopy.sensitivity.cursor,.5);
 console.log('Copies: independent nested actions, unique IDs, self-navigation, first fitting space and no-space rejection OK');

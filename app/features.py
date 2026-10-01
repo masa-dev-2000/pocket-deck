@@ -80,6 +80,14 @@ def validate_button(b, parse_keys):
             validate_button(item,parse_keys)
     if b['type']=='wheel' and type(b.get('invertY', False)) is not bool:
         raise ValueError('上下反転の設定が不正です')
+    if 'sensitivity' in b:
+        if b['type'] not in ('touchpad','wheel'):
+            raise ValueError('ボタンの操作感が不正です')
+        sensitivity=b['sensitivity']
+        allowed={'scroll'} if b['type']=='wheel' else {'cursor','scroll'}
+        if not isinstance(sensitivity,dict) or not set(sensitivity)<=allowed or any(
+                type(value) not in (int,float) or not .25<=value<=3 for value in sensitivity.values()):
+            raise ValueError('ボタンの操作感が不正です')
     if b['type']=='text' and b.get('pasteMode','standard') not in ('standard','terminal'):
         raise ValueError('文字列の貼り付け先が不正です')
     appearance = b.get('appearance', {})

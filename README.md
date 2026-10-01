@@ -12,6 +12,8 @@ macOS 13以降のApple Silicon／Intel向けは試験版です。正式な署名
 
 **1.2.1**では、WindowsのNum Lock、記号キー、テンキー、主要な特殊キーをショートカットと連続操作に追加しました。Ubuntu・macOSの入力対応は変更していません。
 
+**1.2.2**では、タッチパッドとホイールの感度をボタンごとに設定できるようにしました。未指定の項目は端末共通の操作感を使います。
+
 ## ダウンロードと初回設定
 
 1. [Releases](https://github.com/masa-dev-2000/pocket-deck/releases)から `Pocket-Deck-Setup-<version>.exe` をダウンロードします。ソースコードのZIPはインストーラーではありません。
