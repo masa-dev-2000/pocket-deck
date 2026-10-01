@@ -10,6 +10,8 @@ macOS 13以降のApple Silicon／Intel向けは試験版です。正式な署名
 
 **1.2.0**では、上部タブによる複数配置、キー配列・パッドのページテンプレート、まとめボタン、連続操作の左クリックを追加しました。Windows／Ubuntu x64とmacOS x64／arm64の配布物は[GitHubの通常リリース](https://github.com/masa-dev-2000/pocket-deck/releases/tag/v1.2.0)から取得できます。npmの`latest`タグからも導入できます。
 
+**1.2.1**では、WindowsのNum Lock、記号キー、テンキー、主要な特殊キーをショートカットと連続操作に追加しました。Ubuntu・macOSの入力対応は変更していません。
+
 ## ダウンロードと初回設定
 
 1. [Releases](https://github.com/masa-dev-2000/pocket-deck/releases)から `Pocket-Deck-Setup-<version>.exe` をダウンロードします。ソースコードのZIPはインストーラーではありません。
