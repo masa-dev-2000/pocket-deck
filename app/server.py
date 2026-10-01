@@ -12,7 +12,7 @@ import uuid
 import features
 import input_policy
 from input_backend import get_backend, send_key, send_mouse, send_text
-from input_backend.keys import KEYS, MODIFIERS
+from input_backend.keys import KEYS, MODIFIERS, WINDOWS_ONLY, NO_REPEAT
 import time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -32,6 +32,25 @@ def key_catalog():
               'PAGEUP': ('PageUp', 'ページ 上'), 'PAGEDOWN': ('PageDown', 'ページ 下'),
               'VOLUMEUP': ('VolumeUp', '音量 上げる'), 'VOLUMEDOWN': ('VolumeDown', '音量 下げる'),
               'MUTE': ('Mute', '消音 ミュート'), 'PLAYPAUSE': ('PlayPause', '再生 一時停止')}
+    labels.update({'NUMLOCK':('Num Lock','ナムロック テンキー 数字'), 'CAPSLOCK':('Caps Lock','キャプスロック 大文字'),
+        'SCROLLLOCK':('Scroll Lock','スクロールロック'), 'INSERT':('Insert','インサート 挿入'),
+        'PRINTSCREEN':('Print Screen','プリントスクリーン 画面撮影'), 'PAUSE':('Pause','ポーズ 一時停止'),
+        'APPS':('Menu','アプリケーションメニュー コンテキストメニュー'),
+        'NUMPADENTER':('テンキー Enter','numpad enter keypad エンター'),
+        'NUMPADDECIMAL':('テンキー .','numpad decimal keypad 小数点'),
+        'NUMPADADD':('テンキー +','numpad add plus keypad 加算 プラス'),
+        'NUMPADSUBTRACT':('テンキー −','numpad subtract minus keypad 減算 マイナス'),
+        'NUMPADMULTIPLY':('テンキー ×','numpad multiply keypad 乗算'),
+        'NUMPADDIVIDE':('テンキー ÷','numpad divide keypad 除算'),
+        'OEM_COMMA':(',','comma カンマ 読点'), 'OEM_PERIOD':('.','period dot ピリオド 句点'),
+        'OEM_2':('/ ?','slash スラッシュ 斜線'), 'OEM_MINUS':('- _','minus ハイフン マイナス'),
+        'OEM_PLUS':('= +','equal plus イコール プラス'),
+        'OEM_1':('; :','semicolon colon セミコロン コロン'),
+        'OEM_3':('` ~','backtick tilde バッククォート チルダ'),
+        'OEM_4':('[ {','bracket 左角括弧'), 'OEM_5':('\\ |','backslash yen バックスラッシュ 円記号'),
+        'OEM_6':('] }','bracket 右角括弧'), 'OEM_7':("' \"",'quote apostrophe クォート'),
+        'OEM_8':('OEM 8','jis us 記号'), 'OEM_102':('\\ _','jis ろ バックスラッシュ')})
+    labels.update({f'NUMPAD{i}':(f'テンキー {i}',f'numpad keypad {i} 数字') for i in range(10)})
     if sys.platform=='darwin':
         labels['WIN']=('Cmd','command コマンド ⌘ win')
         labels['ALT']=('Option','option オプション ⌥ alt')
@@ -40,7 +59,7 @@ def key_catalog():
         from input_backend.macos import KEYCODES
         supported=set(KEYCODES)
     return [{'key': key, 'label': labels.get(key, (key, ''))[0],
-             'search': labels.get(key, (key, ''))[1]} for key in KEYS if supported is None or KEYS[key] in supported]
+             'search': labels.get(key, (key, ''))[1]} for key in KEYS if (sys.platform=='win32' or key not in WINDOWS_ONLY) and (supported is None or KEYS[key] in supported)]
 
 def parse_keys(value):
     names = [x.strip().upper() for x in value.split('+')]
@@ -119,7 +138,7 @@ class Keyboard:
                     if not any(key in r[0] for k, r in self.held.items() if k != owner):
                         self.emit(key, False)
                     pressed.append(key)
-                    if key not in MODIFIERS:
+                    if key not in MODIFIERS and key not in NO_REPEAT:
                         self.repeat_key=key; self.repeat_at=time.monotonic()+self.delay
             except Exception:
                 self.release(owner)

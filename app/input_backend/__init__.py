@@ -39,6 +39,10 @@ def get_backend():
         if _backend is None: _backend = create_backend()
         return _backend
 
-def send_key(key, up): return get_backend().send_key(key, up)
+def send_key(key, up):
+    from .keys import WINDOWS_ONLY
+    if sys.platform != 'win32' and key in WINDOWS_ONLY:
+        raise RuntimeError(f'{key} はWindows専用キーです。このOSでは実行できません。')
+    return get_backend().send_key(key, up)
 def send_mouse(kind, dx=0, dy=0): return get_backend().send_mouse(kind, dx, dy)
 def send_text(text,paste_mode='standard'): return get_backend().send_text(text,paste_mode=paste_mode)

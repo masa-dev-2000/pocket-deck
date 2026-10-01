@@ -13,7 +13,7 @@ class InputBackends(unittest.TestCase):
         with patch.object(windows,'send_key') as emit:
             backend=WindowsInput()
             backend.send_key('SUPER',False);backend.send_key('F13',True)
-            self.assertEqual([c.args for c in emit.call_args_list],[(0x5b,False),(0x7c,True)])
+            self.assertEqual([c.args for c in emit.call_args_list],[(0x5b,False,True),(0x7c,True,False)])
 
     def test_unknown_platform_reports_failure_instead_of_silent_success(self):
         backend=create_backend('test-os')

@@ -184,10 +184,11 @@ class Tests(unittest.TestCase):
                 with urlopen(base+'/api/keys') as r:
                     catalog = json.load(r)
                 expected=set(server.KEYS)
+                if server.sys.platform!='win32':expected-=server.WINDOWS_ONLY
                 if server.sys.platform=='darwin':expected-= {'F21','F22','F23','F24','VOLUMEUP','VOLUMEDOWN','MUTE','PLAYPAUSE'}
                 self.assertEqual({k['key'] for k in catalog},expected)
                 for k in catalog:
-                    server.parse_keys(k['label'])
+                    server.parse_keys(k['key'])
                 for path, script in [('/', 'operator.js'), ('/editor', 'editor.js'), ('/connect', 'connect.js')]:
                     with urlopen(base+path) as r:
                         html = r.read().decode('utf-8')

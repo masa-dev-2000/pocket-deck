@@ -9,7 +9,7 @@ function filterKeyCatalog(catalog, query) {
 }
 function displayKey(key) { return keyCatalog?.find(k=>k.key===key)?.label || key; }
 function updateKeySummary() {
-  $('keysSummary').textContent = $('keys').value || 'キーを選択 ▾';
+  $('keysSummary').textContent = $('keys').value.split('+').filter(Boolean).map(displayKey).join(' + ') || 'キーを選択 ▾';
   $('keysSummary').title = $('keys').value;
 }
 function renderKeyPicker() {
@@ -42,13 +42,13 @@ function renderKeyPicker() {
 }
 async function openKeyPicker(value=$('keys').value,callback=null,single=false) {
   pickerCallback=callback;pickerSingle=single;
-  pickerKeys=[...new Set(value.split('+').map(k=>k.trim().toUpperCase()).filter(Boolean))];
+  pickerKeys=[...new Set(value.split('+').map(k=>k.trim().toUpperCase()).map(k=>({'CMD':'WIN','COMMAND':'WIN','OPTION':'ALT'})[k]||k).filter(Boolean))];
   $('keyOptions').scrollTop=0; $('keySearch').value=''; document.activeElement?.blur();
   $('keyPicker').showModal(); pickerLoading=!keyCatalog; renderKeyPicker();
   if (!keyCatalog) {
     try { keyCatalog=await api('keys'); }
     catch(e) { message(e.message+' キー選択を開き直してください。'); }
-    finally { pickerLoading=false; renderKeyPicker(); }
+    finally { pickerLoading=false; updateKeySummary(); renderKeyPicker(); }
   }
 }
 $('keysSummary').onclick=()=>openKeyPicker();
@@ -70,6 +70,6 @@ $('keyDone').onclick=()=>{
   const modifiers=['CTRL','SHIFT','ALT','WIN'];
   const ordered=[...modifiers.filter(k=>pickerKeys.includes(k)),...pickerKeys.filter(k=>!modifiers.includes(k))];
   if(pickerCallback){const done=pickerCallback;pickerCallback=null;$('keyPicker').close();done(ordered.join('+'));return;}
-  $('keys').value=ordered.map(displayKey).join('+');
+  $('keys').value=ordered.join('+');
   updateKeySummary();$('keyPicker').close();$('keys').dispatchEvent(new Event('change',{bubbles:true}));
 };
