@@ -59,8 +59,8 @@ def validate_steps(steps, parse_keys):
 def validate_button(b, parse_keys):
     if b['type']=='group':
         items=b.get('items')
-        if not isinstance(items,list) or not 1<=len(items)<=200:
-            raise ValueError('まとめボタンの候補は1〜200個です')
+        if not isinstance(items,list) or len(items)>200:
+            raise ValueError('まとめボタンの候補は0〜200個です')
         for item in items:
             if not isinstance(item,dict) or item.get('type') not in ('shortcut','text','macro','profile','navigate'):
                 raise ValueError('まとめボタンに入れられない操作です')

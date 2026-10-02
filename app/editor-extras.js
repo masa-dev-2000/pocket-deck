@@ -42,7 +42,6 @@ function validateExtraForm(b){
  else if(b.type==='profile'&&!b.profileId)error='Chromeプロフィールを選択してください';
  else if(b.type==='navigate'&&b.target!=='layout')error='移動先を選択してください';
  else if(b.type==='navigate'&&!b.layoutId)error='移動先の配置を選択してください';
- else if(b.type==='group'&&!b.items?.length)error='候補を1つ以上入れてください';
  else if(b.type==='macro'){
   if(!b.steps.length||b.steps.length>50)error='連続操作は1〜50手順です';
   const held=new Set();
@@ -90,21 +89,22 @@ $('duplicate').onclick=()=>{
 
 $('groupOpen').onclick=()=>{
  if(!applyForm())return;
- const id=current,dialog=make('dialog','','sheet group-manager'),head=make('div','','sheet-head'),body=make('div','','choice-list'),close=make('button','戻る');
- head.append(make('h2','候補を管理'),close);dialog.append(head,body);
+ const id=current,dialog=make('dialog','','sheet group-manager'),head=make('div','','sheet-head'),body=make('div','','choice-list'),add=make('button','＋ 候補を追加'),close=make('button','戻る');
+ head.append(make('h2','候補を管理'),close);dialog.append(head,body,add);
  const done=()=>{dialog.close();dialog.remove();const group=currentLayout().buttons.find(b=>b.id===id);if(group)openButton(group,group.slot);};
  close.onclick=done;dialog.oncancel=e=>{e.preventDefault();done();};
+ add.type='button';add.onclick=()=>{const group=currentLayout().buttons.find(b=>b.id===id);if(allButtons(currentLayout()).length>=200){message('ボタンと候補は合わせて200個までです');return;}dialog.close();dialog.remove();openButton(null,group.slot,group.id);};
  const commit=()=>{groupItems=structuredClone(currentLayout().buttons.find(b=>b.id===id).items);persist();store.flush();};
  const draw=()=>{
   body.replaceChildren();const group=currentLayout().buttons.find(b=>b.id===id);if(!group)return;
+  if(!group.items.length)body.append(make('p','候補はまだありません。「＋ 候補を追加」から登録できます。'));
   group.items.forEach((item,index)=>{
    const row=make('div','','layout-item');row.append(make('span',item.label));const actions=make('div','','inline-actions');
    for(const [label,fn] of [['編集',()=>{dialog.close();dialog.remove();openButton(item,group.slot,group.id);}],['↑',()=>{if(index){[group.items[index-1],group.items[index]]=[group.items[index],group.items[index-1]];commit();draw();}}],['↓',()=>{if(index<group.items.length-1){[group.items[index+1],group.items[index]]=[group.items[index],group.items[index+1]];commit();draw();}}],['取り出す',()=>{
-    const used=new Set(group.items.length===1?currentLayout().buttons.filter(b=>b.id!==group.id).flatMap(b=>buttonCells(currentLayout(),b)||[]):currentLayout().buttons.flatMap(b=>buttonCells(currentLayout(),b)||[]));
-    let slot=group.items.length===1?group.slot:0;while(used.has(slot))slot++;
+    const used=new Set(currentLayout().buttons.flatMap(b=>buttonCells(currentLayout(),b)||[]));
+    let slot=0;while(used.has(slot))slot++;
     if(slot>=currentLayout().columns*currentLayout().rows){message('空き枠がありません。行・列を増やしてください');return;}
     group.items.splice(index,1);currentLayout().buttons.push({...structuredClone(item),slot,width:1,height:1});
-    if(!group.items.length){currentLayout().buttons=currentLayout().buttons.filter(b=>b.id!==group.id);dialog.close();dialog.remove();view('layoutView');render();persist();store.flush();return;}
     commit();draw();
    }]]){const button=make('button',label);button.onclick=fn;actions.append(button);}row.append(actions);body.append(row);
   });
