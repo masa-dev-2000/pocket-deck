@@ -26,6 +26,22 @@ def test_app(*args,**kwargs):
     return server.App(*args,**kwargs)
 
 class Features(unittest.TestCase):
+    def test_empty_group_can_be_saved_and_filled_later(self):
+        with tempfile.TemporaryDirectory() as d:
+            app=self.make_app(d);config=copy.deepcopy(app.config);layout=config['layouts'][0]
+            layout['buttons']=[b for b in layout['buttons'] if b['slot']!=0]
+            group=dict(id='empty-group',label='まとめ',type='group',slot=0,width=1,height=1,color='#294b68',items=[])
+            layout['buttons'].append(group)
+            app.save(config)
+            self.assertEqual(app.config['layouts'][0]['buttons'][-1]['items'],[])
+            filled=copy.deepcopy(app.config)
+            filled['layouts'][0]['buttons'][-1]['items']=[dict(id='group-child',label='A',type='shortcut',keys='A',color='#294b68')]
+            app.save(filled)
+            self.assertEqual(len(app.config['layouts'][0]['buttons'][-1]['items']),1)
+            emptied=copy.deepcopy(app.config);emptied['layouts'][0]['buttons'][-1]['items']=[]
+            app.save(emptied)
+            self.assertEqual(app.config['layouts'][0]['buttons'][-1]['items'],[])
+
     def test_button_sensitivity_persists_and_validates(self):
         with tempfile.TemporaryDirectory() as d:
             app=self.make_app(d)

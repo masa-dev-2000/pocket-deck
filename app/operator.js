@@ -69,6 +69,7 @@ function openGroup(group,anchor){
  closeGroup();
  const panel=document.createElement('div');panel.className='group-popup';panel.setAttribute('role','menu');
  const heading=document.createElement('strong');heading.textContent=group.label;panel.append(heading);
+ if(!group.items.length){const empty=document.createElement('span');empty.textContent='候補はまだありません';panel.append(empty);}
  for(const item of group.items){
   const choice=document.createElement('button');choice.type='button';choice.className='group-choice';choice.textContent=item.label;
   choice.setAttribute('role','menuitem');choice.disabled=!inputAllowed(inputCapabilities,inputRequirements(item));
