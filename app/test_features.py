@@ -26,6 +26,21 @@ def test_app(*args,**kwargs):
     return server.App(*args,**kwargs)
 
 class Features(unittest.TestCase):
+    def test_local_actions_catalog_only_exposes_display_fields(self):
+        from types import SimpleNamespace
+        with tempfile.TemporaryDirectory() as d:
+            app=self.make_app(d);replies=[]
+            handler=SimpleNamespace(path='/api/local-actions',reply=lambda *args:replies.append(args))
+            features.handle_get(handler,app)
+            self.assertEqual(replies[-1],(200,[]))
+            file=Path(d)/'local-actions.json'
+            file.write_text(json.dumps([dict(label='Screenshot',keys='F14',description='Copy',path='private',command='secret')]),encoding='utf-8-sig')
+            features.handle_get(handler,app)
+            self.assertEqual(replies[-1],(200,[dict(label='Screenshot',keys='F14',description='Copy')]))
+            file.write_text('{broken',encoding='utf-8')
+            features.handle_get(handler,app)
+            self.assertEqual(replies[-1],(200,[]))
+
     def test_empty_group_can_be_saved_and_filled_later(self):
         with tempfile.TemporaryDirectory() as d:
             app=self.make_app(d);config=copy.deepcopy(app.config);layout=config['layouts'][0]

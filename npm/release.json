@@ -1,30 +1,30 @@
 {
-  "version": "1.2.2",
-  "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.2/Pocket-Deck-Setup-1.2.2.exe",
-  "sha256": "1da693adfab3b0ec6ef059ad10cbbcf2c07bc551624ab9526d5e95b8a774e156",
-  "bytes": 124899294,
-  "filename": "Pocket-Deck-Setup-1.2.2.exe",
+  "version": "1.2.3",
+  "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.3/Pocket-Deck-Setup-1.2.3.exe",
+  "sha256": "737a07d8faabb4cd626758d20361cbebbda07db54d9f430853b5d64e032dc7fa",
+  "bytes": 125218972,
+  "filename": "Pocket-Deck-Setup-1.2.3.exe",
   "linux": {
-    "version": "1.2.2",
-    "filename": "Pocket-Deck-1.2.2-amd64.deb",
-    "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.2/Pocket-Deck-1.2.2-amd64.deb",
-    "sha256": "bae4ed8d1e57f6987a333893d0917ff01a8862433d5bbfa06d2950f5fb23569f",
-    "bytes": 120573412
+    "version": "1.2.3",
+    "filename": "Pocket-Deck-1.2.3-amd64.deb",
+    "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.3/Pocket-Deck-1.2.3-amd64.deb",
+    "sha256": "7f2fb2a0c71787bb7b7a4e56369b6f4cf7cc17bd81e1d48ddf5ab78d8e896e15",
+    "bytes": 120583724
   },
   "macos": {
     "arm64": {
-      "version": "1.2.2",
-      "filename": "Pocket-Deck-1.2.2-arm64.zip",
-      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.2/Pocket-Deck-1.2.2-arm64.zip",
-      "sha256": "4c15c1026abf4c65c09c87fa109a5ae8e50f098e306fdcc88bdb2da09b7ead41",
-      "bytes": 144090771
+      "version": "1.2.3",
+      "filename": "Pocket-Deck-1.2.3-arm64.zip",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.3/Pocket-Deck-1.2.3-arm64.zip",
+      "sha256": "aab92227fe4c033a95cf9138aa7cc10b875ebfc5f8e400f408e0a5daf354818f",
+      "bytes": 144091871
     },
     "x64": {
-      "version": "1.2.2",
-      "filename": "Pocket-Deck-1.2.2-x64.zip",
-      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.2/Pocket-Deck-1.2.2-x64.zip",
-      "sha256": "4a288876f4fb5940459ebd0304b893edd9b856380bdc38710643096bd41d3585",
-      "bytes": 151490490
+      "version": "1.2.3",
+      "filename": "Pocket-Deck-1.2.3-x64.zip",
+      "url": "https://github.com/masa-dev-2000/pocket-deck/releases/download/v1.2.3/Pocket-Deck-1.2.3-x64.zip",
+      "sha256": "092e1c945bfa91ab744d13fb6e1bb2dfbde9936fb6d080ead59003e83b3d7775",
+      "bytes": 151491604
     }
   }
 }
