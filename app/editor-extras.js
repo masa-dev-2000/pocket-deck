@@ -89,7 +89,11 @@ $('duplicate').onclick=()=>{
 
 $('groupOpen').onclick=()=>{
  if(!applyForm())return;
- const id=current,dialog=make('dialog','','sheet group-manager'),head=make('div','','sheet-head'),body=make('div','','choice-list'),add=make('button','＋ 候補を追加'),close=make('button','戻る');
+ openGroupManager(current);
+};
+function openGroupManager(id){
+ const dialog=make('dialog','','sheet group-manager'),head=make('div','','sheet-head'),body=make('div','','choice-list'),add=make('button','＋ 候補を追加'),close=make('button','ボタン設定へ戻る');
+ dialog.setAttribute('aria-label','まとめボタンの候補一覧');
  head.append(make('h2','候補を管理'),close);dialog.append(head,body,add);
  const done=()=>{dialog.close();dialog.remove();const group=currentLayout().buttons.find(b=>b.id===id);if(group)openButton(group,group.slot);};
  close.onclick=done;dialog.oncancel=e=>{e.preventDefault();done();};
@@ -110,9 +114,22 @@ $('groupOpen').onclick=()=>{
   });
  };
  draw();document.body.append(dialog);dialog.showModal();
-};
+}
 
 const stepLabels={shortcut:'ショートカット',text:'文字列',click:'左クリック',wait:'待ち時間',press:'キーを押す',release:'キーを離す',profile:'Chromeへ移動'};
+const localActionsButton=make('button','PCの便利操作');localActionsButton.type='button';
+$('menuDialog').querySelector('nav').append(localActionsButton);
+localActionsButton.onclick=async()=>{
+ try{
+  const entries=await api('local-actions');$('menuDialog').close();
+  const dialog=make('dialog','','sheet'),head=make('div','','sheet-head'),close=make('button','閉じる');
+  head.append(make('h2','PCの便利操作'),close);dialog.append(head);
+  dialog.append(make('p','PCに登録した操作の一覧です。ボタンのキー選択で同じキーを指定すると、スマホからも呼び出せます。'));
+  if(!entries.length)dialog.append(make('p','登録されている操作はありません。'));
+  for(const entry of entries){const row=make('section');row.append(make('h3',entry.label+' · '+entry.keys),make('p',entry.description));dialog.append(row);}
+  const done=()=>{dialog.close();dialog.remove();};close.onclick=done;dialog.oncancel=e=>{e.preventDefault();done();};document.body.append(dialog);dialog.showModal();
+ }catch(e){message(e.message);}
+};
 function stepValue(s){if(s.kind==='click')return '現在のカーソル位置';if(s.kind==='wait')return Number.isFinite(s.ms)?(s.ms/1000)+'秒':'時間を入力';if(s.kind==='text')return s.text||'文字列を入力';if(s.kind==='profile')return profiles.find(p=>p.id===s.profileId)?.name||'プロフィールを選択';return s.keys||s.key||'キーを選択';}
 function stepSummary(s){return stepLabels[s.kind]+'：'+stepValue(s);}
 function saveSteps(){persist();applyForm();syncMacroState();}
@@ -128,7 +145,7 @@ macroWide.addEventListener('change',()=>{if($('macroEditor').open){document.acti
 function openMacroEditor(){$('macroName').value=$('label').value;renderSteps();syncMacroState();$('macroEditor').showModal();}
 $('macroOpen').onclick=openMacroEditor;
 $('macroSettings').onclick=()=>{document.activeElement?.blur();saveSteps();$('macroEditor').close();};
-function closeMacroEditor(){document.activeElement?.blur();saveSteps();$('macroEditor').close();view('layoutView');render();}
+function closeMacroEditor(){document.activeElement?.blur();saveSteps();$('macroEditor').close();$('cancel').click();}
 $('macroBack').onclick=closeMacroEditor;
 $('macroEditor').oncancel=e=>{e.preventDefault();closeMacroEditor();};
 for(const event of ['input','compositionstart','compositionend','blur'])$('macroName').addEventListener(event,()=>{

@@ -51,6 +51,8 @@ function openButton(b,index,groupId=null){
  groupContext=groupId;
  if(!b&&!groupId&&allButtons(currentLayout()).length>=200){message('ボタンと候補は合わせて200個までです');return;}
  current=b?.id||('b-'+Date.now().toString(36)+'-'+Math.random().toString(36).slice(2));slot=index;
+ $('cancel').textContent=groupId?'候補一覧へ戻る':'戻る';
+ $('macroBack').textContent=groupId?'候補一覧へ戻る':'配置へ戻る';
  $('label').value=b?.label||'';$('type').value=b?.type||'shortcut';$('type').disabled=b?.type==='group';for(const option of $('type').options)option.disabled=groupId?['touchpad','wheel','click','group'].includes(option.value):option.value==='click'&&b?.type!=='click';$('keys').value=b?.keys||'';$('text').value=b?.text||'';$('color').value=b?.color||'#294b68';
  for(const [id,max] of [['width',currentLayout().columns],['height',currentLayout().rows]]){$(id).replaceChildren();for(let i=1;i<=max;i++){const o=document.createElement('option');o.value=i;o.textContent=i;$(id).append(o);}$(id).value=b?.[id]||1;}$('target').value=b?.target||'layout';
  openExtras(b);
@@ -87,7 +89,7 @@ for(const id of ['label','text']){
 $('type').addEventListener('change',()=>{if($('type').value==='group'&&!$('label').value.trim())$('label').value='まとめ';previewAppearance();});
 for(const id of ['type','keys','color','width','height','target','invertY'])$(id).addEventListener('change',()=>{showFields();applyForm();});
 function leaveButtonEditor(){
- if(groupContext){const group=currentLayout().buttons.find(b=>b.id===groupContext);if(group){openButton(group,group.slot);return;}}
+ if(groupContext){const group=currentLayout().buttons.find(b=>b.id===groupContext);if(group){openButton(group,group.slot);openGroupManager(group.id);return;}}
  view('layoutView');render();
 }
 $('saveButton').onclick=async()=>{

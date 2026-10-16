@@ -295,6 +295,15 @@ def handle_get(handler, app):
         handler.reply(200,app.web_assets[path[1:]],'text/javascript; charset=utf-8')
     elif path == '/api/sequence': handler.reply(200,app.features.status())
     elif path == '/api/profiles': handler.reply(200,app.features.profile_list())
+    elif path == '/api/local-actions':
+        file = app.path.parent / 'local-actions.json'
+        try:
+            entries = json.loads(file.read_text(encoding='utf-8-sig')) if file.exists() else []
+            result = [{key: str(item.get(key, ''))[:500] for key in ('label', 'keys', 'description')}
+                      for item in entries[:100] if isinstance(item, dict)] if isinstance(entries, list) else []
+        except (OSError, ValueError):
+            result = []
+        handler.reply(200, result)
     elif re.fullmatch(r'/assets/[a-f0-9]{64}\.png',path):
         file = app.path.parent/path[1:]
         if file.exists(): handler.reply(200,file.read_bytes(),'image/png')
