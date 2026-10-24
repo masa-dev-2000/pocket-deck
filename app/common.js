@@ -1,11 +1,20 @@
 const $ = id => document.getElementById(id);
+// The QR URL carries the token in its fragment; the PC app reads it from the loopback-only /api/token.
+let deckToken = new URLSearchParams(location.hash.slice(1)).get('token');
+if (deckToken) { try { localStorage.setItem('pocket-deck-token', deckToken); } catch {} history.replaceState(null, '', location.pathname + location.search); }
+else { try { deckToken = localStorage.getItem('pocket-deck-token'); } catch {} }
+async function deckAuthToken() {
+  if (!deckToken) { try { const r = await fetch('/api/token'); if (r.ok) deckToken = (await r.json()).token; } catch {} }
+  return deckToken || '';
+}
 async function api(path, data, options = {}) {
+  const token = data ? await deckAuthToken() : '';
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), options.timeout || 3000);
   try {
     const response = await fetch('/api/' + path, {
       signal: controller.signal, ...options,
-      ...(data ? {method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(data)} : {})
+      ...(data ? {method: 'POST', headers: {'Content-Type': 'application/json', 'X-Pocket-Deck-Token': token}, body: JSON.stringify(data)} : {})
     });
     const result = await response.json();
     if (!response.ok) { const error = Error(result.error || '操作に失敗しました'); error.status=response.status; throw error; }

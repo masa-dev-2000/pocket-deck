@@ -175,11 +175,11 @@ class Tests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as d:
             events=[]
             app=test_app(Path(d)/'config.json',server.Keyboard(lambda key,up:events.append((key,up))))
-            http=ThreadingHTTPServer(('127.0.0.1',0),server.handler(app))
+            http=ThreadingHTTPServer(('127.0.0.1',0),server.handler(app,'test-token'))
             threading.Thread(target=http.serve_forever,daemon=True).start()
             base=f'http://127.0.0.1:{http.server_port}'
             def post(path,data):
-                return urlopen(Request(base+path,json.dumps(data).encode(),{'Content-Type':'application/json'}))
+                return urlopen(Request(base+path,json.dumps(data).encode(),{'Content-Type':'application/json','X-Pocket-Deck-Token':'test-token'}))
             try:
                 with urlopen(base+'/api/keys') as r:
                     catalog = json.load(r)
@@ -210,6 +210,34 @@ class Tests(unittest.TestCase):
                 with self.assertRaises((HTTPError,ValueError)):post('/api/config',server.migrate(config))
                 self.assertEqual(app.config['layouts'][0]['buttons'][0]['keys'],'Win+Z' if server.sys.platform=='darwin' else 'Ctrl+Z')
                 with self.assertRaises(HTTPError):post('/api/action',{'action':'tap','id':'missing','owner':'missing'})
+            finally:
+                http.shutdown();http.server_close()
+
+    def test_http_token_required(self):
+        with tempfile.TemporaryDirectory() as d:
+            events=[]
+            app=test_app(Path(d)/'config.json',server.Keyboard(lambda key,up:events.append((key,up))))
+            http=ThreadingHTTPServer(('127.0.0.1',0),server.handler(app,'secret-value'))
+            threading.Thread(target=http.serve_forever,daemon=True).start()
+            base=f'http://127.0.0.1:{http.server_port}'
+            body=json.dumps({'action':'tap','id':'0','owner':'test'}).encode()
+            try:
+                for headers in ({},{'X-Pocket-Deck-Token':'wrong'}):
+                    with self.assertRaises(HTTPError) as caught:
+                        urlopen(Request(base+'/api/action',body,{'Content-Type':'application/json',**headers}))
+                    self.assertEqual(caught.exception.code,401)
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(Request(base+'/api/config',json.dumps(app.config).encode(),{'Content-Type':'application/json'}))
+                self.assertEqual(caught.exception.code,401)
+                self.assertEqual(events,[])
+                with urlopen(base+'/api/token') as r:token=json.load(r)['token']
+                with urlopen(base+'/api/connect') as r:self.assertTrue(json.load(r)['url'].endswith('#token='+token))
+                with self.assertRaises(HTTPError) as caught:
+                    urlopen(Request(base+'/api/token',headers={'Host':'evil.example'}))
+                self.assertEqual(caught.exception.code,403)
+                with urlopen(Request(base+'/api/action',body,{'Content-Type':'application/json','X-Pocket-Deck-Token':token})) as r:
+                    self.assertEqual(r.status,200)
+                self.assertTrue(events)
             finally:
                 http.shutdown();http.server_close()
 
