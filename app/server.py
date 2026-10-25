@@ -1,6 +1,8 @@
 """Pocket Deck shared configuration, HTTP and input lifecycle."""
 import argparse
+import hmac
 import json
+import secrets
 import os
 import copy
 import shutil
@@ -393,8 +395,20 @@ class App:
                 self.keyboard.press(owner,parse_keys(b['keys']))
                 if kind=='tap':self.keyboard.release(owner)
 
-def handler(app):
+LOOPBACK=('127.0.0.1','::1')
+
+def handler(app, token=None):
+    # Settings and input APIs require this token; phones receive it in the QR URL fragment.
+    token = token or os.environ.get('POCKET_DECK_TOKEN') or secrets.token_urlsafe(32)
     class Handler(BaseHTTPRequestHandler):
+        def local(self):
+            # Host check blocks DNS rebinding from reading loopback-only responses.
+            host = self.headers.get('Host', '').rsplit(':', 1)[0]
+            return self.client_address[0] in LOOPBACK and host in ('127.0.0.1', 'localhost', '[::1]')
+
+        def authorized(self):
+            return hmac.compare_digest(self.headers.get('X-Pocket-Deck-Token', '').encode(), token.encode())
+
         def connect_url(self):
             address = self.connection.getsockname()[0]
             if app.connection_network:
@@ -409,7 +423,7 @@ def handler(app):
                     except OSError:
                         try:address = socket.gethostbyname(socket.gethostname())
                         except OSError:address = '127.0.0.1'
-            return f'http://{address}:{self.server.server_port}/'
+            return f'http://{address}:{self.server.server_port}/#token={token}'
 
         def log_message(self, *args):
             pass
@@ -455,6 +469,10 @@ def handler(app):
                 if self.client_address[0]!='127.0.0.1':self.reply(403,{'error':'接続診断はPCアプリから行ってください。'});return
                 import firewall
                 result=firewall.diagnostic();result['selected']=app.connection_network;self.reply(200,result)
+            elif self.path in ('/api/connect', '/connect.svg', '/api/token') and not self.local():
+                self.reply(403, {'error':'接続情報はPCアプリから表示してください。'})
+            elif self.path == '/api/token':
+                self.reply(200, {'token': token})
             elif self.path == '/api/connect':
                 self.reply(200, {'url': self.connect_url()})
             elif self.path == '/connect.svg':
@@ -471,6 +489,9 @@ def handler(app):
                 origin = self.headers.get('Origin')
                 if origin and origin != 'http://' + self.headers.get('Host', ''):
                     self.reply(403, {'error':'接続元が異なります'})
+                    return
+                if self.path != '/api/bridge' and not self.authorized():
+                    self.reply(401, {'error':'認証が必要です。PCアプリのQRから開き直してください。'})
                     return
                 data = json.loads(self.rfile.read(length))
                 if not isinstance(data, dict):
@@ -510,7 +531,8 @@ def handler(app):
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('--port', type=int, default=8765)
-    parser.add_argument('--host', default='0.0.0.0')
+    # Loopback by default; LAN use (phone pairing) must opt in via --host or POCKET_DECK_HOST.
+    parser.add_argument('--host', default=os.environ.get('POCKET_DECK_HOST', '127.0.0.1'))
     parser.add_argument('--data-dir', type=Path, default=ROOT)
     parser.add_argument('--managed-stdio', action='store_true')
     parser.add_argument('--chrome-host', action='store_true')
@@ -574,12 +596,9 @@ def main():
             except Exception:
                 pass
     threading.Thread(target=watchdog, daemon=True).start()
-    try:addresses = set(socket.gethostbyname_ex(socket.gethostname())[2])
-    except OSError:addresses = set()  # an unresolved Mac host name must not stop the server
-    print('Pocket Deck is running. Open on your phone:', flush=True)
-    for address in sorted(addresses):
-        print(f'  http://{address}:{args.port}', flush=True)
-    print('Stop: Ctrl+C. Local network prototype; no authentication or encryption.', flush=True)
+    print(f'Pocket Deck is running on {args.host}:{args.port}. Show the phone QR from http://127.0.0.1:{args.port}/connect', flush=True)
+    if args.host in ('127.0.0.1', 'localhost', '::1'):print('Phones cannot connect: start with --host 0.0.0.0 or POCKET_DECK_HOST to allow LAN access.', flush=True)
+    print('Stop: Ctrl+C. Local network prototype; token-protected, no encryption.', flush=True)
     try:
         server.serve_forever()
     except KeyboardInterrupt:

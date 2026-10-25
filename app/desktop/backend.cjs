@@ -2,8 +2,11 @@ const {spawn}=require('node:child_process');
 const fs=require('node:fs');
 const path=require('node:path');
 const BASE='http://127.0.0.1:8765';
-async function request(route,body){
- const response=await fetch(BASE+route,{signal:AbortSignal.timeout(1800),...(body?{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)}:{})});
+let token='';
+async function request(route,body,retry=true){
+ if(body&&!token)token=(await request('/api/token')).token;
+ const response=await fetch(BASE+route,{signal:AbortSignal.timeout(1800),...(body?{method:'POST',headers:{'Content-Type':'application/json','X-Pocket-Deck-Token':token},body:JSON.stringify(body)}:{})});
+ if(response.status===401&&retry){token='';return request(route,body,false);}
  if(!response.ok)throw new Error(`通信エラー (${response.status})`);return response.json();
 }
 function isConfig(c){return c?.version===5&&Array.isArray(c.layouts)&&c.layouts.every(l=>Array.isArray(l.buttons));}
@@ -19,7 +22,7 @@ class Backend{
   const {executable,dataDir}=this.settings;
   if(!fs.existsSync(executable))throw new Error('接続サーバーが見つかりません。アプリを再インストールしてください。');
   if(!this.child){
-   this.error='';const child=this.launch(executable,['--data-dir',dataDir,'--managed-stdio'],{cwd:path.dirname(executable),windowsHide:true,stdio:['pipe','pipe','pipe']});this.child=child;
+   this.error='';const child=this.launch(executable,['--data-dir',dataDir,'--managed-stdio','--host','0.0.0.0'],{cwd:path.dirname(executable),windowsHide:true,stdio:['pipe','pipe','pipe']});this.child=child;
    child.stderr.on('data',b=>{this.error=(this.error+b.toString()).slice(-3000);});let output='';child.stdout.setEncoding('utf8');child.stdin.on('error',()=>{});
    child.stdout.on('data',chunk=>{output+=chunk.toString();if(output.length>65536){output='';return;}let newline;while((newline=output.indexOf('\n'))>=0){const line=output.slice(0,newline);output=output.slice(newline+1);void this.desktopMessage(child,line);}});
    child.on('error',e=>{this.error=e.message;});child.on('exit',()=>{if(this.child===child)this.child=null;});
