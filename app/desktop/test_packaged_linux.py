@@ -14,12 +14,13 @@ from urllib.request import Request, urlopen
 class PackagedLinux(unittest.TestCase):
     def test_embedded_python_exclusive_listener_and_saved_config_survive_restart(self):
         executable=Path(os.environ.get('DECK_PACKAGED_EXEC',Path(__file__).parent/'backend-build/PocketDeckServer/PocketDeckServer'))
-        environment={**os.environ,'PATH':'/nonexistent'}
+        token='packaged-test-token'
+        environment={**os.environ,'PATH':'/nonexistent','POCKET_DECK_TOKEN':token}
         for key in ('DISPLAY','WAYLAND_DISPLAY'):environment.pop(key,None)
         self.assertEqual(subprocess.run([executable,'--help'],env=environment,capture_output=True,timeout=10).returncode,0)
         with socket.socket() as probe:probe.bind(('127.0.0.1',0));port=probe.getsockname()[1]
         def request(data=None):
-            req=Request(f'http://127.0.0.1:{port}/api/config',None if data is None else json.dumps(data).encode(),{'Content-Type':'application/json'})
+            req=Request(f'http://127.0.0.1:{port}/api/config',None if data is None else json.dumps(data).encode(),{'Content-Type':'application/json','X-Pocket-Deck-Token':token})
             with urlopen(req,timeout=2) as response:return json.load(response)
         with tempfile.TemporaryDirectory(prefix='deck-packaged-') as directory:
             command=[str(executable),'--host','127.0.0.1','--port',str(port),'--data-dir',directory,'--managed-stdio']
